@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "3EhyR/gElupIVk1im10Z8cXz7mIbYgIwMfOdMrBJ6O4QhDkUppwiMDx3BUn5C0xHESmbi5AqdHXGntnOU6sO7Q==",
+  "success": true,
+  "projectFilePath": "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParser\\SqlParser.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\avh\\.nuget\\packages\\microsoft.netcore.platforms\\1.1.0\\microsoft.netcore.platforms.1.1.0.nupkg.sha512",
+    "C:\\Users\\avh\\.nuget\\packages\\microsoft.sqlserver.management.sqlparser\\150.37051.0\\microsoft.sqlserver.management.sqlparser.150.37051.0.nupkg.sha512",
+    "C:\\Users\\avh\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

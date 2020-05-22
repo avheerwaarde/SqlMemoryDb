@@ -1,0 +1,139 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETCoreApp,Version=v3.1": {
+      "Microsoft.SqlServer.Management.SqlParser/150.37051.0": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlParser.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlParser.dll": {}
+        }
+      },
+      "SqlParser/1.0.0": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
+        "dependencies": {
+          "Microsoft.SqlServer.Management.SqlParser": "150.37051.0"
+        },
+        "compile": {
+          "bin/placeholder/SqlParser.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/SqlParser.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.SqlServer.Management.SqlParser/150.37051.0": {
+      "sha512": "9XC9zFoQ67mZ+8DAdXnxxJUX2q5MW299zwdu3b5A6VrerD5grfj2gmaZpO3S/ox9PV6gqWDtip3z3+tmRipopA==",
+      "type": "package",
+      "path": "microsoft.sqlserver.management.sqlparser/150.37051.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "lib/net462/Microsoft.SqlServer.Management.SqlParser.dll",
+        "lib/net462/Microsoft.SqlServer.Management.SqlParser.pdb",
+        "lib/net462/Microsoft.SqlServer.Management.SqlParser.xml",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlParser.dll",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlParser.pdb",
+        "lib/netstandard2.0/Microsoft.SqlServer.Management.SqlParser.xml",
+        "microsoft.sqlserver.management.sqlparser.150.37051.0.nupkg.sha512",
+        "microsoft.sqlserver.management.sqlparser.nuspec",
+        "nuspecicon.png"
+      ]
+    },
+    "SqlParser/1.0.0": {
+      "type": "project",
+      "path": "../SqlParser/SqlParser.csproj",
+      "msbuildProject": "../SqlParser/SqlParser.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETCoreApp,Version=v3.1": [
+      "Microsoft.SqlServer.Management.SqlParser >= 150.37051.0",
+      "SqlParser >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\avh\\.nuget\\packages\\": {},
+    "C:\\Microsoft\\Xamarin\\NuGet\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParserApp\\SqlParserApp.csproj",
+      "projectName": "SqlParserApp",
+      "projectPath": "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParserApp\\SqlParserApp.csproj",
+      "packagesPath": "C:\\Users\\avh\\.nuget\\packages\\",
+      "outputPath": "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParserApp\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Microsoft\\Xamarin\\NuGet\\",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\avh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "netcoreapp3.1"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "projectReferences": {
+            "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParser\\SqlParser.csproj": {
+              "projectPath": "C:\\Projects\\Personal\\SqlMemoryDb\\SqlParser\\SqlParser.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "netcoreapp3.1": {
+        "dependencies": {
+          "Microsoft.SqlServer.Management.SqlParser": {
+            "target": "Package",
+            "version": "[150.37051.0, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[3.1.2, 3.1.2]"
+          }
+        ],
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.300\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
