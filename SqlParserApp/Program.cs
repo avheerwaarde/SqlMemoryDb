@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data;
+using System.Data.SqlClient;
 using SqlParser;
 
 namespace SqlParserApp
@@ -7,9 +9,18 @@ namespace SqlParserApp
     {
         private const string _InitDb = @"
 CREATE TABLE [dbo].[application_feature](
-	[Id] [int] IDENTITY(1,1) NOT NULL,
-	[name] [nvarchar](50) NOT NULL,
-	[is_active] [bit] NOT NULL DEFAULT(1),
+	[Id] int IDENTITY(1,1) NOT NULL,
+	[bit] [bit] NULL,
+	[char] [char](10) NULL,
+	[varchar] [varchar](10) NULL,
+	[nchar] [nchar](10) NULL,
+	[nvarchar] [nvarchar](10) NULL,
+	[nvarchar_max] [nvarchar](max) NULL,
+	[byte] [tinyint] NULL,
+	[byte_array] [varbinary](50) NULL,
+	[numeric] [numeric](18, 0) NULL,
+	[int] [int] NULL,
+	[bigint] [bigint] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC

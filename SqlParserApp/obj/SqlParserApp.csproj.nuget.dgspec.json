@@ -50,6 +50,10 @@
             "Microsoft.SqlServer.Management.SqlParser": {
               "target": "Package",
               "version": "[150.37051.0, )"
+            },
+            "System.Data.SqlClient": {
+              "target": "Package",
+              "version": "[4.3.0, )"
             }
           },
           "imports": [
