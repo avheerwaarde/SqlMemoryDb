@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace SqlParser.Info
@@ -19,13 +22,56 @@ namespace SqlParser.Info
             var table = new Table( createTable.Name );
             _Info.Tables.Add( table.FullName, table );
             AddColumns( table, createTable.Definition );
+            AddConstraints( table, createTable.Definition );
+        }
+
+        private void AddConstraints( Table table, SqlTableDefinition createTableDefinition )
+        {
+            foreach ( var constraint in createTableDefinition.Constraints )
+            {
+                switch ( constraint.Type )
+                {
+                    case SqlConstraintType.PrimaryKey: AddPrimaryConstraint( table, constraint ); break;
+                    case SqlConstraintType.ForeignKey: AddForeignKeyConstraint( table, (SqlForeignKeyConstraint)constraint ); break;
+                }
+            }
+        }
+
+        private void AddPrimaryConstraint( Table table, SqlConstraint constraint )
+        {
+            foreach ( var child in constraint.Children )
+            {
+                if ( child is SqlIndexedColumn code )
+                {
+                    var column = table.Columns.FirstOrDefault( c => c.Name == code.Name.Value );
+                    if ( column == null )
+                    {
+                        throw new KeyNotFoundException( $"Column with the name [{code.Name.Value}] is not a member of table [{table.FullName}]");
+                    }
+
+                    column.IsPrimaryKey = true;
+                }
+            }
+        }
+
+        private void AddForeignKeyConstraint( Table table, SqlForeignKeyConstraint constraint )
+        {
+            var fk = new ForeignKeyConstraint
+            {
+                Columns = constraint.Columns.Select(  c => c.Value ).ToList(  ),
+                ReferencedTableName = constraint.ReferencedTable.ObjectName.Value,
+                ReferencedColumns = constraint.ReferencedColumns.Select( c => c.Value ).ToList(  ),
+                DeleteAction = constraint.DeleteAction,
+                UpdateAction = constraint.UpdateAction
+            };
+            table.ForeignKeyConstraints.Add( fk );
         }
 
         private void AddColumns( Table table, SqlTableDefinition tableDefinition )
         {
             foreach ( var columnDefinition in tableDefinition.ColumnDefinitions )
             {
-                var column = new Column( columnDefinition.Name.Value, columnDefinition.DataType.DataType );
+                var column = new Column( columnDefinition.Name.Value, columnDefinition.DataType.Sql );
                 foreach ( var constraint in columnDefinition.Constraints )
                 {
                     switch ( constraint.Type )
@@ -72,5 +118,6 @@ namespace SqlParser.Info
                 table.Columns.Add( column );
             }
         }
+
     }
 }
