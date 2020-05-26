@@ -11,7 +11,7 @@ namespace SqlParser
         public Dictionary<string, Table> Tables = new Dictionary<string, Table>();
 
 
-        public void InitializeDb( string sql )
+        public void ExecuteSqlStatement( string sql )
         {
             var result = Parser.Parse( sql );
             if ( result.Errors.Any())
@@ -35,6 +35,5 @@ namespace SqlParser
                 }
             }
         }
-
     }
 }

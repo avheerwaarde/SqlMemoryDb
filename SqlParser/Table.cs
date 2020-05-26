@@ -12,6 +12,7 @@ namespace SqlParser
         public string FullName;
         public readonly List<Column> Columns;
         public readonly List<Column> PrimaryKeys;
+        public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
 
         public Table( SqlObjectIdentifier name )
         {
@@ -20,6 +21,7 @@ namespace SqlParser
             FullName = $"{SchemaName}.{Name}";
             Columns = new List<Column>();
             PrimaryKeys = new List<Column>();
+            ForeignKeyConstraints = new List<ForeignKeyConstraint>();
         }
     }
 }

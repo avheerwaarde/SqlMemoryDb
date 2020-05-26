@@ -32,6 +32,7 @@ namespace SqlParser.Info
                 switch ( constraint.Type )
                 {
                     case SqlConstraintType.PrimaryKey: AddPrimaryConstraint( table, constraint ); break;
+                    case SqlConstraintType.ForeignKey: AddForeignKeyConstraint( table, (SqlForeignKeyConstraint)constraint ); break;
                 }
             }
         }
@@ -51,6 +52,19 @@ namespace SqlParser.Info
                     column.IsPrimaryKey = true;
                 }
             }
+        }
+
+        private void AddForeignKeyConstraint( Table table, SqlForeignKeyConstraint constraint )
+        {
+            var fk = new ForeignKeyConstraint
+            {
+                Columns = constraint.Columns.Select(  c => c.Value ).ToList(  ),
+                ReferencedTableName = constraint.ReferencedTable.ObjectName.Value,
+                ReferencedColumns = constraint.ReferencedColumns.Select( c => c.Value ).ToList(  ),
+                DeleteAction = constraint.DeleteAction,
+                UpdateAction = constraint.UpdateAction
+            };
+            table.ForeignKeyConstraints.Add( fk );
         }
 
         private void AddColumns( Table table, SqlTableDefinition tableDefinition )

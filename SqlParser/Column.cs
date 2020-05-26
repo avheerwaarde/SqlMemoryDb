@@ -81,7 +81,7 @@ namespace SqlParser
             var match = Regex.Match(sqlType.ToUpper(), @"^([^\(]+)?(\([^\)]+\))?");
             if (match.Success)
             {
-                var dataTypeString = match.Groups[1].Value.Trim(new[] { '[', ']' });
+                var dataTypeString = match.Groups[1].Value.Trim(new[] { '[', ']', ' ' });
                 var sizeOrPrecision = match.Groups[2].Value;
                 if ( _DataTypes.ContainsKey( dataTypeString ) == false )
                 {
