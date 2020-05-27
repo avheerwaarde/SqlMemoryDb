@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
-namespace SqlParser
+namespace SqlMemoryDb
 {
     public class ForeignKeyConstraint
     {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb;
 
 namespace SqlParser
 {

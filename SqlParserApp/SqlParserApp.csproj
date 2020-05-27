@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SqlParser\SqlParser.csproj" />
+    <ProjectReference Include="..\SqlParser\SqlMemoryDb.csproj" />
   </ItemGroup>
 
 </Project>

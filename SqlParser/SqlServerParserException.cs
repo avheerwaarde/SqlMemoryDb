@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 
-namespace SqlParser
+namespace SqlMemoryDb
 {
     public class SqlServerParserException : Exception
     {

@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlParser;
+using ForeignKeyConstraint = SqlMemoryDb.ForeignKeyConstraint;
 
-namespace SqlParser.Info
+namespace SqlMemoryDb.Info
 {
     internal class TableInfo
     {
-        private readonly SqlMetaInfo _Info;
+        private readonly MemoryDatabase _Info;
 
-        internal TableInfo( SqlMetaInfo info )
+        internal TableInfo( MemoryDatabase info )
         {
             _Info = info;
         }

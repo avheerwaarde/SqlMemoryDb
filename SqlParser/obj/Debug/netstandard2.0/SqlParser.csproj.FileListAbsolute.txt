@@ -1,9 +1,0 @@
-C:\Projects\Personal\SqlMemoryDb\SqlParser\bin\Debug\netstandard2.0\SqlParser.deps.json
-C:\Projects\Personal\SqlMemoryDb\SqlParser\bin\Debug\netstandard2.0\SqlParser.dll
-C:\Projects\Personal\SqlMemoryDb\SqlParser\bin\Debug\netstandard2.0\SqlParser.pdb
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.csprojAssemblyReference.cache
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.AssemblyInfoInputs.cache
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.AssemblyInfo.cs
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.csproj.CoreCompileInputs.cache
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.dll
-C:\Projects\Personal\SqlMemoryDb\SqlParser\obj\Debug\netstandard2.0\SqlParser.pdb

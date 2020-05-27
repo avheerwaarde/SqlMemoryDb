@@ -2,16 +2,17 @@
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using SqlParser.Info;
+using SqlMemoryDb.Info;
+using SqlParser;
 
-namespace SqlParser
+namespace SqlMemoryDb
 {
-    public class SqlMetaInfo
+    public class MemoryDatabase
     {
         public Dictionary<string, Table> Tables = new Dictionary<string, Table>();
 
 
-        public void ExecuteSqlStatement( string sql )
+        public int ExecuteSqlStatement( string sql )
         {
             var result = Parser.Parse( sql );
             if ( result.Errors.Any())
@@ -20,6 +21,7 @@ namespace SqlParser
             }
 
             ProcessParseResult( result );
+            return 1;
         }
 
         private void ProcessParseResult( ParseResult result )

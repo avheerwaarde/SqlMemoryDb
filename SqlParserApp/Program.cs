@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Data.SqlClient;
+using SqlMemoryDb;
 using SqlParser;
 
 namespace SqlParserApp
@@ -57,7 +58,7 @@ REFERENCES [dbo].[application] ([Id])
 
         static void Main( string[] args )
         {
-            var info = new SqlMetaInfo();
+            var info = new MemoryDatabase();
             info.ExecuteSqlStatement( _InitDb );
             foreach ( var table in info.Tables )
             {
