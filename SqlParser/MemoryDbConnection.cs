@@ -8,20 +8,26 @@ namespace SqlMemoryDb
     {
         internal string InternalDatabaseName;
         internal ConnectionState InternalState;
+        private const string _DatabaseServerVersion = "0.01";
+        private static readonly MemoryDatabase _MemoryDatabase = new MemoryDatabase(  );
 
         public override string ConnectionString { get; set; }
         public override int ConnectionTimeout => -1;
         public override string Database => InternalDatabaseName;
         public override string DataSource => InternalDatabaseName;
-        public override string ServerVersion => "0.01;";
+        public override string ServerVersion => _DatabaseServerVersion;
         public override ConnectionState State => InternalState;
 
-        internal readonly MemoryDatabase MemoryDatabase;
+        internal MemoryDatabase MemoryDatabase => _MemoryDatabase;
 
         public MemoryDbConnection( )
         {
             InternalState = ConnectionState.Closed;
-            MemoryDatabase = new MemoryDatabase(  );
+        }
+
+        public static MemoryDatabase GetMemoryDatabase( )
+        {
+            return _MemoryDatabase;
         }
 
         protected override DbTransaction BeginDbTransaction( IsolationLevel isolationLevel )

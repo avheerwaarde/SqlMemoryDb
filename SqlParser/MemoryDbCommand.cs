@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
 
 namespace SqlMemoryDb
 {
@@ -30,7 +28,7 @@ namespace SqlMemoryDb
 
         protected override DbParameter CreateDbParameter( )
         {
-            var parameter = new MemoryDbDataParameter(  );
+            var parameter = new MemoryDbParameter(  );
             Parameters.Add( parameter );
             return parameter;
         }
@@ -42,16 +40,8 @@ namespace SqlMemoryDb
 
         public override int ExecuteNonQuery( )
         {
+            Prepare(  );
             var dbConnection = ( MemoryDbConnection ) Connection;
-            if ( dbConnection == null )
-            {
-                throw new InvalidOperationException( "The Connection should be set" );
-            }
-            if ( dbConnection.State != ConnectionState.Open )
-            {
-                throw new InvalidOperationException( "The state of the connection should be Open" );
-            }
-
             var db = dbConnection.MemoryDatabase;
 
             dbConnection.InternalState = ConnectionState.Executing;

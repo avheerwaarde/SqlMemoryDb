@@ -9,11 +9,11 @@ namespace SqlMemoryDb
 {
     public class MemoryDataParameterCollection : DbParameterCollection
     {
-        private readonly List<MemoryDbDataParameter> _Parameters;
+        private readonly List<MemoryDbParameter> _Parameters;
 
         public MemoryDataParameterCollection( )
         {
-            _Parameters = new List<MemoryDbDataParameter>();
+            _Parameters = new List<MemoryDbParameter>();
             SyncRoot = new Object();
         }
 
@@ -34,17 +34,17 @@ namespace SqlMemoryDb
 
         public override void CopyTo( Array array, int index )
         {
-            _Parameters.CopyTo( ( MemoryDbDataParameter[] ) array, index );
+            _Parameters.CopyTo( ( MemoryDbParameter[] ) array, index );
         }
 
         protected override void SetParameter( int index, DbParameter value )
         {
-            _Parameters[ index ] = ( MemoryDbDataParameter ) value;
+            _Parameters[ index ] = ( MemoryDbParameter ) value;
         }
 
         protected override void SetParameter( string parameterName, DbParameter value )
         {
-            _Parameters[ IndexOf( parameterName ) ] = ( MemoryDbDataParameter ) value;
+            _Parameters[ IndexOf( parameterName ) ] = ( MemoryDbParameter ) value;
         }
 
         public override int Count => _Parameters.Count;
@@ -53,16 +53,21 @@ namespace SqlMemoryDb
 
         public override int Add( object value )
         {
-            if ( value is MemoryDbDataParameter parameter )
+            if ( value is MemoryDbParameter parameter )
             {
                 _Parameters.Add( parameter );    
             }
-            throw new NotSupportedException( "Only parameters of type MemoryDbDataParameter are supported");
+            else
+            {
+                throw new NotSupportedException( "Only parameters of type MemoryDbParameter are supported");
+            }
+
+            return _Parameters.Count - 1;
         }
 
         public override void AddRange( Array values )
         {
-            _Parameters.AddRange( ( MemoryDbDataParameter[]) values );
+            _Parameters.AddRange( ( MemoryDbParameter[]) values );
         }
 
         public override void Clear( )
@@ -72,22 +77,22 @@ namespace SqlMemoryDb
 
         public override bool Contains( object value )
         {
-            return _Parameters.Contains( ( MemoryDbDataParameter ) value );
+            return _Parameters.Contains( ( MemoryDbParameter ) value );
         }
 
         public override int IndexOf( object value )
         {
-            return _Parameters.IndexOf( ( MemoryDbDataParameter ) value );
+            return _Parameters.IndexOf( ( MemoryDbParameter ) value );
         }
 
         public override void Insert( int index, object value )
         {
-            _Parameters.Insert( index, ( MemoryDbDataParameter ) value );
+            _Parameters.Insert( index, ( MemoryDbParameter ) value );
         }
 
         public override void Remove( object value )
         {
-            _Parameters.Remove( ( MemoryDbDataParameter ) value );
+            _Parameters.Remove( ( MemoryDbParameter ) value );
         }
 
         public override void RemoveAt( int index )

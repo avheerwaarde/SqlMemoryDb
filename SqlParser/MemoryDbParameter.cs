@@ -4,7 +4,7 @@ using System.Data.Common;
 
 namespace SqlMemoryDb
 {
-    public class MemoryDbDataParameter : DbParameter
+    public class MemoryDbParameter : DbParameter
     {
         public override void ResetDbType( )
         {
