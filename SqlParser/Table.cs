@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -14,6 +15,7 @@ namespace SqlParser
         public readonly List<Column> Columns;
         public readonly List<Column> PrimaryKeys;
         public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
+        public readonly List<ArrayList> Rows;
 
         public Table( SqlObjectIdentifier name )
         {
@@ -23,6 +25,7 @@ namespace SqlParser
             Columns = new List<Column>();
             PrimaryKeys = new List<Column>();
             ForeignKeyConstraints = new List<ForeignKeyConstraint>();
+            Rows = new List<ArrayList>();
         }
     }
 }

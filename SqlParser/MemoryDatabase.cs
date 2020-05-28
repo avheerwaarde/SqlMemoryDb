@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Info;
 using SqlParser;
 
@@ -33,6 +34,7 @@ namespace SqlMemoryDb
                     switch ( child )
                     {
                         case SqlCreateTableStatement createTable: new TableInfo( this ).Add( createTable ); break;
+                        case SqlInsertStatement insertStatement: new ExecuteInsertStatement().Execute( Tables, insertStatement ); break; 
                     }
                 }
             }

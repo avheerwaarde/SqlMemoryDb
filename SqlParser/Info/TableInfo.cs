@@ -69,7 +69,7 @@ namespace SqlMemoryDb.Info
         {
             foreach ( var columnDefinition in tableDefinition.ColumnDefinitions )
             {
-                var column = new Column( columnDefinition.Name.Value, columnDefinition.DataType.Sql );
+                var column = new Column( columnDefinition.Name.Value, columnDefinition.DataType.Sql, table.Columns.Count + 1 );
                 foreach ( var constraint in columnDefinition.Constraints )
                 {
                     switch ( constraint.Type )
@@ -77,6 +77,7 @@ namespace SqlMemoryDb.Info
                         case SqlConstraintType.Identity:
                             var identity = constraint as SqlColumnIdentity;
                             column.Identity = new Column.ColumnIdentity { Increment = identity.Increment ?? 1, Seed = identity.Seed ?? 1 };
+                            column.NextIdentityValue = column.Identity.Seed;
                             break;
 
                         case SqlConstraintType.NotNull:

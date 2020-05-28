@@ -64,16 +64,21 @@ namespace SqlMemoryDb
 
         public override DataTable GetSchema( string collectionName )
         {
+            return GetSchema( collectionName, new string[] { } );
+        }
+
+        public override DataTable GetSchema( string collectionName, string[] restrictionValues )
+        {
             switch ( collectionName.ToLower() )
             {
-                case "tables": return GetSchemaTables( );
-                case "columns": return GetSchemaColumns( );
+                case "tables": return GetSchemaTables( restrictionValues );
+                case "columns": return GetSchemaColumns( restrictionValues );
                 default:
                     throw new NotSupportedException();
             }
         }
 
-        private DataTable GetSchemaTables( )
+        private DataTable GetSchemaTables( string[] restrictionValues )
         {
             var dataTable = new DataTable();
             dataTable.Columns.Add( "TABLE_CATALOG" );
@@ -85,15 +90,32 @@ namespace SqlMemoryDb
             {
                 var row = dataTable.NewRow( );
                 row[ "TABLE_CATALOG" ] = "Memory";
-                row[ "TABLE_SCHEMA" ] = "dbo";
+                row[ "TABLE_SCHEMA" ] = table.Value.SchemaName;
                 row[ "TABLE_NAME" ] = table.Value.Name;
                 row[ "TABLE_TYPE" ] = "BASE TABLE";
-                dataTable.Rows.Add( row );
+                if ( ShouldAdd( row, restrictionValues ) )
+                {
+                    dataTable.Rows.Add( row );
+                }
             }
             return dataTable;
         }
 
-        private DataTable GetSchemaColumns( )
+        private bool ShouldAdd( DataRow row, string[] restrictionValues )
+        {
+            for ( int index = 0; index < restrictionValues.Length; index++ )
+            {
+                if ( string.IsNullOrWhiteSpace(restrictionValues[index]) == false 
+                     && row[index] != null
+                     && restrictionValues[index] == row[index].ToString(  ))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private DataTable GetSchemaColumns( string[] restrictionValues )
         {
             var dataTable = new DataTable();
             dataTable.Columns.Add( "TABLE_CATALOG" );
@@ -120,20 +142,37 @@ namespace SqlMemoryDb
 
             foreach ( var table in _MemoryDatabase.Tables.Values )
             {
-                var order = 0;
                 foreach ( var column in table.Columns )
                 {
                     var row = dataTable.NewRow( );
                     row[ "TABLE_CATALOG" ] = "Memory";
-                    row[ "TABLE_SCHEMA" ] = "dbo";
+                    row[ "TABLE_SCHEMA" ] = table.SchemaName;
                     row[ "TABLE_NAME" ] = table.Name;
                     row[ "COLUMN_NAME" ] = column.Name;
-                    row[ "ORDINAL_POSITION" ] = ++order;
+                    row[ "ORDINAL_POSITION" ] = column.Order;
                     row[ "COLUMN_DEFAULT" ] = column.DefaultValue;
                     row[ "IS_NULLABLE" ] = column.IsNullable;
                     row[ "DATA_TYPE" ] = column.DbDataType.ToString();
+                    if ( column.NetDataType == typeof(string) )
+                    {
+                        row[ "CHARACTER_MAXIMUM_LENGTH" ] = column.Size;
+                        row[ "CHARACTER_OCTET_LENGTH" ] = column.Size == -1 ? -1 : column.Size * 2;
+                        row[ "CHARACTER_SET_NAME" ] =
+                            column.DbDataType == DbType.AnsiString || column.DbDataType == DbType.AnsiStringFixedLength
+                                ? "iso_1"
+                                : "UNICODE";
+                    }
 
-                    dataTable.Rows.Add( row );
+                    if ( column.Precision != 0 )
+                    {
+                        row[ "NUMERIC_PRECISION" ] = column.Precision;
+                        row[ "NUMERIC_PRECISION_RADIX" ] = 10;
+                        row[ "NUMERIC_SCALE" ] = column.Scale;
+                    }
+                    if ( ShouldAdd( row, restrictionValues ) )
+                    {
+                        dataTable.Rows.Add( row );
+                    }
                 }
             }
             return dataTable;

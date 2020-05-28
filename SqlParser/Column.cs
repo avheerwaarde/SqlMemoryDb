@@ -19,6 +19,7 @@ namespace SqlMemoryDb
         public int Precision;
         public int Scale;
         public int Size;
+        public int Order;
 
         public ColumnIdentity Identity;
 
@@ -27,9 +28,10 @@ namespace SqlMemoryDb
         public bool IsFixedSize { get ; set ; }
 
         public bool IsIdentity => Identity != null;
-        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue );
+        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue ) == false;
         public bool IsUnique { get ; set ; }
         public bool IsPrimaryKey { get ; set ; }
+        public int NextIdentityValue { get; set; }
 
         private Dictionary<string, Action<Column, string>> _DataTypes = new Dictionary<string, Action<Column, string>>
         {
@@ -67,9 +69,10 @@ namespace SqlMemoryDb
         };
 
 
-        public Column( string name, string sqlType )
+        public Column( string name, string sqlType, int order )
         {
             Name = name;
+            Order = order;
             InitDbType( sqlType );
             IsNullable = true;
         }

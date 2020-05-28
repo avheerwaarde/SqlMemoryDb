@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 
-namespace SqlMemoryDb
+namespace SqlMemoryDb.Exceptions
 {
     public class SqlServerParserException : Exception
     {
