@@ -94,5 +94,62 @@ namespace DatabaseTests
             await act.Should( ).ThrowAsync<SqlInvalidColumnNameException>( );
         }
 
+        [TestMethod]
+        public async Task InsertApplication_MissingRequiredColumn_ThrowsException( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "INSERT INTO application ([Name],[DefName]) VALUES (N'Name', N'DefName')";
+            await command.PrepareAsync( );
+            Func<Task> act = async () => { await command.ExecuteNonQueryAsync( ); };
+            await act.Should( ).ThrowAsync<SqlFieldIsNullException>( );
+        }
+
+        [TestMethod]
+        public async Task InsertApplication_IdentityColumn_ThrowsException( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "INSERT INTO application ([Id],[Name],[User],[DefName]) VALUES (3, N'Name', N'User', N'DefName')";
+            await command.PrepareAsync( );
+            Func<Task> act = async () => { await command.ExecuteNonQueryAsync( ); };
+            await act.Should( ).ThrowAsync<SqlInsertIdentityException>( );
+        }
+
+        [TestMethod]
+        public async Task InsertApplication_TableWithCorrectForeignKey_RowIsAdded( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "INSERT INTO application ([Name],[User],[DefName]) VALUES (N'Name', N'User', N'DefName')";
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            command.CommandText = "INSERT INTO application_action ([fk_application]) VALUES (1)";
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            var rowsParent = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            rowsParent.Count.Should( ).Be( 1, "A new row should be added" );
+            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application_action" ].Rows;
+            rows.Count.Should( ).Be( 1, "A new row should be added" );
+        }
+
+        [TestMethod]
+        public async Task InsertApplication_TableWithInvalidForeignKey_ThrowsException( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "INSERT INTO application ([Name],[User],[DefName]) VALUES (N'Name', N'User', N'DefName')";
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            command.CommandText = "INSERT INTO application_action ([fk_application]) VALUES (3)";
+            await command.PrepareAsync( );
+            Func<Task> act = async () => { await command.ExecuteNonQueryAsync( ); };
+            await act.Should( ).ThrowAsync<SqlInsertInvalidForeignKeyException>( );
+        }
+
     }
 }

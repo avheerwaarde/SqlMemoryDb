@@ -56,8 +56,9 @@ namespace SqlMemoryDb.Info
         {
             var fk = new ForeignKeyConstraint
             {
+                Name = constraint.Name.Value,
                 Columns = constraint.Columns.Select(  c => c.Value ).ToList(  ),
-                ReferencedTableName = constraint.ReferencedTable.ObjectName.Value,
+                ReferencedTableName = Helper.GetQualifiedName( constraint.ReferencedTable ),
                 ReferencedColumns = constraint.ReferencedColumns.Select( c => c.Value ).ToList(  ),
                 DeleteAction = constraint.DeleteAction,
                 UpdateAction = constraint.UpdateAction
@@ -81,11 +82,11 @@ namespace SqlMemoryDb.Info
                             break;
 
                         case SqlConstraintType.NotNull:
-                            column.IsNullable = true;
+                            column.IsNullable = false;
                             break;
 
                         case SqlConstraintType.Null:
-                            column.IsNullable = false;
+                            column.IsNullable = true;
                             break;
 
                         case SqlConstraintType.Default:

@@ -51,11 +51,14 @@ CREATE TABLE[dbo].[application_action]
 PRIMARY KEY CLUSTERED
 (
    [Id] ASC
-)WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY]
+)WITH(PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON[PRIMARY],
+CONSTRAINT [FK_application_action_application] FOREIGN KEY ([fk_application]) REFERENCES [application]([Id]) ON DELETE CASCADE ON UPDATE CASCADE
 ) ON[PRIMARY]
+";
 
+/*
 ALTER TABLE [dbo].[application_action] WITH CHECK ADD CONSTRAINT [FK_application_action_application] FOREIGN KEY([fk_application])
-REFERENCES [dbo].[application] ([Id])";
-
+REFERENCES [dbo].[application] ([Id])
+ */
     }
 }

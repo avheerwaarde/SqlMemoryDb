@@ -5,6 +5,7 @@ namespace SqlMemoryDb
 {
     public class ForeignKeyConstraint
     {
+        public string Name;
         public List<string> Columns;
         public string ReferencedTableName;
         public List<string> ReferencedColumns;

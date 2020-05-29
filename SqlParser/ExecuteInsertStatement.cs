@@ -29,7 +29,7 @@ namespace SqlMemoryDb
 
         private void AddRow( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
-            var row = InitializeNewRow( table );
+            var row = InitializeNewRow( table, columns );
             var sql = Helper.CleanSql( source.Sql.Substring( 6 ) );
             var values = GetValuesFromSql( sql );
 
@@ -46,8 +46,11 @@ namespace SqlMemoryDb
             {
                 AddRowValue( row, columns[ index ], values[ index ] );
             }
+            ValidateAllRequiredFieldsAreSet( row, table );
+            ValidateAllForeignKeyConstraints( row, table );
             table.Rows.Add( row );
         }
+
 
         private void AddRowValue( ArrayList row, Column column, string value )
         {
@@ -95,7 +98,7 @@ namespace SqlMemoryDb
             return values;
         }
 
-        private ArrayList InitializeNewRow( Table table )
+        private ArrayList InitializeNewRow( Table table, List<Column> columns )
         {
             var row = new ArrayList( );
             for ( int count = 0; count < table.Columns.Count; count++ )
@@ -107,12 +110,15 @@ namespace SqlMemoryDb
             {
                 if ( column.IsIdentity )
                 {
+                    if ( columns.Any( c => c.Name == column.Name ) )
+                    {
+                        throw new SqlInsertIdentityException( table.Name, column.Name );
+                    }
                     row[ column.Order - 1 ] = column.NextIdentityValue;
                     table.LastIdentitySet = column.NextIdentityValue;
                     MemoryDbConnection.GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
                     _Command.LastIdentitySet = column.NextIdentityValue;
                     column.NextIdentityValue += column.Identity.Increment;
-
                 }
                 else if ( column.HasDefault && string.IsNullOrWhiteSpace( column.DefaultValue ) == false )
                 {
@@ -152,6 +158,39 @@ namespace SqlMemoryDb
             }
 
             return columns;
+        }
+
+        private void ValidateAllRequiredFieldsAreSet( ArrayList row, Table table )
+        {
+            foreach ( var column in table.Columns.Where( c => c.IsNullable == false ) )
+            {
+                if ( row[ column.Order - 1 ] == null )
+                {
+                    throw new SqlFieldIsNullException( table.FullName, column.Name );
+                }
+            }
+        }
+
+        private void ValidateAllForeignKeyConstraints( ArrayList row, Table table )
+        {
+            foreach ( var constraint in table.ForeignKeyConstraints )
+            {
+                for ( int index = 0; index < constraint.Columns.Count; index++ )
+                {
+                    var column = table.Columns.Single( c => c.Name == constraint.Columns[ index ] );
+                    var foreignKey = row[ column.Order - 1 ];
+                    if ( foreignKey != null )
+                    {
+                        var referencedTable = MemoryDbConnection.GetMemoryDatabase( ).Tables[ constraint.ReferencedTableName ];
+                        var referencedColumn = referencedTable.Columns.Single(c => c.Name == constraint.ReferencedColumns[ index ] );
+
+                        if ( referencedTable.Rows.Any( r =>((IComparable)foreignKey).CompareTo((IComparable)r[ referencedColumn.Order - 1 ]) == 0 )  == false ) 
+                        {
+                            throw new SqlInsertInvalidForeignKeyException( constraint.Name, referencedTable.FullName, referencedColumn.Name );
+                        }
+                    }
+                }
+            }
         }
     }
 }
