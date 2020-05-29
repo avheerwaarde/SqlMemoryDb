@@ -71,7 +71,7 @@ REFERENCES [dbo].[application] ([Id])
 
 
             var info = new MemoryDatabase();
-            info.ExecuteSqlStatement( _InitDb );
+            info.ExecuteSqlStatement( _InitDb, new MemoryDbCommand( null ) );
             foreach ( var table in info.Tables )
             {
                 Console.WriteLine( table.Key );

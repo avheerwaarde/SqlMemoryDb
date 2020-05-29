@@ -14,6 +14,7 @@ namespace SqlMemoryDb
         protected override DbTransaction DbTransaction { get; set; }
         public override bool DesignTimeVisible { get; set; }
         public override UpdateRowSource UpdatedRowSource { get; set; }
+        public Decimal? LastIdentitySet;
 
         public MemoryDbCommand( DbConnection connection )
         {
@@ -45,7 +46,7 @@ namespace SqlMemoryDb
             var db = dbConnection.MemoryDatabase;
 
             dbConnection.InternalState = ConnectionState.Executing;
-            var returnValue = db.ExecuteSqlStatement( CommandText );
+            var returnValue = db.ExecuteSqlStatement( CommandText, this );
             dbConnection.InternalState = ConnectionState.Open;
             return returnValue;
         }

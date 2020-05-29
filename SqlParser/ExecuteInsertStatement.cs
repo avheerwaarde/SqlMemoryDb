@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Info;
@@ -13,6 +11,12 @@ namespace SqlMemoryDb
 {
     class ExecuteInsertStatement
     {
+        private readonly MemoryDbCommand _Command;
+        public ExecuteInsertStatement( MemoryDbCommand command )
+        {
+            _Command = command;
+        }
+
         public void Execute( Dictionary<string, Table> tables, SqlInsertStatement insertStatement )
         {
             var spec = insertStatement.Children.First( ) as SqlInsertSpecification;
@@ -47,7 +51,35 @@ namespace SqlMemoryDb
 
         private void AddRowValue( ArrayList row, Column column, string value )
         {
-            row[ column.Order - 1] = Helper.GetValueFromString( column, value );
+            if ( value.StartsWith( "@" ) )
+            {
+                row[ column.Order - 1] = Helper.GetValueFromParameter( column, value, _Command.Parameters );
+            }
+            else
+            {
+                row[ column.Order - 1] = Helper.GetValueFromString( column, value );
+            }
+
+            ValidateDataSize( column, row[ column.Order - 1 ] );
+        }
+
+        private void ValidateDataSize( Column column, object source )
+        {
+            if ( column.NetDataType == typeof(string) )
+            {
+                if ( column.Size > 0 && column.Size < ((string)source).Length )
+                {
+                    throw new SqlDataTruncatedException( column.Size, ((string)source).Length );
+                }
+            }
+            
+            if ( column.NetDataType == typeof(byte[]) )
+            {
+                if ( column.Size > 0 && column.Size < ((byte[])source).Length )
+                {
+                    throw new SqlDataTruncatedException( column.Size, ((byte[])source).Length );
+                }
+            }
         }
 
         private List<string> GetValuesFromSql( string sql )
@@ -63,7 +95,7 @@ namespace SqlMemoryDb
             return values;
         }
 
-        private static ArrayList InitializeNewRow( Table table )
+        private ArrayList InitializeNewRow( Table table )
         {
             var row = new ArrayList( );
             for ( int count = 0; count < table.Columns.Count; count++ )
@@ -76,7 +108,11 @@ namespace SqlMemoryDb
                 if ( column.IsIdentity )
                 {
                     row[ column.Order - 1 ] = column.NextIdentityValue;
+                    table.LastIdentitySet = column.NextIdentityValue;
+                    MemoryDbConnection.GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
+                    _Command.LastIdentitySet = column.NextIdentityValue;
                     column.NextIdentityValue += column.Identity.Increment;
+
                 }
                 else if ( column.HasDefault && string.IsNullOrWhiteSpace( column.DefaultValue ) == false )
                 {

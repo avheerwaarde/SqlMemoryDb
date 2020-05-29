@@ -16,6 +16,7 @@ namespace SqlParser
         public readonly List<Column> PrimaryKeys;
         public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
         public readonly List<ArrayList> Rows;
+        public Decimal? LastIdentitySet;
 
         public Table( SqlObjectIdentifier name )
         {

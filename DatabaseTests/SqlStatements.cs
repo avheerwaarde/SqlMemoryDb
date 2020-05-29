@@ -11,7 +11,7 @@ CREATE TABLE [dbo].[application](
 	[Id] int IDENTITY(1,1) NOT NULL,
 	[Name] [nvarchar](max) NULL,
 	[User] [nvarchar](max) NOT NULL,
-	[DefName] [nvarchar](10) NOT NULL DEFAULT(N'Test'),
+	[DefName] [nvarchar](20) NOT NULL DEFAULT(N'Test'),
 PRIMARY KEY CLUSTERED 
 (
 	[Id] ASC

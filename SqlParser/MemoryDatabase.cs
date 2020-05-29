@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -11,9 +13,9 @@ namespace SqlMemoryDb
     public class MemoryDatabase
     {
         public Dictionary<string, Table> Tables = new Dictionary<string, Table>();
+        public Decimal? LastIdentitySet;
 
-
-        public int ExecuteSqlStatement( string sql )
+        public int ExecuteSqlStatement( string sql, MemoryDbCommand command )
         {
             var result = Parser.Parse( sql );
             if ( result.Errors.Any())
@@ -21,12 +23,6 @@ namespace SqlMemoryDb
                 throw new SqlServerParserException( result.Errors );
             }
 
-            ProcessParseResult( result );
-            return 1;
-        }
-
-        private void ProcessParseResult( ParseResult result )
-        {
             foreach ( var batch in result.Script.Batches )
             {
                 foreach ( var child in batch.Children )
@@ -34,10 +30,12 @@ namespace SqlMemoryDb
                     switch ( child )
                     {
                         case SqlCreateTableStatement createTable: new TableInfo( this ).Add( createTable ); break;
-                        case SqlInsertStatement insertStatement: new ExecuteInsertStatement().Execute( Tables, insertStatement ); break; 
+                        case SqlInsertStatement insertStatement: new ExecuteInsertStatement( command ).Execute( Tables, insertStatement ); break; 
                     }
                 }
             }
+
+            return 1;
         }
     }
 }

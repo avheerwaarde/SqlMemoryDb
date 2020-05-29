@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
@@ -54,6 +55,18 @@ namespace SqlMemoryDb.Info
             }
 
             return part;
+        }
+
+        public static object GetValueFromParameter( Column column, string value, DbParameterCollection parameters )
+        {
+            var name = value.TrimStart( new []{'@'} );
+            if ( parameters.Contains( name ) == false )
+            {
+                throw new SqlInvalidParameterNameException( value );
+            }
+
+            var parameter = parameters[ name ];
+            return parameter.Value;
         }
     }
 }
