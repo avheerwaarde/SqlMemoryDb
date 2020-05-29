@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 
 namespace SqlMemoryDb.Info
 {
@@ -17,6 +18,10 @@ namespace SqlMemoryDb.Info
         {
             if ( column.NetDataType == typeof(string) )
             {
+                if ( column.Size > 0 && column.Size < source.Length )
+                {
+                    throw new SqlDataTruncatedException( column.Size, source.Length );
+                }
                 return source;
             }
             else
@@ -34,6 +39,21 @@ namespace SqlMemoryDb.Info
                         throw new NotImplementedException( $"Defaults not supported for type {column.DbDataType }" );
                 }
             }
+        }
+
+        public static string CleanSql( string sourceSql )
+        {
+            return sourceSql.Replace( '\n', ' ' ).Replace( '\r', ' ' ).Replace( '\t', ' ' ).Trim( );
+        }
+
+        public static string GetStringValue( string part )
+        {
+            if ( (part.StartsWith( "N'" ) || part.StartsWith( "'" )) && part.EndsWith( "'" ))
+            {
+                return part.TrimStart( new[] {'N', 'n'} ).TrimStart( new[] {'\''} ).TrimEnd( new[] {'\''} );
+            }
+
+            return part;
         }
     }
 }

@@ -26,8 +26,41 @@ namespace SqlMemoryDb
         private void AddRow( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
             var row = InitializeNewRow( table );
+            var sql = Helper.CleanSql( source.Sql.Substring( 6 ) );
+            var values = GetValuesFromSql( sql );
 
+            if ( columns.Count > values.Count )
+            {
+                throw new SqlInsertTooManyColumnsException(  );
+            }
+            if ( columns.Count < values.Count )
+            {
+                throw new SqlInsertTooManyValuesException(  );
+            }
+
+            for ( int index = 0; index < columns.Count; index++ )
+            {
+                AddRowValue( row, columns[ index ], values[ index ] );
+            }
             table.Rows.Add( row );
+        }
+
+        private void AddRowValue( ArrayList row, Column column, string value )
+        {
+            row[ column.Order - 1] = Helper.GetValueFromString( column, value );
+        }
+
+        private List<string> GetValuesFromSql( string sql )
+        {
+            var values = new List<string>( );
+            sql = sql.Trim( new[] {'(', ')'} );
+            var parts = sql.Split( new[] {','}, StringSplitOptions.RemoveEmptyEntries );
+            foreach ( var part in parts )
+            {
+                var value = Helper.GetStringValue( part.Trim() );
+                values.Add( value );
+            }
+            return values;
         }
 
         private static ArrayList InitializeNewRow( Table table )
