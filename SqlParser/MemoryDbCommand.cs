@@ -36,7 +36,14 @@ namespace SqlMemoryDb
 
         protected override DbDataReader ExecuteDbDataReader( CommandBehavior behavior )
         {
-            throw new NotImplementedException( );
+            Prepare(  );
+            var dbConnection = ( MemoryDbConnection ) Connection;
+            var db = dbConnection.MemoryDatabase;
+
+            dbConnection.InternalState = ConnectionState.Fetching;
+            var returnValue = db.ExecuteSqlReader( CommandText, this, behavior );
+            dbConnection.InternalState = ConnectionState.Open;
+            return returnValue;
         }
 
         public override int ExecuteNonQuery( )
