@@ -177,7 +177,7 @@ namespace SqlMemoryDb
                 }
             }
 
-            _CurrentRow = ( _CurrentRowIndex++ < _CurrentBatch.ResultRows.Count )
+            _CurrentRow = ( ++_CurrentRowIndex < _CurrentBatch.ResultRows.Count )
                 ? _CurrentBatch.ResultRows[ _CurrentRowIndex ]
                 : null;
             return _CurrentRow != null;

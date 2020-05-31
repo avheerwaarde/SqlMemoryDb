@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
+using SqlParser;
 
 namespace SqlMemoryDb
 {
@@ -32,6 +33,7 @@ namespace SqlMemoryDb
         public bool IsUnique { get ; set ; }
         public bool IsPrimaryKey { get ; set ; }
         public int NextIdentityValue { get; set; }
+        public Table ParentTable { get; set; }
 
         private Dictionary<string, Action<Column, string>> _DataTypes = new Dictionary<string, Action<Column, string>>
         {
@@ -69,8 +71,9 @@ namespace SqlMemoryDb
         };
 
 
-        public Column( string name, string sqlType, int order )
+        public Column( Table table, string name, string sqlType, int order )
         {
+            ParentTable = table;
             Name = name;
             Order = order;
             InitDbType( sqlType );

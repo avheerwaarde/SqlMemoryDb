@@ -10,9 +10,26 @@ namespace SqlMemoryDb.Info
 {
     class Helper
     {
+        public static string GetAliasName( SqlTableRefExpression tableRef )
+        {
+            return tableRef.Alias == null ? GetQualifiedName(tableRef.ObjectIdentifier) : tableRef.Alias.Value;
+        }
+
         public static string GetQualifiedName( SqlObjectIdentifier identifier )
         {
             return identifier.SchemaName.Value ?? "dbo" + "." + identifier.ObjectName;
+        }
+
+        public static string GetColumnName( SqlColumnRefExpression expression )
+        {
+            return ((SqlObjectIdentifier)((SqlColumnRefExpression)expression).MultipartIdentifier).ObjectName.Value;
+        }
+
+        public static string GetColumnAlias( SqlSelectScalarExpression scalarExpression )
+        {
+            return scalarExpression.Alias != null
+                ? scalarExpression.Alias.Value
+                : GetColumnName( ( SqlColumnRefExpression ) scalarExpression.Expression );
         }
 
         public static object GetValueFromString( Column column, string source )
@@ -68,5 +85,6 @@ namespace SqlMemoryDb.Info
             var parameter = parameters[ name ];
             return parameter.Value;
         }
+
     }
 }

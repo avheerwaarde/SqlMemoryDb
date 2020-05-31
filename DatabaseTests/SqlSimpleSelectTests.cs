@@ -48,7 +48,8 @@ namespace DatabaseTests
                 reader[ "Id" ].Should( ).Be( recordsRead + 1 );
                 reader[ "Name" ].Should( ).Be( "Name String" );
                 reader[ "User" ].Should( ).Be( "User String" );
-                reader[ "DefName" ].Should( ).Be( "DefName String" );
+                reader[ "DefaultName" ].Should( ).Be( "DefName String" );
+                recordsRead++;
             }
 
             recordsRead.Should( ).Be( 3 );
