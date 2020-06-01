@@ -20,8 +20,9 @@ namespace SqlMemoryDb
 
         public class ResultBatch
         {
-            public readonly List<ArrayList> ResultRows = new List<ArrayList>();
-            public readonly List<ReaderField> Fields = new List<ReaderField>();
+            public List<ArrayList> ResultRows = new List<ArrayList>();
+            public List<ReaderField> Fields = new List<ReaderField>();
+            public int? MaxRowsCount;
         }
 
         private readonly CommandBehavior _CommandBehavior;

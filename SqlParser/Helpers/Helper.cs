@@ -148,5 +148,64 @@ namespace SqlMemoryDb.Helpers
                     throw new NotImplementedException( );
             }
         }
+
+        public static MemoryDbDataReader.ReaderField BuildFieldFromStringValue( string literal, string name, int fieldsCount )
+        {
+            var readerField = new MemoryDbDataReader.ReaderField
+            {
+                Name = name,
+                DbType = "nvarchar",
+                NetType = typeof(string),
+                FieldIndex = fieldsCount
+            };
+
+            try
+            {
+                Guid guidValue;
+                DateTime dateTimeValue;
+                Int64 longValue;
+
+                if ( literal.StartsWith( "N'" ) || literal.StartsWith( "'" ) )
+                {
+                    var val = GetStringValue( literal );
+                    if ( Guid.TryParse( val, out guidValue  ) )
+                    {
+                        readerField.DbType = "Guid";
+                        readerField.NetType = typeof( Guid );
+                    }
+                    else if ( DateTime.TryParse( val, out dateTimeValue ) )
+                    {
+                        readerField.DbType = "DateTime";
+                        readerField.NetType = typeof( DateTime );
+                    }
+                }
+                else
+                {
+                    if ( literal.ToLower() == "true" || literal.ToLower() == "false" )
+                    {
+                        readerField.DbType = "Boolean";
+                        readerField.NetType = typeof( bool );
+                    }
+                    if ( Int64.TryParse( literal, out longValue ) )
+                    {
+                        if ( longValue >= Int32.MinValue && longValue <= Int32.MaxValue )
+                        {
+                            readerField.DbType = "Int32";
+                            readerField.NetType = typeof( Int32 );
+                        }
+                        else
+                        {
+                            readerField.DbType = "Int64";
+                            readerField.NetType = typeof( Int64 );
+                        }
+                    }                           
+                }
+            }
+            catch ( Exception  )
+            {
+                // Ignore if we fail to determine the type, it will be a string then ;-)
+            }
+            return readerField;
+        }
     }
 }

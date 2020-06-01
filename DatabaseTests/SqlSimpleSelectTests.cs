@@ -31,6 +31,16 @@ namespace DatabaseTests
             await command.ExecuteNonQueryAsync( );
             await command.ExecuteNonQueryAsync( );
             await command.ExecuteNonQueryAsync( );
+
+            for ( int applicationId = 1; applicationId <= 3; applicationId++ )
+            {
+                for ( int index = 1; index <= 4; index++ )
+                {
+                    command.CommandText = $"INSERT INTO application_action ([Name],[Action],[Order],[fk_application]) VALUES (N'Action {applicationId}-{index}', N'Do Something {applicationId}-{index}', {index}, {applicationId})";
+                    await command.PrepareAsync( );
+                    await command.ExecuteNonQueryAsync( );
+                }
+            }
         }
 
         [TestMethod]
@@ -124,6 +134,48 @@ namespace DatabaseTests
             }
 
             recordsRead.Should( ).Be( 1 );
+        }
+
+
+        [TestMethod]
+        public async Task SelectApplication_WithLiterals_RowRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, N'Literal string' AS Name, 42 AS Magic FROM application WHERE Id = 2";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                reader[ "Id" ].Should( ).Be( 2 );
+                reader[ "Name" ].Should( ).Be( "Literal string" );
+                reader[ "Magic" ].Should( ).Be( 42 );
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 1 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_Top4_RowRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT TOP 4 Id FROM application_action";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 4 );
         }
 
 

@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -59,24 +61,50 @@ namespace SqlMemoryDb
         {
             foreach ( var column in columns )
             {
-                switch ( column )
+                if ( column is SqlSelectScalarExpression scalarExpression )
                 {
-                    case SqlSelectScalarExpression scalarExpression:
-                        var tableColumn = Helper.GetTableColumn( ( SqlColumnRefExpression ) scalarExpression.Expression, rawData );
-                        var readerField = new MemoryDbDataReader.ReaderField
-                        {
-                            Name = Helper.GetColumnAlias( scalarExpression ),
-                            DbType = tableColumn.Column.DbDataType.ToString(),
-                            NetType = tableColumn.Column.NetDataType,
-                            FieldIndex = batch.Fields.Count
-                        };
-                        batch.Fields.Add( readerField );
-                        rawData.SelectFieldData.Add( new SelectDataFromColumn( tableColumn ) );
-                        break;
+                    var name = Helper.GetColumnAlias( scalarExpression );
+                    switch ( scalarExpression.Expression )
+                    {
+                        case SqlColumnRefExpression columnRef: AddFieldFromColumn( columnRef, name, batch, rawData ); break;
+                        case SqlLiteralExpression literalExpression: AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
+                    }
+                }
+                else if ( column is SqlTopSpecification topSpecification )
+                {
+                    batch.MaxRowsCount = int.Parse(topSpecification.Value.Sql);
+                }
+                else
+                {
+                    throw new NotImplementedException();
                 }
             }
 
         }
+
+        private void AddFieldFromColumn( SqlColumnRefExpression columnRef, string name,
+                                        MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var tableColumn = Helper.GetTableColumn( columnRef, rawData );
+            var readerField = new MemoryDbDataReader.ReaderField
+            {
+                Name = name,
+                DbType = tableColumn.Column.DbDataType.ToString(),
+                NetType = tableColumn.Column.NetDataType,
+                FieldIndex = batch.Fields.Count
+            };
+            batch.Fields.Add( readerField );
+            rawData.SelectFieldData.Add( new SelectDataFromColumn( tableColumn ) );
+        }
+
+        private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
+            var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
+            batch.Fields.Add( readerField );
+            rawData.SelectFieldData.Add( new SelectDataFromObject( value ) );
+        }
+
 
         private void AddTablesFromClause(SqlFromClause fromClause, Dictionary<string, Table> tables, RawData rawData )
         {
@@ -116,6 +144,11 @@ namespace SqlMemoryDb
                     resultRow.Add( value );
                 }
                 batch.ResultRows.Add( resultRow );
+            }
+
+            if ( batch.MaxRowsCount.HasValue )
+            {
+                batch.ResultRows = batch.ResultRows.Take( batch.MaxRowsCount.Value ).ToList(  );
             }
         }
 

@@ -47,6 +47,7 @@ CREATE TABLE[dbo].[application_action]
    [Id] int IDENTITY(1,1) NOT NULL,
    [Name] [nvarchar](max) NULL,
    [Action][nvarchar] (max) NULL,
+   [Order][int] NULL,
    [fk_application][int] NULL,
 PRIMARY KEY CLUSTERED
 (
