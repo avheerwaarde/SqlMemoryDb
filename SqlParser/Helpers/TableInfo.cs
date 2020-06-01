@@ -2,9 +2,8 @@
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlParser;
-using ForeignKeyConstraint = SqlMemoryDb.ForeignKeyConstraint;
 
-namespace SqlMemoryDb.Info
+namespace SqlMemoryDb.Helpers
 {
     internal class TableInfo
     {

@@ -25,6 +25,12 @@ namespace DatabaseTests
                                                                           + SqlStatements.SqlCreateTableApplicationAction ;
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
+
+            command.CommandText = "INSERT INTO application ([Name],[User],[DefName]) VALUES (N'Name String', N'User String', N'DefName String')";
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            await command.ExecuteNonQueryAsync( );
+            await command.ExecuteNonQueryAsync( );
         }
 
         [TestMethod]
@@ -33,11 +39,6 @@ namespace DatabaseTests
             await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
-            command.CommandText = "INSERT INTO application ([Name],[User],[DefName]) VALUES (N'Name String', N'User String', N'DefName String')";
-            await command.PrepareAsync( );
-            await command.ExecuteNonQueryAsync( );
-            await command.ExecuteNonQueryAsync( );
-            await command.ExecuteNonQueryAsync( );
             command.CommandText = "SELECT Id, [Name], [User], DefName AS DefaultName FROM application";
             await command.PrepareAsync( );
 
@@ -54,6 +55,77 @@ namespace DatabaseTests
 
             recordsRead.Should( ).Be( 3 );
         }
+
+        [TestMethod]
+        public async Task SelectApplication_CorrectSqlSingleRow_RowRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], [User], DefName AS DefaultName FROM application WHERE Id = 2";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                reader[ "Id" ].Should( ).Be( 2 );
+                reader[ "Name" ].Should( ).Be( "Name String" );
+                reader[ "User" ].Should( ).Be( "User String" );
+                reader[ "DefaultName" ].Should( ).Be( "DefName String" );
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 1 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplication_CorrectSqlSingleRow2_RowRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], [User], DefName AS DefaultName FROM application WHERE 2 = Id";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                reader[ "Id" ].Should( ).Be( 2 );
+                reader[ "Name" ].Should( ).Be( "Name String" );
+                reader[ "User" ].Should( ).Be( "User String" );
+                reader[ "DefaultName" ].Should( ).Be( "DefName String" );
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 1 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplication_CorrectSqlSingleRowParameter_RowRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], [User], DefName AS DefaultName FROM application WHERE Id = @Id";
+            command.Parameters.Add( new MemoryDbParameter( ) {ParameterName = "Id", Value = 2} );
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                reader[ "Id" ].Should( ).Be( 2 );
+                reader[ "Name" ].Should( ).Be( "Name String" );
+                reader[ "User" ].Should( ).Be( "User String" );
+                reader[ "DefaultName" ].Should( ).Be( "DefName String" );
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 1 );
+        }
+
 
     }
 }

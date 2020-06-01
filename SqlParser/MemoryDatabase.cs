@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
-using SqlMemoryDb.Info;
+using SqlMemoryDb.Helpers;
 using SqlParser;
 
 namespace SqlMemoryDb

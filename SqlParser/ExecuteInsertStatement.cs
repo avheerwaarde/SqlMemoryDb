@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
-using SqlMemoryDb.Info;
+using SqlMemoryDb.Helpers;
 using SqlParser;
 
 namespace SqlMemoryDb
@@ -56,7 +56,7 @@ namespace SqlMemoryDb
         {
             if ( value.StartsWith( "@" ) )
             {
-                row[ column.Order - 1] = Helper.GetValueFromParameter( column, value, _Command.Parameters );
+                row[ column.Order - 1] = Helper.GetValueFromParameter( value, _Command.Parameters );
             }
             else
             {

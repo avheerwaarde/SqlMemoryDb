@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using SqlMemoryDb.Info;
+using SqlMemoryDb.Helpers;
 using SqlMemoryDb.SelectData;
 using SqlParser;
 
@@ -23,6 +21,7 @@ namespace SqlMemoryDb
             }
             public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
             public List<ISelectData> SelectFieldData = new List<ISelectData>();
+            public DbParameterCollection Parameters { get; set; }
         }
 
         private readonly MemoryDbCommand _Command;
@@ -37,24 +36,20 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
         {
-            var columns = new List<SqlCodeObject>();
-            SqlFromClause from;
-            RawData rawData = null;
+            var rawData = new RawData{ Parameters = _Command.Parameters };
 
-            var parts = selectStatement.SelectSpecification.QueryExpression.Children;
-            foreach ( var part in parts )
+            var expression = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
+            if (expression.FromClause != null )
             {
-                switch ( part )
+                AddTablesFromClause( expression.FromClause, tables, rawData );
+                if ( expression.WhereClause != null )
                 {
-                    case SqlSelectClause clause: columns = part.Children.ToList(); break;
-                    case SqlFromClause 
-                        fromClause: from = fromClause; 
-                        rawData = GetTablesFromClause( fromClause, tables ); 
-                        break;
+                    ExecuteWhereClause( rawData, expression.WhereClause );
                 }
             }
+
             var batch = new MemoryDbDataReader.ResultBatch(  );
-            InitializeFields( batch, columns, rawData );
+            InitializeFields( batch, expression.SelectClause.Children.ToList(  ), rawData );
             AddDataToBatch( batch, rawData );
             _Reader.AddResultBatch( batch );
         }
@@ -67,7 +62,7 @@ namespace SqlMemoryDb
                 switch ( column )
                 {
                     case SqlSelectScalarExpression scalarExpression:
-                        var tableColumn = GeTableColumn( scalarExpression, rawData );
+                        var tableColumn = Helper.GetTableColumn( ( SqlColumnRefExpression ) scalarExpression.Expression, rawData );
                         var readerField = new MemoryDbDataReader.ReaderField
                         {
                             Name = Helper.GetColumnAlias( scalarExpression ),
@@ -83,52 +78,31 @@ namespace SqlMemoryDb
 
         }
 
-        private TableColumn GeTableColumn( SqlSelectScalarExpression expression, RawData rawData )
+        private void AddTablesFromClause(SqlFromClause fromClause, Dictionary<string, Table> tables, RawData rawData )
         {
-            var list = new List<TableColumn>( );
-            var columnName = Helper.GetColumnName( ( SqlColumnRefExpression ) expression.Expression );
-            foreach ( var row in rawData.TableRows )
+            foreach (var expression in fromClause.TableExpressions)
             {
-                foreach ( var tableRow in row )
-                {
-                    var column = tableRow.Table.Columns.FirstOrDefault( c => c.Name == columnName );
-                    if ( column != null )
-                    {
-                        list.Add( new TableColumn{ TableName = tableRow.Name, Column = column } );
-                    }
-                }
-            }
-            return list.First();
-        }
-
-        private RawData GetTablesFromClause( SqlFromClause fromClause, Dictionary<string, Table> tables )
-        {
-            var rawData = new RawData(  );
-            foreach ( var expression in fromClause.TableExpressions )
-            {
-                switch ( expression )
+                switch (expression)
                 {
                     case SqlTableRefExpression tableRef:
-                    {
-                        var name = Helper.GetAliasName( tableRef );
-                        var table = tables[ Helper.GetQualifiedName( tableRef.ObjectIdentifier ) ];
-                        foreach ( var row in table.Rows )
                         {
-                            var tableRow = new RawData.RawDataRow
+                            var name = Helper.GetAliasName(tableRef);
+                            var table = tables[Helper.GetQualifiedName(tableRef.ObjectIdentifier)];
+                            foreach (var row in table.Rows)
                             {
-                                Name = name, 
-                                Table = table, 
-                                Row = row
-                            };
-                            var rows = new List<RawData.RawDataRow>( ) { tableRow };
-                            rawData.TableRows.Add( rows );
+                                var tableRow = new RawData.RawDataRow
+                                {
+                                    Name = name,
+                                    Table = table,
+                                    Row = row
+                                };
+                                var rows = new List<RawData.RawDataRow>() { tableRow };
+                                rawData.TableRows.Add(rows);
+                            }
+                            break;
                         }
-                        break;
-                    }
                 }
             }
-
-            return rawData;
         }
 
         private void AddDataToBatch( MemoryDbDataReader.ResultBatch batch, RawData rawData )
@@ -142,6 +116,20 @@ namespace SqlMemoryDb
                     resultRow.Add( value );
                 }
                 batch.ResultRows.Add( resultRow );
+            }
+        }
+
+        private void ExecuteWhereClause( RawData rawData, SqlWhereClause whereClause )
+        {
+            foreach ( var child in whereClause.Children )
+            {
+                switch ( child )
+                {
+                    case SqlComparisonBooleanExpression compareExpression:
+                        var filterComparison = new FilterRowComparison( rawData, compareExpression );
+                        rawData.TableRows = rawData.TableRows.Where( r => filterComparison.IsValid( r )  ).ToList(  );
+                        break;
+                }
             }
         }
 
