@@ -178,6 +178,64 @@ namespace DatabaseTests
             recordsRead.Should( ).Be( 4 );
         }
 
+        [TestMethod]
+        public async Task SelectApplicationAction_WhereOr_RowsRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], Action, [Order], fk_application FROM application_action WHERE fk_application = 2 OR [Order] = 1";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 6 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_WhereAnd_RowsRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], Action, [Order], fk_application FROM application_action WHERE fk_application = 2 AND [Order] = 1";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 1 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_WhereAndOr_RowsRead( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Id, [Name], Action, [Order], fk_application FROM application_action WHERE (fk_application = 2 AND [Order] = 1) Or [Order] = 3";
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 4 );
+        }
+
+
 
     }
 }

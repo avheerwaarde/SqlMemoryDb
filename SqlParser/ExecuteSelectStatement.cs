@@ -162,6 +162,10 @@ namespace SqlMemoryDb
                         var filterComparison = new FilterRowComparison( rawData, compareExpression );
                         rawData.TableRows = rawData.TableRows.Where( r => filterComparison.IsValid( r )  ).ToList(  );
                         break;
+                    case SqlBinaryBooleanExpression binaryExpression:
+                        var filterBinary = new FilterRowBinary( rawData, binaryExpression );
+                        rawData.TableRows = rawData.TableRows.Where( r => filterBinary.IsValid( r )  ).ToList(  );
+                        break;
                 }
             }
         }

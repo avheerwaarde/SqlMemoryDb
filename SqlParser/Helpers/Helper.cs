@@ -207,5 +207,56 @@ namespace SqlMemoryDb.Helpers
             }
             return readerField;
         }
+
+        public static Type DetermineType( SqlScalarExpression expressionLeft, SqlScalarExpression expressionRight, ExecuteSelectStatement.RawData rawData )
+        {
+            return DetermineType( expressionLeft, rawData ) ?? DetermineType( expressionRight, rawData );
+        }
+
+        public static Type DetermineType( SqlScalarExpression expression, ExecuteSelectStatement.RawData rawData )
+        {
+            switch ( expression )
+            {
+                case SqlColumnRefExpression columnRef :
+                    var field = Helper.GetTableColumn( columnRef, rawData );
+                    return field.Column.NetDataType;
+                case SqlScalarVariableRefExpression variableRef:
+                    Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
+                    return null;
+            }
+
+            return null;
+        }
+
+        public static bool IsTrue( SqlBooleanOperatorType booleanOperator, bool leftIsValid, bool rightIsValid )
+        {
+            if ( booleanOperator == SqlBooleanOperatorType.Or )
+            {
+                return leftIsValid || rightIsValid;
+            }
+            return leftIsValid && rightIsValid;
+        }
+
+        public static bool IsPredicateCorrect( object left, object right, SqlComparisonBooleanExpressionType comparisonOperator )
+        {
+            var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
+
+            switch ( comparisonOperator )
+            {
+                case SqlComparisonBooleanExpressionType.Equals: return comparison == 0;
+                case SqlComparisonBooleanExpressionType.LessThan: return comparison < 0;
+                case SqlComparisonBooleanExpressionType.ValueEqual: return comparison == 0;
+                case SqlComparisonBooleanExpressionType.NotEqual: return comparison != 0;
+                case SqlComparisonBooleanExpressionType.GreaterThan: return comparison > 0;
+                case SqlComparisonBooleanExpressionType.GreaterThanOrEqual: return comparison >= 0;
+                case SqlComparisonBooleanExpressionType.LessOrGreaterThan: return comparison != 0;
+                case SqlComparisonBooleanExpressionType.LessThanOrEqual: return comparison <= 0;
+                case SqlComparisonBooleanExpressionType.NotLessThan: return comparison >= 0;
+                case SqlComparisonBooleanExpressionType.NotGreaterThan: return comparison <= 0;
+                default:
+                    throw new NotImplementedException();
+            }
+
+        }
     }
 }
