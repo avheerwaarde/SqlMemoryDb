@@ -24,6 +24,7 @@ namespace SqlMemoryDb
             public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
             public List<ISelectData> SelectFieldData = new List<ISelectData>();
             public DbParameterCollection Parameters { get; set; }
+            public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
         }
 
         private readonly MemoryDbCommand _Command;
@@ -113,25 +114,76 @@ namespace SqlMemoryDb
                 switch (expression)
                 {
                     case SqlTableRefExpression tableRef:
-                        {
-                            var name = Helper.GetAliasName(tableRef);
-                            var table = tables[Helper.GetQualifiedName(tableRef.ObjectIdentifier)];
-                            foreach (var row in table.Rows)
-                            {
-                                var tableRow = new RawData.RawDataRow
-                                {
-                                    Name = name,
-                                    Table = table,
-                                    Row = row
-                                };
-                                var rows = new List<RawData.RawDataRow>() { tableRow };
-                                rawData.TableRows.Add(rows);
-                            }
-                            break;
-                        }
+                    {
+                        var name = Helper.GetAliasName(tableRef);
+                        var table = tables[Helper.GetQualifiedName(tableRef.ObjectIdentifier)];
+                        AddAllTableRows( rawData, table, name );
+                        break;
+                    }
+                    case SqlQualifiedJoinTableExpression joinExpression:
+                    {
+                        var name = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Left);
+                        var table = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Left).ObjectIdentifier)];
+                        AddAllTableRows( rawData, table, name );
+                        var nameJoin = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Right);
+                        var tableJoin = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Right).ObjectIdentifier)];
+                        AddAllTableJoinRows( rawData, tableJoin, nameJoin, joinExpression.OnClause );
+                        break;
+                    }
                 }
             }
         }
+
+        private static void AddAllTableRows( RawData rawData, Table table, string name )
+        {
+            if ( rawData.TableAliasList.ContainsKey( name ) == false )
+            {
+                rawData.TableAliasList.Add( name, table );
+            }
+            foreach ( var row in table.Rows )
+            {
+                var tableRow = new RawData.RawDataRow
+                {
+                    Name = name,
+                    Table = table,
+                    Row = row
+                };
+                var rows = new List<RawData.RawDataRow>( ) {tableRow};
+                rawData.TableRows.Add( rows );
+            }
+        }
+
+        private void AddAllTableJoinRows( RawData rawData, Table table, string name, SqlConditionClause onClause )
+        {
+            if ( rawData.TableAliasList.ContainsKey( name ) == false )
+            {
+                rawData.TableAliasList.Add( name, table );
+            }
+
+            var newTableRows = new List<List<RawData.RawDataRow>>( );
+            var filter = Helper.GetRowFilter( onClause.Expression, rawData );
+            foreach ( var currentRawRows in rawData.TableRows )
+            {
+                foreach ( var row in table.Rows )
+                {
+                    var newRows = new List<RawData.RawDataRow>( currentRawRows );
+                    var tableRow = new RawData.RawDataRow
+                    {
+                        Name = name,
+                        Table = table,
+                        Row = row
+                    };
+                    newRows.Add( tableRow );
+                    if ( filter.IsValid( newRows ) )
+                    {
+                        newTableRows.Add( newRows );
+                    }
+                }            
+            }
+
+            rawData.TableRows = newTableRows;
+        }
+
 
         private void AddDataToBatch( MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
@@ -156,19 +208,9 @@ namespace SqlMemoryDb
         {
             foreach ( var child in whereClause.Children )
             {
-                switch ( child )
-                {
-                    case SqlComparisonBooleanExpression compareExpression:
-                        var filterComparison = new FilterRowComparison( rawData, compareExpression );
-                        rawData.TableRows = rawData.TableRows.Where( r => filterComparison.IsValid( r )  ).ToList(  );
-                        break;
-                    case SqlBinaryBooleanExpression binaryExpression:
-                        var filterBinary = new FilterRowBinary( rawData, binaryExpression );
-                        rawData.TableRows = rawData.TableRows.Where( r => filterBinary.IsValid( r )  ).ToList(  );
-                        break;
-                }
+                var filter = Helper.GetRowFilter( ( SqlBooleanExpression ) child, rawData );
+                rawData.TableRows = rawData.TableRows.Where( r => filter.IsValid( r )  ).ToList(  );
             }
         }
-
     }
 }

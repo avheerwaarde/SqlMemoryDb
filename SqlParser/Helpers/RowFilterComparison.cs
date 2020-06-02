@@ -6,7 +6,7 @@ using SqlMemoryDb.SelectData;
 
 namespace SqlMemoryDb.Helpers
 {
-    class FilterRowComparison
+    class RowFilterComparison: IRowFilter
     {
         private readonly SqlComparisonBooleanExpression _Expression;
         private readonly object _CachedLeftValue;
@@ -14,7 +14,7 @@ namespace SqlMemoryDb.Helpers
         private readonly ExecuteSelectStatement.RawData _RawData;
         private readonly Type _Type;
 
-        public FilterRowComparison( ExecuteSelectStatement.RawData rawData, SqlComparisonBooleanExpression expression )
+        public RowFilterComparison( ExecuteSelectStatement.RawData rawData, SqlComparisonBooleanExpression expression )
         {
             _Expression = expression;
             _RawData = rawData;

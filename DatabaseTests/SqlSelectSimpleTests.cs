@@ -10,7 +10,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlSimpleSelectTests
+    public class SqlSelectSimpleTests
     {
         [TestInitialize]
         public async Task InsertDb( )
@@ -21,8 +21,8 @@ namespace DatabaseTests
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" 
-                                                                          + SqlStatements.SqlCreateTableApplicationFeature + "\n" 
-                                                                          + SqlStatements.SqlCreateTableApplicationAction ;
+                              + SqlStatements.SqlCreateTableApplicationFeature + "\n" 
+                              + SqlStatements.SqlCreateTableApplicationAction ;
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
 

@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.SelectData;
+using SqlParser;
 
 namespace SqlMemoryDb.Helpers
 {
@@ -21,16 +22,16 @@ namespace SqlMemoryDb.Helpers
             return identifier.SchemaName.Value ?? "dbo" + "." + identifier.ObjectName;
         }
 
-        public static string GetColumnName( SqlColumnRefExpression expression )
+        public static string GetColumnName( SqlScalarRefExpression expression )
         {
-            return ((SqlObjectIdentifier)((SqlColumnRefExpression)expression).MultipartIdentifier).ObjectName.Value;
+            return ((SqlObjectIdentifier)expression.MultipartIdentifier).ObjectName.Value;
         }
 
         public static string GetColumnAlias( SqlSelectScalarExpression scalarExpression )
         {
             return scalarExpression.Alias != null
                 ? scalarExpression.Alias.Value
-                : GetColumnName( ( SqlColumnRefExpression ) scalarExpression.Expression );
+                : GetColumnName( ( SqlScalarRefExpression)scalarExpression.Expression );
         }
 
         public static object GetValueFromString( Column column, string source )
@@ -126,17 +127,43 @@ namespace SqlMemoryDb.Helpers
             return list.First();
         }
 
+        private static TableColumn GetTableColumn( SqlObjectIdentifier multipartIdentifier, ExecuteSelectStatement.RawData rawData )
+        {
+            var tableAlias = multipartIdentifier.SchemaName.Value;
+            Table table;
+            if ( rawData.TableAliasList.ContainsKey( tableAlias ) )
+            {
+                table = rawData.TableAliasList[ tableAlias ];
+            }
+            else
+            {
+                var allTables = MemoryDbConnection.GetMemoryDatabase(  ).Tables;
+                table = allTables.ContainsKey( tableAlias ) 
+                        ? allTables[ tableAlias ] 
+                        : allTables.Single( t => t.Value.Name == tableAlias ).Value;
+            }
+
+            var column = table.Columns.Single( c => c.Name == multipartIdentifier.ObjectName.Value );
+            return new TableColumn {TableName = table.FullName, Column = column};
+        }
+
         public static object GetValue( SqlScalarExpression expression, Type type, ExecuteSelectStatement.RawData rawData, List<ExecuteSelectStatement.RawData.RawDataRow> row )
         {
+            if ( row == null )
+            {
+                return null;
+            }
             switch ( expression )
             {
-                case SqlColumnRefExpression columnRef :
+                case SqlColumnRefExpression columnRef:
+                {
                     if ( row == null )
                     {
                         return null;
                     }
                     var field = GetTableColumn( columnRef, rawData );
                     return new SelectDataFromColumn( field ).Select( row );
+                }
 
                 case SqlLiteralExpression literalExpression : 
                     return GetValueFromString( type, literalExpression.Value ); 
@@ -144,10 +171,17 @@ namespace SqlMemoryDb.Helpers
                 case SqlScalarVariableRefExpression variableRef:
                     return GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
 
+                case SqlScalarRefExpression refExpression:
+                {
+                    var field = GetTableColumn( (SqlObjectIdentifier)refExpression.MultipartIdentifier, rawData );
+                    return new SelectDataFromColumn( field ).Select( row );
+                }
+
                 default:
                     throw new NotImplementedException( );
             }
         }
+
 
         public static MemoryDbDataReader.ReaderField BuildFieldFromStringValue( string literal, string name, int fieldsCount )
         {
@@ -226,6 +260,17 @@ namespace SqlMemoryDb.Helpers
             }
 
             return null;
+        }
+
+        public static IRowFilter GetRowFilter( SqlBooleanExpression booleanExpression, ExecuteSelectStatement.RawData rawData )
+        {
+            switch ( booleanExpression )
+            {
+                case SqlComparisonBooleanExpression compareExpression: return new RowFilterComparison( rawData, compareExpression );
+                case SqlBinaryBooleanExpression binaryExpression     : return new RowFilterBinary( rawData, binaryExpression );
+                default :
+                    throw new NotImplementedException();
+            }
         }
 
         public static bool IsTrue( SqlBooleanOperatorType booleanOperator, bool leftIsValid, bool rightIsValid )

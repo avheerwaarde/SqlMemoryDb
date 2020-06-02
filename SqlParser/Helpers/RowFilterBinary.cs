@@ -4,12 +4,12 @@ using System.Collections.Generic;
 
 namespace SqlMemoryDb.Helpers
 {
-    class FilterRowBinary
+    class RowFilterBinary : IRowFilter
     {
         private readonly SqlBinaryBooleanExpression _Expression;
         private readonly ExecuteSelectStatement.RawData _RawData;
 
-        public FilterRowBinary( ExecuteSelectStatement.RawData rawData, SqlBinaryBooleanExpression expression )
+        public RowFilterBinary( ExecuteSelectStatement.RawData rawData, SqlBinaryBooleanExpression expression )
         {
             _Expression = expression;
             _RawData = rawData;
