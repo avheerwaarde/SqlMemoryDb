@@ -67,7 +67,7 @@ namespace SqlMemoryDb
                     var name = Helper.GetColumnAlias( scalarExpression );
                     switch ( scalarExpression.Expression )
                     {
-                        case SqlColumnRefExpression columnRef: AddFieldFromColumn( columnRef, name, batch, rawData ); break;
+                        case SqlScalarRefExpression scalarRef: AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
                         case SqlLiteralExpression literalExpression: AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
                     }
                 }
@@ -83,10 +83,9 @@ namespace SqlMemoryDb
 
         }
 
-        private void AddFieldFromColumn( SqlColumnRefExpression columnRef, string name,
-                                        MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        private void AddFieldFromColumn( SqlObjectIdentifier objectIdentifier, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
-            var tableColumn = Helper.GetTableColumn( columnRef, rawData );
+            var tableColumn = Helper.GetTableColumn( objectIdentifier, rawData );
             var readerField = new MemoryDbDataReader.ReaderField
             {
                 Name = name,

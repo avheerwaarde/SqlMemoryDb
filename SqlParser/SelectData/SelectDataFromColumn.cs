@@ -14,6 +14,11 @@ namespace SqlMemoryDb.SelectData
 
         public object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows )
         {
+            if ( rows == null )
+            {
+                return null;
+            }
+
             var tableRow = rows.Single( r => r.Name == _TableColumn.TableName );
             return tableRow.Row[ _TableColumn.Column.Order - 1 ];
         }

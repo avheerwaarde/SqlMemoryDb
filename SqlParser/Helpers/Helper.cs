@@ -127,53 +127,65 @@ namespace SqlMemoryDb.Helpers
             return list.First();
         }
 
-        private static TableColumn GetTableColumn( SqlObjectIdentifier multipartIdentifier, ExecuteSelectStatement.RawData rawData )
+        public static TableColumn GetTableColumn( SqlObjectIdentifier objectIdentifier, ExecuteSelectStatement.RawData rawData )
         {
-            var tableAlias = multipartIdentifier.SchemaName.Value;
             Table table;
-            if ( rawData.TableAliasList.ContainsKey( tableAlias ) )
+            var tableAlias = objectIdentifier.SchemaName.Value;
+            if ( objectIdentifier.SchemaName.Value == null )
             {
-                table = rawData.TableAliasList[ tableAlias ];
+                var tables = rawData.TableAliasList
+                    .Where( t => t.Value.Columns.Any( c => c.Name == objectIdentifier.ObjectName.Value ) )
+                    .ToList(  );
+                if ( tables.Count == 0 )
+                {
+                    throw new SqlInvalidColumnNameException( objectIdentifier.ObjectName.Value );
+                }
+                if ( tables.Count > 1 )
+                {
+                    throw new SqlUnqualifiedColumnNameException( objectIdentifier.ObjectName.Value );
+                }
+
+                var tableEntry = tables.Single( );
+                table = tableEntry.Value;
+                tableAlias = tableEntry.Key;
             }
             else
             {
-                var allTables = MemoryDbConnection.GetMemoryDatabase(  ).Tables;
-                table = allTables.ContainsKey( tableAlias ) 
-                        ? allTables[ tableAlias ] 
-                        : allTables.Single( t => t.Value.Name == tableAlias ).Value;
+                if ( rawData.TableAliasList.ContainsKey( tableAlias ) )
+                {
+                    table = rawData.TableAliasList[ tableAlias ];
+                }
+                else
+                {
+                    var tableEntry = rawData.TableAliasList.Single( t => t.Value.FullName == tableAlias || t.Value.Name == tableAlias );
+                    table = tableEntry.Value;
+                    tableAlias = tableEntry.Key;
+                }
             }
 
-            var column = table.Columns.Single( c => c.Name == multipartIdentifier.ObjectName.Value );
-            return new TableColumn {TableName = table.FullName, Column = column};
+            var column = table.Columns.Single( c => c.Name == objectIdentifier.ObjectName.Value );
+            return new TableColumn {TableName = tableAlias, Column = column};
         }
 
         public static object GetValue( SqlScalarExpression expression, Type type, ExecuteSelectStatement.RawData rawData, List<ExecuteSelectStatement.RawData.RawDataRow> row )
         {
-            if ( row == null )
-            {
-                return null;
-            }
             switch ( expression )
             {
                 case SqlColumnRefExpression columnRef:
                 {
-                    if ( row == null )
-                    {
-                        return null;
-                    }
                     var field = GetTableColumn( columnRef, rawData );
                     return new SelectDataFromColumn( field ).Select( row );
                 }
 
-                case SqlLiteralExpression literalExpression : 
-                    return GetValueFromString( type, literalExpression.Value ); 
+                case SqlLiteralExpression literal : 
+                    return GetValueFromString( type, literal.Value ); 
 
                 case SqlScalarVariableRefExpression variableRef:
                     return GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
 
-                case SqlScalarRefExpression refExpression:
+                case SqlScalarRefExpression scalarRef:
                 {
-                    var field = GetTableColumn( (SqlObjectIdentifier)refExpression.MultipartIdentifier, rawData );
+                    var field = GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
                     return new SelectDataFromColumn( field ).Select( row );
                 }
 
@@ -251,12 +263,22 @@ namespace SqlMemoryDb.Helpers
         {
             switch ( expression )
             {
-                case SqlColumnRefExpression columnRef :
+                case SqlColumnRefExpression columnRef:
+                {
                     var field = Helper.GetTableColumn( columnRef, rawData );
                     return field.Column.NetDataType;
+                }
                 case SqlScalarVariableRefExpression variableRef:
-                    Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
+                {
+//                    Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
                     return null;
+                }
+                case SqlScalarRefExpression scalarRef:
+                {
+                    var field = Helper.GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
+                    return field.Column.NetDataType;
+                }
+
             }
 
             return null;
