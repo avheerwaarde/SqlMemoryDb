@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
+using SqlMemoryDb.SelectData;
 
 namespace SqlMemoryDb
 {
@@ -16,6 +17,11 @@ namespace SqlMemoryDb
             public int FieldIndex;
             public Type NetType;
             public string DbType;
+        }
+
+        internal class ReaderFieldData : ReaderField
+        {
+            public ISelectData SelectFieldData;
         }
 
         public class ResultBatch

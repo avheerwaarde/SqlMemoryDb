@@ -49,6 +49,7 @@ namespace SqlMemoryDb
             ValidateAllRequiredFieldsAreSet( row, table );
             ValidateAllForeignKeyConstraints( row, table );
             table.Rows.Add( row );
+            _Command.RowsAffected++;
         }
 
 
@@ -88,7 +89,10 @@ namespace SqlMemoryDb
         private List<string> GetValuesFromSql( string sql )
         {
             var values = new List<string>( );
-            sql = sql.Trim( new[] {'(', ')'} );
+            if ( sql.StartsWith( "(" ) )
+            {
+                sql = sql.Substring( 1, sql.Length - 2 );
+            }
             var parts = sql.Split( new[] {','}, StringSplitOptions.RemoveEmptyEntries );
             foreach ( var part in parts )
             {

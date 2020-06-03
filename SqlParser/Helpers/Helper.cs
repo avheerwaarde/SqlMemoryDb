@@ -195,9 +195,9 @@ namespace SqlMemoryDb.Helpers
         }
 
 
-        public static MemoryDbDataReader.ReaderField BuildFieldFromStringValue( string literal, string name, int fieldsCount )
+        public static MemoryDbDataReader.ReaderFieldData BuildFieldFromStringValue( string literal, string name, int fieldsCount )
         {
-            var readerField = new MemoryDbDataReader.ReaderField
+            var readerField = new MemoryDbDataReader.ReaderFieldData
             {
                 Name = name,
                 DbType = "nvarchar",

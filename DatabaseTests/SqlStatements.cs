@@ -32,6 +32,8 @@ CREATE TABLE [dbo].[application_feature](
 	[numeric] [numeric](18, 0) NULL,
 	[int] [int] NULL,
 	[bigint] [bigint] NULL,
+	[DateTime] [datetime] NULL,
+	[DateTime2] [datetime2] NULL,
 	[fk_application] [int] NULL,
 PRIMARY KEY CLUSTERED 
 (

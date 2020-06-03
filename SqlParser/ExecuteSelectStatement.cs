@@ -22,7 +22,6 @@ namespace SqlMemoryDb
                 public ArrayList Row;
             }
             public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
-            public List<ISelectData> SelectFieldData = new List<ISelectData>();
             public DbParameterCollection Parameters { get; set; }
             public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
         }
@@ -67,8 +66,9 @@ namespace SqlMemoryDb
                     var name = Helper.GetColumnAlias( scalarExpression );
                     switch ( scalarExpression.Expression )
                     {
-                        case SqlScalarRefExpression scalarRef: AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
-                        case SqlLiteralExpression literalExpression: AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
+                        case SqlScalarRefExpression scalarRef                   : AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
+                        case SqlLiteralExpression literalExpression             : AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
+                        case SqlBuiltinScalarFunctionCallExpression functionCall: AddFieldForFunctionCall( functionCall, name, batch, rawData ); break;
                     }
                 }
                 else if ( column is SqlTopSpecification topSpecification )
@@ -86,23 +86,37 @@ namespace SqlMemoryDb
         private void AddFieldFromColumn( SqlObjectIdentifier objectIdentifier, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var tableColumn = Helper.GetTableColumn( objectIdentifier, rawData );
-            var readerField = new MemoryDbDataReader.ReaderField
+            var readerField = new MemoryDbDataReader.ReaderFieldData
             {
                 Name = name,
                 DbType = tableColumn.Column.DbDataType.ToString(),
                 NetType = tableColumn.Column.NetDataType,
-                FieldIndex = batch.Fields.Count
+                FieldIndex = batch.Fields.Count,
+                SelectFieldData = new SelectDataFromColumn( tableColumn )
             };
             batch.Fields.Add( readerField );
-            rawData.SelectFieldData.Add( new SelectDataFromColumn( tableColumn ) );
         }
 
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
             var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
+            readerField.SelectFieldData = new SelectDataFromObject( value );
             batch.Fields.Add( readerField );
-            rawData.SelectFieldData.Add( new SelectDataFromObject( value ) );
+        }
+
+        private void AddFieldForFunctionCall( SqlBuiltinScalarFunctionCallExpression functionCall, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataBuilder(  ).Build( functionCall, rawData );
+            var readerField = new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = name,
+                DbType = select.DbType,
+                NetType = select.ReturnType,
+                FieldIndex = batch.Fields.Count,
+                SelectFieldData = select
+            };
+            batch.Fields.Add( readerField );
         }
 
 
@@ -186,21 +200,7 @@ namespace SqlMemoryDb
 
         private void AddDataToBatch( MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
-            foreach ( var row in rawData.TableRows )
-            {
-                var resultRow = new ArrayList();
-                foreach ( var selectData in rawData.SelectFieldData )
-                {
-                    var value = selectData.Select( row );
-                    resultRow.Add( value );
-                }
-                batch.ResultRows.Add( resultRow );
-            }
-
-            if ( batch.MaxRowsCount.HasValue )
-            {
-                batch.ResultRows = batch.ResultRows.Take( batch.MaxRowsCount.Value ).ToList(  );
-            }
+            new SelectResultBuilder(  ).AddData( batch, rawData );            
         }
 
         private void ExecuteWhereClause( RawData rawData, SqlWhereClause whereClause )
