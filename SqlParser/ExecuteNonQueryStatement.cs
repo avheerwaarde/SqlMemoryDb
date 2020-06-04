@@ -9,10 +9,10 @@ using SqlParser;
 
 namespace SqlMemoryDb
 {
-    class ExecuteInsertStatement
+    class ExecuteNonQueryStatement
     {
         private readonly MemoryDbCommand _Command;
-        public ExecuteInsertStatement( MemoryDbCommand command )
+        public ExecuteNonQueryStatement( MemoryDbCommand command )
         {
             _Command = command;
         }

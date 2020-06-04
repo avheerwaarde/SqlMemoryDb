@@ -7,22 +7,22 @@ namespace SqlMemoryDb.Helpers
     class RowFilterBinary : IRowFilter
     {
         private readonly SqlBinaryBooleanExpression _Expression;
-        private readonly ExecuteSelectStatement.RawData _RawData;
+        private readonly ExecuteQueryStatement.RawData _RawData;
 
-        public RowFilterBinary( ExecuteSelectStatement.RawData rawData, SqlBinaryBooleanExpression expression )
+        public RowFilterBinary( ExecuteQueryStatement.RawData rawData, SqlBinaryBooleanExpression expression )
         {
             _Expression = expression;
             _RawData = rawData;
         }
 
-        public bool IsValid( List<ExecuteSelectStatement.RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows )
         {
             var leftIsValid = EvaluateSide( rawDataRows, _Expression.Left );
             var rightIsValid = EvaluateSide( rawDataRows, _Expression.Right );
             return Helper.IsTrue( _Expression.Operator, leftIsValid, rightIsValid );
         }
 
-        private bool EvaluateSide( List<ExecuteSelectStatement.RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression )
+        private bool EvaluateSide( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression )
         {
             switch ( expression )
             {
@@ -33,7 +33,7 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
-        private bool EvaluateSide( List<ExecuteSelectStatement.RawData.RawDataRow> rawDataRows, SqlComparisonBooleanExpression expression )
+        private bool EvaluateSide( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows, SqlComparisonBooleanExpression expression )
         {
             var type = Helper.DetermineType( expression.Left, expression.Right, _RawData);
             var left = Helper.GetValue(expression.Left, type, _RawData, rawDataRows);
@@ -41,7 +41,7 @@ namespace SqlMemoryDb.Helpers
             return Helper.IsPredicateCorrect(left, right, expression.ComparisonOperator);
         }
 
-        private bool EvaluateSide( List<ExecuteSelectStatement.RawData.RawDataRow> rawDataRows, SqlBinaryBooleanExpression expression )
+        private bool EvaluateSide( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows, SqlBinaryBooleanExpression expression )
         {
             var leftIsValid = EvaluateSide( rawDataRows, expression.Left );
             var rightIsValid = EvaluateSide( rawDataRows, expression.Right );

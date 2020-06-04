@@ -2,23 +2,31 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using SqlMemoryDb.Exceptions;
 
 namespace SqlMemoryDb.SelectData
 {
     class SelectResultBuilder
     {
-        public void AddData( MemoryDbDataReader.ResultBatch batch, ExecuteSelectStatement.RawData rawData )
+        public void AddData( MemoryDbDataReader.ResultBatch batch, ExecuteQueryStatement.RawData rawData )
         {
             var fields = batch.Fields.Cast<MemoryDbDataReader.ReaderFieldData>(  ).ToList();
             var isAggregate = fields
                 .Where( s => s.SelectFieldData is ISelectDataFunction )
                 .Any( s => ( ( ISelectDataFunction ) s.SelectFieldData ).IsAggregate );
 
-            if ( isAggregate )
+            if ( rawData.GroupByFields.Any() )
             {
-                var aggregateRow = CreateAggregateRow( fields, rawData.TableRows );
+                var groups = GroupRows( rawData );
+                foreach ( var group in groups )
+                {
+                    var aggregateRow = CreateAggregateRow( fields, group, rawData.GroupByFields );
+                    batch.ResultRows.Add( aggregateRow );
+                }
+            }
+            else if ( isAggregate )
+            {
+                var aggregateRow = CreateAggregateRow( fields, rawData.TableRows, new List<TableColumn>() );
                 batch.ResultRows.Add( aggregateRow );
             }
             else
@@ -30,20 +38,50 @@ namespace SqlMemoryDb.SelectData
             {
                 batch.ResultRows = batch.ResultRows.Take( batch.MaxRowsCount.Value ).ToList(  );
             }
-
         }
 
-        private ArrayList CreateAggregateRow( List<MemoryDbDataReader.ReaderFieldData> fields, List<List<ExecuteSelectStatement.RawData.RawDataRow>> rawRows )
+        private List<List<List<ExecuteQueryStatement.RawData.RawDataRow>>> GroupRows( ExecuteQueryStatement.RawData rawData )
+        {
+            var groups = rawData.TableRows.GroupBy( t => CreateGroupByKey( t, rawData.GroupByFields ) );
+            return groups.Select( g => g.ToList(  ) ).ToList( );
+        }
+
+        private object CreateGroupByKey( List<ExecuteQueryStatement.RawData.RawDataRow> row, List<TableColumn> groupByFields )
+        {
+            var keys = new List<string>( );
+            foreach ( var field in groupByFields )
+            {
+                keys.Add( new SelectDataFromColumn( field ).Select( row ).ToString(  ) );
+            }
+
+            return string.Join( "|", keys );
+        }
+
+        private ArrayList CreateAggregateRow( List<MemoryDbDataReader.ReaderFieldData> fields,
+            List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawRows, List<TableColumn> groupByFields )
         {
             var resultRow = new ArrayList();
             foreach ( var field in fields )
             {
+                object value;
                 var selectFunction = field.SelectFieldData as ISelectDataFunction;
                 if ( selectFunction == null || selectFunction.IsAggregate == false )
                 {
-                    throw new SqlNoAggregateFieldException( field.Name );
+                    if ( field.SelectFieldData is SelectDataFromColumn selectColumn
+                         && groupByFields.Any( g => g.TableName == selectColumn.TableColumn.TableName 
+                                                && g.Column.Name == selectColumn.TableColumn.Column.Name ) )
+                    {
+                        value = selectColumn.Select( rawRows.First() );
+                    }
+                    else
+                    {
+                        throw new SqlNoAggregateFieldException( field.Name );
+                    }
                 }
-                var value = selectFunction.Select( rawRows );
+                else
+                {
+                    value = selectFunction.Select( rawRows );
+                }
                 resultRow.Add( value );
             }
 
@@ -52,7 +90,7 @@ namespace SqlMemoryDb.SelectData
 
         private void AddRowData( MemoryDbDataReader.ResultBatch batch, 
                                     List<MemoryDbDataReader.ReaderFieldData> fields,
-                                    ExecuteSelectStatement.RawData rawData )
+                                    ExecuteQueryStatement.RawData rawData )
         {
             foreach ( var row in rawData.TableRows )
             {

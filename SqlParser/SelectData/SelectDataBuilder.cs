@@ -20,7 +20,7 @@ namespace SqlMemoryDb.SelectData
 
         };
 
-        public ISelectDataFunction Build( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteSelectStatement.RawData rawData )
+        public ISelectDataFunction Build( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteQueryStatement.RawData rawData )
         {
             var functionName =  functionCall.FunctionName.ToUpper();
 

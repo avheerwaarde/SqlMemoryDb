@@ -16,10 +16,10 @@ namespace SqlMemoryDb.SelectData
         private readonly Type _ReturnType = typeof(int);
         private readonly string _DbType = "int32";
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
-        private readonly ExecuteSelectStatement.RawData _RawData;
+        private readonly ExecuteQueryStatement.RawData _RawData;
         private readonly SqlColumnRefExpression _ColumnRef;
 
-        public SelectDataFromFunctionAggregate( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteSelectStatement.RawData rawData )
+        public SelectDataFromFunctionAggregate( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteQueryStatement.RawData rawData )
         {
             _FunctionCall = functionCall;
             _RawData = rawData;
@@ -32,13 +32,13 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows )
+        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
         {
             throw new NotImplementedException( );
         }
 
 
-        public object Select( List<List<ExecuteSelectStatement.RawData.RawDataRow>> rows )
+        public object Select( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows )
         {
             switch ( _FunctionCall.FunctionName.ToUpper() )
             {

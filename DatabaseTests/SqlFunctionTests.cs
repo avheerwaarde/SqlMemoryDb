@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
+using SqlMemoryDb.Exceptions;
 
 namespace DatabaseTests
 {
@@ -112,6 +110,19 @@ namespace DatabaseTests
             }
 
             rowCounter.Should( ).Be( 1 );
+        }
+
+        [TestMethod]
+        public async Task Invalid_UnknownFunction_ThrowsException( )
+        {
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = "SELECT Invalid([Order]) as [MinOrder] FROM application_action";
+            await command.PrepareAsync( );
+
+            Func<Task> act = async () => { await command.ExecuteReaderAsync( ); };
+            await act.Should( ).ThrowAsync<SqlFunctionNotSupportedException>( );
         }
     }
 }

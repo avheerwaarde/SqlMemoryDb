@@ -6,6 +6,6 @@ namespace SqlMemoryDb.SelectData
 {
     interface ISelectData
     {
-        object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows );
+        object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows );
     }
 }

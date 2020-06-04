@@ -11,7 +11,7 @@ using SqlParser;
 
 namespace SqlMemoryDb
 {
-    class ExecuteSelectStatement
+    class ExecuteQueryStatement
     {
         internal class RawData
         {
@@ -24,13 +24,14 @@ namespace SqlMemoryDb
             public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
             public DbParameterCollection Parameters { get; set; }
             public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
+            public List<TableColumn> GroupByFields = new List<TableColumn>();
         }
 
         private readonly MemoryDbCommand _Command;
         private readonly MemoryDbDataReader _Reader;
 
 
-        public ExecuteSelectStatement( MemoryDbCommand command, MemoryDbDataReader reader )
+        public ExecuteQueryStatement( MemoryDbCommand command, MemoryDbDataReader reader )
         {
             _Command = command;
             _Reader = reader;
@@ -52,6 +53,10 @@ namespace SqlMemoryDb
 
             var batch = new MemoryDbDataReader.ResultBatch(  );
             InitializeFields( batch, expression.SelectClause.Children.ToList(  ), rawData );
+            if ( expression.GroupByClause != null )
+            {
+                AddGroupByClause( expression.GroupByClause, rawData );
+            }
             AddDataToBatch( batch, rawData );
             _Reader.AddResultBatch( batch );
         }
@@ -96,6 +101,7 @@ namespace SqlMemoryDb
             };
             batch.Fields.Add( readerField );
         }
+
 
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
@@ -195,6 +201,22 @@ namespace SqlMemoryDb
             }
 
             rawData.TableRows = newTableRows;
+        }
+
+        private void AddGroupByClause( SqlGroupByClause groupByClause, RawData rawData )
+        {
+            foreach ( var item in groupByClause.Items )
+            {
+                switch ( item )
+                {
+                    case SqlSimpleGroupByItem simpleItem:
+                        var tableColumn = Helper.GetTableColumn( ( SqlColumnRefExpression ) simpleItem.Expression, rawData );
+                        rawData.GroupByFields.Add( tableColumn );
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
         }
 
 

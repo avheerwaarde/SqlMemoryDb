@@ -11,7 +11,7 @@ namespace SqlMemoryDb.SelectData
             _Value = value;
         }
 
-        public object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows )
+        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
         {
             return _Value;
         }

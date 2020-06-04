@@ -7,12 +7,12 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromFunctionGetDate : ISelectDataFunction
     {
-        public SelectDataFromFunctionGetDate( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteSelectStatement.RawData rawData )
+        public SelectDataFromFunctionGetDate( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteQueryStatement.RawData rawData )
         {
 
         }
 
-        public object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows )
+        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
         {
             return DateTime.Now;
         }
@@ -21,7 +21,7 @@ namespace SqlMemoryDb.SelectData
         public Type ReturnType => typeof( DateTime );
         public string DbType => "datetime";
 
-        public object Select( List<List<ExecuteSelectStatement.RawData.RawDataRow>> rows )
+        public object Select( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows )
         {
             throw new NotImplementedException( );
         }

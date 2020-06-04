@@ -5,22 +5,22 @@ namespace SqlMemoryDb.SelectData
 {
     internal class SelectDataFromColumn : ISelectData
     {
-        private readonly TableColumn _TableColumn;
+        public readonly TableColumn TableColumn;
 
         internal SelectDataFromColumn( TableColumn tableColumn )
         {
-            _TableColumn = tableColumn;
+            TableColumn = tableColumn;
         }
 
-        public object Select( List<ExecuteSelectStatement.RawData.RawDataRow> rows )
+        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
         {
             if ( rows == null )
             {
                 return null;
             }
 
-            var tableRow = rows.Single( r => r.Name == _TableColumn.TableName );
-            return tableRow.Row[ _TableColumn.Column.Order - 1 ];
+            var tableRow = rows.Single( r => r.Name == TableColumn.TableName );
+            return tableRow.Row[ TableColumn.Column.Order - 1 ];
         }
     }
 }
