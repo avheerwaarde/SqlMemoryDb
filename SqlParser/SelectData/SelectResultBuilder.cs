@@ -2,7 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
+using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
@@ -20,14 +22,20 @@ namespace SqlMemoryDb.SelectData
                 var groups = GroupRows( rawData );
                 foreach ( var group in groups )
                 {
-                    var aggregateRow = CreateAggregateRow( fields, group, rawData.GroupByFields );
-                    batch.ResultRows.Add( aggregateRow );
+                    var aggregateRow = CreateAggregateRow( fields, group, rawData.GroupByFields, rawData );
+                    if ( aggregateRow != null )
+                    {
+                        batch.ResultRows.Add( aggregateRow );
+                    }
                 }
             }
             else if ( isAggregate )
             {
-                var aggregateRow = CreateAggregateRow( fields, rawData.TableRows, new List<TableColumn>() );
-                batch.ResultRows.Add( aggregateRow );
+                var aggregateRow = CreateAggregateRow( fields, rawData.TableRows, new List<TableColumn>(), rawData );
+                if ( aggregateRow != null )
+                {
+                    batch.ResultRows.Add( aggregateRow );
+                }
             }
             else
             {
@@ -51,14 +59,15 @@ namespace SqlMemoryDb.SelectData
             var keys = new List<string>( );
             foreach ( var field in groupByFields )
             {
-                keys.Add( new SelectDataFromColumn( field ).Select( row ).ToString(  ) );
+                keys.Add( new SelectDataFromColumn( field ).Select( row )?.ToString(  ) ?? "<NULL>");
             }
 
             return string.Join( "|", keys );
         }
 
         private ArrayList CreateAggregateRow( List<MemoryDbDataReader.ReaderFieldData> fields,
-            List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawRows, List<TableColumn> groupByFields )
+            List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawRows, List<TableColumn> groupByFields,
+            ExecuteQueryStatement.RawData rawData )
         {
             var resultRow = new ArrayList();
             foreach ( var field in fields )
@@ -85,6 +94,14 @@ namespace SqlMemoryDb.SelectData
                 resultRow.Add( value );
             }
 
+            if ( rawData.HavingClause != null )
+            {
+                var filter = Helper.GetRowFilter( rawData.HavingClause, rawData );
+                if ( filter.IsValid( rawRows, fields ) == false )
+                {
+                    return null;
+                }
+            }
             return resultRow;
         }
 

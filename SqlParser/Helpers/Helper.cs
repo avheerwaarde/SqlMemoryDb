@@ -194,6 +194,18 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
+        public static object GetValue( SqlScalarExpression expression, Type type, ExecuteQueryStatement.RawData rawData,
+            List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows )
+        {
+            switch ( expression )
+            {
+                case SqlAggregateFunctionCallExpression functionCall:
+                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    return selectFunction.Select( rows );
+                default:
+                    return GetValue( expression, type, rawData, rows.First( ) );
+            }
+        }
 
         public static MemoryDbDataReader.ReaderFieldData BuildFieldFromStringValue( string literal, string name, int fieldsCount )
         {
@@ -278,7 +290,11 @@ namespace SqlMemoryDb.Helpers
                     var field = Helper.GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
                     return field.Column.NetDataType;
                 }
-
+                case SqlAggregateFunctionCallExpression functionCall:
+                {
+                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    return selectFunction.ReturnType;
+                }
             }
 
             return null;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using System;
 using System.Collections.Generic;
+using SqlMemoryDb.SelectData;
 
 namespace SqlMemoryDb.Helpers
 {
@@ -20,6 +21,12 @@ namespace SqlMemoryDb.Helpers
             var leftIsValid = EvaluateSide( rawDataRows, _Expression.Left );
             var rightIsValid = EvaluateSide( rawDataRows, _Expression.Right );
             return Helper.IsTrue( _Expression.Operator, leftIsValid, rightIsValid );
+        }
+
+        public bool IsValid( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawDataRowList,
+            List<MemoryDbDataReader.ReaderFieldData> fields )
+        {
+            throw new NotImplementedException( );
         }
 
         private bool EvaluateSide( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression )

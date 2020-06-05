@@ -23,6 +23,8 @@ namespace SqlMemoryDb
             }
             public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
             public DbParameterCollection Parameters { get; set; }
+            public SqlBooleanExpression HavingClause { get; set; }
+
             public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
             public List<TableColumn> GroupByFields = new List<TableColumn>();
         }
@@ -56,6 +58,11 @@ namespace SqlMemoryDb
             if ( expression.GroupByClause != null )
             {
                 AddGroupByClause( expression.GroupByClause, rawData );
+            }
+
+            if ( expression.HavingClause != null )
+            {
+                AddHavingClause( expression.HavingClause, rawData );
             }
             AddDataToBatch( batch, rawData );
             _Reader.AddResultBatch( batch );
@@ -219,6 +226,10 @@ namespace SqlMemoryDb
             }
         }
 
+        private void AddHavingClause( SqlHavingClause havingClause, RawData rawData )
+        {
+            rawData.HavingClause = havingClause.Expression;
+        }
 
         private void AddDataToBatch( MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
