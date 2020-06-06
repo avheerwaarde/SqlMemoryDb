@@ -14,6 +14,7 @@ namespace DatabaseTests
         [TestMethod]
         public async Task OpenConnection_CreateTable_Ok( )
         {
+            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
             await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );

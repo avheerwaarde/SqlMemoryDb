@@ -164,5 +164,102 @@ INNER JOIN application_action action ON app.Id = action.fk_application";
 
             recordsRead.Should( ).Be( 12 );
         }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_SortMultipleColumns_OrderedRowsRead( )
+        {
+            const string sqlSelect = @"
+SELECT  
+	app.Id
+	, app.Name
+	, app.[User]
+	, DefName
+	, action.Id AS ActionId
+	, action.Name AS ActionName
+	, action.Action
+	, action.fk_application
+	, [Order]
+FROM  application app
+INNER JOIN application_action action ON app.Id = action.fk_application
+ORDER by fk_application, [Order]";
+
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = sqlSelect;
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var lastOrder = 1;
+            var lastFkApplication = 1;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                ((int)reader[ "Id" ]).Should( ).BeInRange( 1, 3 );
+                var currentFkApplication = ( int ) reader[ "fk_application" ];
+                currentFkApplication.Should( ).BeGreaterOrEqualTo( lastFkApplication );
+                if ( currentFkApplication != lastFkApplication )
+                {
+                    lastOrder = 1;
+                    lastFkApplication = currentFkApplication;
+                }
+
+                var currentOrder = ( ( int ) reader[ "Order" ] );
+                currentOrder.Should( ).BeGreaterOrEqualTo( lastOrder );
+                lastOrder = currentOrder;
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 12 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_SortMultipleColumns_DescOrderedRowsRead( )
+        {
+            const string sqlSelect = @"
+SELECT  
+	app.Id
+	, app.Name
+	, app.[User]
+	, DefName
+	, action.Id AS ActionId
+	, action.Name AS ActionName
+	, action.Action
+	, action.fk_application
+	, [Order]
+FROM  application app
+INNER JOIN application_action action ON app.Id = action.fk_application
+ORDER by fk_application DESC, [Order] DESC";
+
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = sqlSelect;
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var lastOrder = 99;
+            var lastFkApplication = 99;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                ((int)reader[ "Id" ]).Should( ).BeInRange( 1, 3 );
+                var currentFkApplication = ( int ) reader[ "fk_application" ];
+                currentFkApplication.Should( ).BeLessOrEqualTo( lastFkApplication );
+                if ( currentFkApplication != lastFkApplication )
+                {
+                    lastOrder = 99;
+                    lastFkApplication = currentFkApplication;
+                }
+
+                var currentOrder = ( ( int ) reader[ "Order" ] );
+                currentOrder.Should( ).BeLessOrEqualTo( lastOrder );
+                lastOrder = currentOrder;
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 12 );
+        }
+
     }
 }

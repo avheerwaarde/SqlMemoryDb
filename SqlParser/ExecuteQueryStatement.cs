@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Helpers;
@@ -13,21 +11,6 @@ namespace SqlMemoryDb
 {
     class ExecuteQueryStatement
     {
-        internal class RawData
-        {
-            public class RawDataRow
-            {
-                public string Name;
-                public Table Table;
-                public ArrayList Row;
-            }
-            public List<List<RawDataRow>> TableRows = new List<List<RawDataRow>>();
-            public DbParameterCollection Parameters { get; set; }
-            public SqlBooleanExpression HavingClause { get; set; }
-
-            public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
-            public List<TableColumn> GroupByFields = new List<TableColumn>();
-        }
 
         private readonly MemoryDbCommand _Command;
         private readonly MemoryDbDataReader _Reader;
@@ -60,11 +43,10 @@ namespace SqlMemoryDb
                 AddGroupByClause( expression.GroupByClause, rawData );
             }
 
-            if ( expression.HavingClause != null )
-            {
-                AddHavingClause( expression.HavingClause, rawData );
-            }
-            AddDataToBatch( batch, rawData );
+            rawData.HavingClause = expression.HavingClause?.Expression;
+            rawData.SortOrder =  selectStatement.SelectSpecification.OrderByClause?.Items;
+
+            new QueryResultBuilder( rawData ).AddData( batch );            
             _Reader.AddResultBatch( batch );
         }
 
@@ -175,7 +157,7 @@ namespace SqlMemoryDb
                     Row = row
                 };
                 var rows = new List<RawData.RawDataRow>( ) {tableRow};
-                rawData.TableRows.Add( rows );
+                rawData.RawRowList.Add( rows );
             }
         }
 
@@ -188,7 +170,7 @@ namespace SqlMemoryDb
 
             var newTableRows = new List<List<RawData.RawDataRow>>( );
             var filter = Helper.GetRowFilter( onClause.Expression, rawData );
-            foreach ( var currentRawRows in rawData.TableRows )
+            foreach ( var currentRawRows in rawData.RawRowList )
             {
                 foreach ( var row in table.Rows )
                 {
@@ -207,7 +189,7 @@ namespace SqlMemoryDb
                 }            
             }
 
-            rawData.TableRows = newTableRows;
+            rawData.RawRowList = newTableRows;
         }
 
         private void AddGroupByClause( SqlGroupByClause groupByClause, RawData rawData )
@@ -226,22 +208,12 @@ namespace SqlMemoryDb
             }
         }
 
-        private void AddHavingClause( SqlHavingClause havingClause, RawData rawData )
-        {
-            rawData.HavingClause = havingClause.Expression;
-        }
-
-        private void AddDataToBatch( MemoryDbDataReader.ResultBatch batch, RawData rawData )
-        {
-            new SelectResultBuilder(  ).AddData( batch, rawData );            
-        }
-
         private void ExecuteWhereClause( RawData rawData, SqlWhereClause whereClause )
         {
             foreach ( var child in whereClause.Children )
             {
                 var filter = Helper.GetRowFilter( ( SqlBooleanExpression ) child, rawData );
-                rawData.TableRows = rawData.TableRows.Where( r => filter.IsValid( r )  ).ToList(  );
+                rawData.RawRowList = rawData.RawRowList.Where( r => filter.IsValid( r )  ).ToList(  );
             }
         }
     }

@@ -9,6 +9,6 @@ namespace SqlMemoryDb.SelectData
         bool IsAggregate { get; }
         Type ReturnType { get; }
         string DbType { get; }
-        object Select( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows );
+        object Select( List<List<RawData.RawDataRow>> rows );
     }
 }

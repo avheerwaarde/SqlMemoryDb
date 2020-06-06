@@ -12,7 +12,7 @@ namespace SqlMemoryDb.SelectData
             TableColumn = tableColumn;
         }
 
-        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
+        public object Select( List<RawData.RawDataRow> rows )
         {
             if ( rows == null )
             {

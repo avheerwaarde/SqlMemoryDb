@@ -5,9 +5,9 @@ namespace SqlMemoryDb.Helpers
 {
     internal interface IRowFilter
     {
-        bool IsValid( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows );
+        bool IsValid( List<RawData.RawDataRow> rawDataRows );
 
-        bool IsValid( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawDataRowList,
+        bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList,
             List<MemoryDbDataReader.ReaderFieldData> fields );
 
     }

@@ -9,10 +9,10 @@ namespace SqlMemoryDb.Helpers
     class RowFilterComparison: IRowFilter
     {
         private readonly SqlComparisonBooleanExpression _Expression;
-        private readonly ExecuteQueryStatement.RawData _RawData;
+        private readonly RawData _RawData;
         private readonly Type _Type;
 
-        public RowFilterComparison( ExecuteQueryStatement.RawData rawData, SqlComparisonBooleanExpression expression )
+        public RowFilterComparison( RawData rawData, SqlComparisonBooleanExpression expression )
         {
             _Expression = expression;
             _RawData = rawData;
@@ -20,14 +20,14 @@ namespace SqlMemoryDb.Helpers
 
         }
 
-        public bool IsValid( List<ExecuteQueryStatement.RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<RawData.RawDataRow> rawDataRows )
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRows );
             var right = Helper.GetValue( _Expression.Right, _Type, _RawData, rawDataRows );
             return Helper.IsPredicateCorrect( left, right, _Expression.ComparisonOperator );
         }
 
-        public bool IsValid( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rawDataRowList,
+        public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList,
             List<MemoryDbDataReader.ReaderFieldData> fields )
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRowList );

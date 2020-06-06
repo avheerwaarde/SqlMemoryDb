@@ -109,11 +109,11 @@ namespace SqlMemoryDb.Helpers
             return parameter.Value;
         }
 
-        public static TableColumn GetTableColumn( SqlColumnRefExpression expression, ExecuteQueryStatement.RawData rawData )
+        public static TableColumn GetTableColumn( SqlColumnRefExpression expression, RawData rawData )
         {
             var list = new List<TableColumn>( );
             var columnName = GetColumnName( expression );
-            foreach ( var row in rawData.TableRows )
+            foreach ( var row in rawData.RawRowList )
             {
                 foreach ( var tableRow in row )
                 {
@@ -127,7 +127,7 @@ namespace SqlMemoryDb.Helpers
             return list.First();
         }
 
-        public static TableColumn GetTableColumn( SqlObjectIdentifier objectIdentifier, ExecuteQueryStatement.RawData rawData )
+        public static TableColumn GetTableColumn( SqlObjectIdentifier objectIdentifier, RawData rawData )
         {
             Table table;
             var tableAlias = objectIdentifier.SchemaName.Value;
@@ -167,7 +167,7 @@ namespace SqlMemoryDb.Helpers
             return new TableColumn {TableName = tableAlias, Column = column};
         }
 
-        public static object GetValue( SqlScalarExpression expression, Type type, ExecuteQueryStatement.RawData rawData, List<ExecuteQueryStatement.RawData.RawDataRow> row )
+        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row )
         {
             switch ( expression )
             {
@@ -194,8 +194,8 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
-        public static object GetValue( SqlScalarExpression expression, Type type, ExecuteQueryStatement.RawData rawData,
-            List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows )
+        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData,
+            List<List<RawData.RawDataRow>> rows )
         {
             switch ( expression )
             {
@@ -266,12 +266,12 @@ namespace SqlMemoryDb.Helpers
             return readerField;
         }
 
-        public static Type DetermineType( SqlScalarExpression expressionLeft, SqlScalarExpression expressionRight, ExecuteQueryStatement.RawData rawData )
+        public static Type DetermineType( SqlScalarExpression expressionLeft, SqlScalarExpression expressionRight, RawData rawData )
         {
             return DetermineType( expressionLeft, rawData ) ?? DetermineType( expressionRight, rawData );
         }
 
-        public static Type DetermineType( SqlScalarExpression expression, ExecuteQueryStatement.RawData rawData )
+        public static Type DetermineType( SqlScalarExpression expression, RawData rawData )
         {
             switch ( expression )
             {
@@ -300,7 +300,7 @@ namespace SqlMemoryDb.Helpers
             return null;
         }
 
-        public static IRowFilter GetRowFilter( SqlBooleanExpression booleanExpression, ExecuteQueryStatement.RawData rawData )
+        public static IRowFilter GetRowFilter( SqlBooleanExpression booleanExpression, RawData rawData )
         {
             switch ( booleanExpression )
             {

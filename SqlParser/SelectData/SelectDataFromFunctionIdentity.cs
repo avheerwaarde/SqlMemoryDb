@@ -9,12 +9,12 @@ namespace SqlMemoryDb.SelectData
     {
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
 
-        public SelectDataFromFunctionIdentity( SqlBuiltinScalarFunctionCallExpression functionCall, ExecuteQueryStatement.RawData rawData )
+        public SelectDataFromFunctionIdentity( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )
         {
             _FunctionCall = functionCall;
         }
 
-        public object Select( List<ExecuteQueryStatement.RawData.RawDataRow> rows )
+        public object Select( List<RawData.RawDataRow> rows )
         {
             throw new NotImplementedException( );
         }
@@ -23,7 +23,7 @@ namespace SqlMemoryDb.SelectData
         public Type ReturnType => typeof( decimal );
         public string DbType => "decimal";
 
-        public object Select( List<List<ExecuteQueryStatement.RawData.RawDataRow>> rows )
+        public object Select( List<List<RawData.RawDataRow>> rows )
         {
             throw new NotImplementedException( );
         }
