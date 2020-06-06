@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -261,5 +258,39 @@ ORDER by fk_application DESC, [Order] DESC";
             recordsRead.Should( ).Be( 12 );
         }
 
+        [TestMethod]
+        public async Task SelectApplicationAction_SortMultipleColumnsNoRows_NoRowsRead( )
+        {
+            const string sqlSelect = @"
+SELECT  
+	app.Id
+	, app.Name
+	, app.[User]
+	, DefName
+	, action.Id AS ActionId
+	, action.Name AS ActionName
+	, action.Action
+	, action.fk_application
+	, [Order]
+FROM  application app
+INNER JOIN application_action action ON app.Id = action.fk_application
+WHERE app.Id = 99
+ORDER by fk_application DESC, [Order] DESC";
+
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = sqlSelect;
+            await command.PrepareAsync( );
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                recordsRead++;
+            }
+
+            recordsRead.Should( ).Be( 0 );
+        }
     }
 }

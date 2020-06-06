@@ -33,6 +33,7 @@ namespace SqlMemoryDb
                     {
                         case SqlCreateTableStatement createTable: new TableInfo( this ).Add( createTable ); break;
                         case SqlInsertStatement insertStatement: new ExecuteNonQueryStatement( command ).Execute( Tables, insertStatement ); break; 
+                        case SqlUpdateStatement updateStatement: new ExecuteUpdateStatement( command ).Execute( Tables, updateStatement ); break; 
                     }
                 }
             }

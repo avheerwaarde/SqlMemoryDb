@@ -9,20 +9,29 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class ExecuteNonQueryTests
+    public class UpdateTests
     {
-        [TestMethod]
-        public async Task OpenConnection_CreateTable_Ok( )
+        [TestInitialize]
+        public async Task InsertDb( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            await SqlScripts.InitDbAsync( );
+        }
+
+        [TestMethod]
+        public async Task UpdateAction_ChangeOrder_4RowsModified( )
+        {
+            const string sql = @"
+UPDATE application_action 
+SET [Order] = 9
+WHERE fk_application = 2
+";
             await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
-            command.CommandText = SqlStatements.SqlCreateTableApplication;
+            command.CommandText = sql;
             await command.PrepareAsync( );
-            await command.ExecuteNonQueryAsync( );
-            var db = MemoryDbConnection.GetMemoryDatabase( );
-            db.Tables.Count.Should( ).Be( 1 );
+            var rowsAffected = await command.ExecuteNonQueryAsync( );
+            rowsAffected.Should( ).Be( 4 );
         }
     }
 }

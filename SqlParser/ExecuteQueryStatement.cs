@@ -29,10 +29,10 @@ namespace SqlMemoryDb
             var expression = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
             if (expression.FromClause != null )
             {
-                AddTablesFromClause( expression.FromClause, tables, rawData );
+                rawData.AddTablesFromClause( expression.FromClause, tables );
                 if ( expression.WhereClause != null )
                 {
-                    ExecuteWhereClause( rawData, expression.WhereClause );
+                    rawData.ExecuteWhereClause( expression.WhereClause );
                 }
             }
 
@@ -40,7 +40,7 @@ namespace SqlMemoryDb
             InitializeFields( batch, expression.SelectClause.Children.ToList(  ), rawData );
             if ( expression.GroupByClause != null )
             {
-                AddGroupByClause( expression.GroupByClause, rawData );
+                rawData.AddGroupByClause( expression.GroupByClause );
             }
 
             rawData.HavingClause = expression.HavingClause?.Expression;
@@ -74,7 +74,6 @@ namespace SqlMemoryDb
                     throw new NotImplementedException();
                 }
             }
-
         }
 
         private void AddFieldFromColumn( SqlObjectIdentifier objectIdentifier, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
@@ -112,109 +111,6 @@ namespace SqlMemoryDb
                 SelectFieldData = select
             };
             batch.Fields.Add( readerField );
-        }
-
-
-        private void AddTablesFromClause(SqlFromClause fromClause, Dictionary<string, Table> tables, RawData rawData )
-        {
-            foreach (var expression in fromClause.TableExpressions)
-            {
-                switch (expression)
-                {
-                    case SqlTableRefExpression tableRef:
-                    {
-                        var name = Helper.GetAliasName(tableRef);
-                        var table = tables[Helper.GetQualifiedName(tableRef.ObjectIdentifier)];
-                        AddAllTableRows( rawData, table, name );
-                        break;
-                    }
-                    case SqlQualifiedJoinTableExpression joinExpression:
-                    {
-                        var name = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Left);
-                        var table = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Left).ObjectIdentifier)];
-                        AddAllTableRows( rawData, table, name );
-                        var nameJoin = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Right);
-                        var tableJoin = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Right).ObjectIdentifier)];
-                        AddAllTableJoinRows( rawData, tableJoin, nameJoin, joinExpression.OnClause );
-                        break;
-                    }
-                }
-            }
-        }
-
-        private static void AddAllTableRows( RawData rawData, Table table, string name )
-        {
-            if ( rawData.TableAliasList.ContainsKey( name ) == false )
-            {
-                rawData.TableAliasList.Add( name, table );
-            }
-            foreach ( var row in table.Rows )
-            {
-                var tableRow = new RawData.RawDataRow
-                {
-                    Name = name,
-                    Table = table,
-                    Row = row
-                };
-                var rows = new List<RawData.RawDataRow>( ) {tableRow};
-                rawData.RawRowList.Add( rows );
-            }
-        }
-
-        private void AddAllTableJoinRows( RawData rawData, Table table, string name, SqlConditionClause onClause )
-        {
-            if ( rawData.TableAliasList.ContainsKey( name ) == false )
-            {
-                rawData.TableAliasList.Add( name, table );
-            }
-
-            var newTableRows = new List<List<RawData.RawDataRow>>( );
-            var filter = Helper.GetRowFilter( onClause.Expression, rawData );
-            foreach ( var currentRawRows in rawData.RawRowList )
-            {
-                foreach ( var row in table.Rows )
-                {
-                    var newRows = new List<RawData.RawDataRow>( currentRawRows );
-                    var tableRow = new RawData.RawDataRow
-                    {
-                        Name = name,
-                        Table = table,
-                        Row = row
-                    };
-                    newRows.Add( tableRow );
-                    if ( filter.IsValid( newRows ) )
-                    {
-                        newTableRows.Add( newRows );
-                    }
-                }            
-            }
-
-            rawData.RawRowList = newTableRows;
-        }
-
-        private void AddGroupByClause( SqlGroupByClause groupByClause, RawData rawData )
-        {
-            foreach ( var item in groupByClause.Items )
-            {
-                switch ( item )
-                {
-                    case SqlSimpleGroupByItem simpleItem:
-                        var tableColumn = Helper.GetTableColumn( ( SqlColumnRefExpression ) simpleItem.Expression, rawData );
-                        rawData.GroupByFields.Add( tableColumn );
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
-
-        private void ExecuteWhereClause( RawData rawData, SqlWhereClause whereClause )
-        {
-            foreach ( var child in whereClause.Children )
-            {
-                var filter = Helper.GetRowFilter( ( SqlBooleanExpression ) child, rawData );
-                rawData.RawRowList = rawData.RawRowList.Where( r => filter.IsValid( r )  ).ToList(  );
-            }
         }
     }
 }
