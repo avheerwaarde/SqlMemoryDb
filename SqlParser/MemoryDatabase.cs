@@ -49,7 +49,32 @@ namespace SqlMemoryDb
                 throw new SqlServerParserException( result.Errors );
             }
 
-            var reader = new MemoryDbDataReader( behavior  );
+            using ( var reader = new MemoryDbDataReader( behavior ) )
+            {
+                foreach ( var batch in result.Script.Batches )
+                {
+                    command.LastIdentitySet = null;
+                    foreach ( var child in batch.Children )
+                    {
+                        switch ( child )
+                        {
+                            case SqlSelectStatement selectStatement: new ExecuteQueryStatement( command, reader ).Execute( Tables, selectStatement ); break; 
+                        }
+                    }
+                }
+
+                return reader;
+            }
+        }
+
+        public object ExecuteSqlScalar( string commandText, MemoryDbCommand command )
+        {
+            var result = Parser.Parse( commandText );
+            if ( result.Errors.Any())
+            {
+                throw new SqlServerParserException( result.Errors );
+            }
+
             foreach ( var batch in result.Script.Batches )
             {
                 command.LastIdentitySet = null;
@@ -57,12 +82,28 @@ namespace SqlMemoryDb
                 {
                     switch ( child )
                     {
-                        case SqlSelectStatement selectStatement: new ExecuteQueryStatement( command, reader ).Execute( Tables, selectStatement ); break; 
+                        case SqlSelectStatement selectStatement:
+                            using ( var reader = new MemoryDbDataReader( CommandBehavior.SingleResult ) )
+                            {
+                                new ExecuteQueryStatement( command, reader ).Execute( Tables, selectStatement );
+                                if ( reader.IsScalarResult )
+                                {
+                                    reader.Read( );
+                                    return reader.GetValue( 0 );
+                                }
+                                else
+                                {
+                                    throw new SqlNoScalarResultException( );
+                                }
+                            }
+
+                        default:
+                            throw new NotImplementedException();
                     }
                 }
             }
 
-            return reader;
+            return null;
         }
     }
 }

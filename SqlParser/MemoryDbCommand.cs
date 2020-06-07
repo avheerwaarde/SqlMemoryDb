@@ -63,7 +63,15 @@ namespace SqlMemoryDb
 
         public override object ExecuteScalar( )
         {
-            throw new NotImplementedException( );
+            Prepare(  );
+            var dbConnection = ( MemoryDbConnection ) Connection;
+            var db = dbConnection.MemoryDatabase;
+
+            RowsAffected = 0;
+            dbConnection.InternalState = ConnectionState.Executing;
+            var result = db.ExecuteSqlScalar( CommandText, this );
+            dbConnection.InternalState = ConnectionState.Open;
+            return result;
         }
 
         public override void Prepare( )

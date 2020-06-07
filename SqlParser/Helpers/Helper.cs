@@ -48,6 +48,7 @@ namespace SqlMemoryDb.Helpers
             {
                 switch ( column.DbDataType )
                 {
+                    case DbType.Boolean: return source.ToUpper( ) == "TRUE" || source == "1";
                     case DbType.Byte   : return Convert.ToByte( source ); 
                     case DbType.Int16  : return Convert.ToInt16( source );
                     case DbType.Int32  : return Convert.ToInt32( source );

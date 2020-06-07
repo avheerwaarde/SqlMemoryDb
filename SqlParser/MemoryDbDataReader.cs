@@ -162,6 +162,8 @@ namespace SqlMemoryDb
         public override bool HasRows => _ResultBatches.Any( b => b.ResultRows.Any() );
         public override bool IsClosed => false;
         public override int Depth => 0;
+        public bool IsScalarResult => _ResultBatches.Any( ) == false ||
+                                      ( _ResultBatches.Count == 1 && _ResultBatches[ 0 ].ResultRows.Count == 1 );
 
         public override bool NextResult( )
         {
