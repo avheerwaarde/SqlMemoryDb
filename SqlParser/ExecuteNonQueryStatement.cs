@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
+using SqlMemoryDb.SelectData;
 using SqlParser;
 
 namespace SqlMemoryDb
@@ -61,7 +62,15 @@ namespace SqlMemoryDb
             }
             else
             {
-                row[ column.Order ] = Helper.GetValueFromString( column, value );
+                if ( value.Contains( "(" ) && value.Contains( ")" ) || value.StartsWith( "@@" ))
+                {
+                    var select = new SelectDataBuilder(  ).Build( value );
+                    row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
+                }
+                else
+                {
+                    row[ column.Order ] = Helper.GetValueFromString( column, value );
+                }
             }
 
             ValidateDataSize( column, row[ column.Order ] );

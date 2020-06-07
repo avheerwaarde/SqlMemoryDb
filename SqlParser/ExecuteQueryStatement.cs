@@ -35,6 +35,11 @@ namespace SqlMemoryDb
                     rawData.ExecuteWhereClause( expression.WhereClause );
                 }
             }
+            else
+            {
+                // We do not select data from any table, so we insert an empty row to trigger a result in AddData().
+                rawData.RawRowList.Add( new List<RawData.RawDataRow>() );
+            }
 
             var batch = new MemoryDbDataReader.ResultBatch(  );
             InitializeFields( batch, expression.SelectClause.Children.ToList(  ), rawData );
@@ -60,6 +65,7 @@ namespace SqlMemoryDb
                     var name = Helper.GetColumnAlias( scalarExpression );
                     switch ( scalarExpression.Expression )
                     {
+                        case SqlGlobalScalarVariableRefExpression globalRef     : AddFieldFromGlobalVariable( globalRef, name, batch, rawData ); break;
                         case SqlScalarRefExpression scalarRef                   : AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
                         case SqlLiteralExpression literalExpression             : AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
                         case SqlBuiltinScalarFunctionCallExpression functionCall: AddFieldForFunctionCall( functionCall, name, batch, rawData ); break;
@@ -74,6 +80,20 @@ namespace SqlMemoryDb
                     throw new NotImplementedException();
                 }
             }
+        }
+
+        private void AddFieldFromGlobalVariable( SqlGlobalScalarVariableRefExpression globalRef, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataBuilder(  ).BuildGlobalVariable( globalRef.VariableName, rawData );
+            var readerField = new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = name,
+                DbType = select.DbType,
+                NetType = select.ReturnType,
+                FieldIndex = batch.Fields.Count,
+                SelectFieldData = select
+            };
+            batch.Fields.Add( readerField );
         }
 
         private void AddFieldFromColumn( SqlObjectIdentifier objectIdentifier, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )

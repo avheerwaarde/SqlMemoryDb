@@ -31,7 +31,7 @@ namespace SqlMemoryDb.Helpers
         {
             return scalarExpression.Alias != null
                 ? scalarExpression.Alias.Value
-                : GetColumnName( ( SqlScalarRefExpression)scalarExpression.Expression );
+                : scalarExpression.Expression is SqlScalarRefExpression expression ? GetColumnName( expression ) : "";
         }
 
         public static object GetValueFromString( Column column, string source )
