@@ -28,7 +28,7 @@ namespace DatabaseTests
             while ( await reader.ReadAsync() )
             {
                 reader[ "Id" ].Should( ).Be( 1 );
-                reader.GetDateTime(2).Should( ).BeCloseTo( DateTime.Now, TimeSpan.FromSeconds( 5 ) );
+                reader.GetDateTime(1).Should( ).BeCloseTo( DateTime.Now, TimeSpan.FromSeconds( 5 ) );
             }
         }
 

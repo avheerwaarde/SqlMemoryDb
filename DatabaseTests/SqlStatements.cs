@@ -63,5 +63,12 @@ CONSTRAINT [FK_application_action_application] FOREIGN KEY ([fk_application]) RE
 ALTER TABLE [dbo].[application_action] WITH CHECK ADD CONSTRAINT [FK_application_action_application] FOREIGN KEY([fk_application])
 REFERENCES [dbo].[application] ([Id])
  */
+        public const string SqlSelectApplicationAction = @"
+SELECT Id, Name, Action, [Order], fk_application
+FROM application_action
+";
+
+
     }
+
 }

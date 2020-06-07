@@ -20,7 +20,7 @@ namespace SqlMemoryDb.SelectData
             }
 
             var tableRow = rows.Single( r => r.Name == TableColumn.TableName );
-            return tableRow.Row[ TableColumn.Column.Order - 1 ];
+            return tableRow.Row[ TableColumn.Column.Order ];
         }
     }
 }

@@ -45,12 +45,12 @@ namespace SqlMemoryDb
 
         public override bool GetBoolean( int ordinal )
         {
-            return ( bool )_CurrentRow[ ordinal - 1 ];
+            return ( bool )_CurrentRow[ ordinal ];
         }
 
         public override byte GetByte( int ordinal )
         {
-            return ( byte )_CurrentRow[ ordinal - 1 ];
+            return ( byte )_CurrentRow[ ordinal ];
         }
 
         public override long GetBytes( int ordinal, long dataOffset, byte[] buffer, int bufferOffset, int length )
@@ -60,7 +60,7 @@ namespace SqlMemoryDb
 
         public override char GetChar( int ordinal )
         {
-            return ( char )_CurrentRow[ ordinal - 1 ];
+            return ( char )_CurrentRow[ ordinal ];
         }
 
         public override long GetChars( int ordinal, long dataOffset, char[] buffer, int bufferOffset, int length )
@@ -70,72 +70,72 @@ namespace SqlMemoryDb
 
         public override DateTime GetDateTime( int ordinal )
         {
-            return ( DateTime )_CurrentRow[ ordinal - 1 ];
+            return ( DateTime )_CurrentRow[ ordinal ];
         }
 
         public override decimal GetDecimal( int ordinal )
         {
-            return ( decimal )_CurrentRow[ ordinal - 1 ];
+            return ( decimal )_CurrentRow[ ordinal ];
         }
 
         public override double GetDouble( int ordinal )
         {
-            return ( double )_CurrentRow[ ordinal - 1 ];
+            return ( double )_CurrentRow[ ordinal ];
         }
 
         public override float GetFloat( int ordinal )
         {
-            return ( float )_CurrentRow[ ordinal - 1 ];
+            return ( float )_CurrentRow[ ordinal ];
         }
 
         public override Guid GetGuid( int ordinal )
         {
-            return ( Guid )_CurrentRow[ ordinal - 1 ];
+            return ( Guid )_CurrentRow[ ordinal ];
         }
 
         public override short GetInt16( int ordinal )
         {
-            return ( short )_CurrentRow[ ordinal - 1 ];
+            return ( short )_CurrentRow[ ordinal ];
         }
 
         public override int GetInt32( int ordinal )
         {
-            return ( int )_CurrentRow[ ordinal - 1 ];
+            return ( int )_CurrentRow[ ordinal ];
         }
 
         public override long GetInt64( int ordinal )
         {
-            return ( long )_CurrentRow[ ordinal - 1 ];
+            return ( long )_CurrentRow[ ordinal ];
         }
 
         public override string GetString( int ordinal )
         {
-            return ( string )_CurrentRow[ ordinal - 1 ];
+            return ( string )_CurrentRow[ ordinal ];
         }
 
         public override object GetValue( int ordinal )
         {
-            return _CurrentRow[ ordinal -1 ];
+            return _CurrentRow[ ordinal ];
         }
 
         public override Type GetFieldType( int ordinal )
         {
-            return _CurrentBatch.Fields[ ordinal - 1 ].NetType;
+            return _CurrentBatch.Fields[ ordinal ].NetType;
         }
 
         public override string GetDataTypeName( int ordinal )
         {
-            return _CurrentBatch.Fields[ ordinal - 1 ].DbType;
+            return _CurrentBatch.Fields[ ordinal ].DbType;
         }
 
         public override string GetName( int ordinal )
         {
-            return _CurrentBatch.Fields[ ordinal - 1 ].Name;
+            return _CurrentBatch.Fields[ ordinal ].Name;
         }
 
         public override int GetOrdinal( string name )
         {
-            return _CurrentBatch.Fields.Single( f => f.Name == name ).FieldIndex + 1;
+            return _CurrentBatch.Fields.Single( f => f.Name == name ).FieldIndex;
         }
 
         public override int GetValues( object[] values )
@@ -149,7 +149,7 @@ namespace SqlMemoryDb
 
         public override bool IsDBNull( int ordinal )
         {
-            return _CurrentRow[ ordinal -1 ] == null;
+            return _CurrentRow[ ordinal ] == null;
         }
 
 
@@ -195,6 +195,11 @@ namespace SqlMemoryDb
         public void AddResultBatch( ResultBatch batch )
         {
             _ResultBatches.Add( batch );
+            if ( _CurrentBatch == null && _CurrentBatchIndex == -1 )
+            {
+                _CurrentBatchIndex = 0;
+                _CurrentBatch = _ResultBatches[ _CurrentBatchIndex ];
+            }
         }
     }
 }

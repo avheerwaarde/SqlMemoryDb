@@ -37,7 +37,7 @@ namespace SqlMemoryDb
                         foreach ( var row in rawData.RawRowList )
                         {
                             var updateTable = row.Single( r => r.Name == tableColumn.TableName );
-                            updateTable.Row[ tableColumn.Column.Order - 1 ] = value;
+                            updateTable.Row[ tableColumn.Column.Order ] = value;
                         }
                         break;
                     default:

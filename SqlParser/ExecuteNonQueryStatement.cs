@@ -57,14 +57,14 @@ namespace SqlMemoryDb
         {
             if ( value.StartsWith( "@" ) )
             {
-                row[ column.Order - 1] = Helper.GetValueFromParameter( value, _Command.Parameters );
+                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters );
             }
             else
             {
-                row[ column.Order - 1] = Helper.GetValueFromString( column, value );
+                row[ column.Order ] = Helper.GetValueFromString( column, value );
             }
 
-            ValidateDataSize( column, row[ column.Order - 1 ] );
+            ValidateDataSize( column, row[ column.Order ] );
         }
 
         private void ValidateDataSize( Column column, object source )
@@ -118,7 +118,7 @@ namespace SqlMemoryDb
                     {
                         throw new SqlInsertIdentityException( table.Name, column.Name );
                     }
-                    row[ column.Order - 1 ] = column.NextIdentityValue;
+                    row[ column.Order ] = column.NextIdentityValue;
                     table.LastIdentitySet = column.NextIdentityValue;
                     MemoryDbConnection.GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
                     _Command.LastIdentitySet = column.NextIdentityValue;
@@ -126,7 +126,7 @@ namespace SqlMemoryDb
                 }
                 else if ( column.HasDefault && string.IsNullOrWhiteSpace( column.DefaultValue ) == false )
                 {
-                    row[ column.Order - 1 ] = Helper.GetValueFromString( column, column.DefaultValue );
+                    row[ column.Order ] = Helper.GetValueFromString( column, column.DefaultValue );
                 }
             }
 
@@ -168,7 +168,7 @@ namespace SqlMemoryDb
         {
             foreach ( var column in table.Columns.Where( c => c.IsNullable == false ) )
             {
-                if ( row[ column.Order - 1 ] == null )
+                if ( row[ column.Order ] == null )
                 {
                     throw new SqlFieldIsNullException( table.FullName, column.Name );
                 }
@@ -182,13 +182,13 @@ namespace SqlMemoryDb
                 for ( int index = 0; index < constraint.Columns.Count; index++ )
                 {
                     var column = table.Columns.Single( c => c.Name == constraint.Columns[ index ] );
-                    var foreignKey = row[ column.Order - 1 ];
+                    var foreignKey = row[ column.Order ];
                     if ( foreignKey != null )
                     {
                         var referencedTable = MemoryDbConnection.GetMemoryDatabase( ).Tables[ constraint.ReferencedTableName ];
                         var referencedColumn = referencedTable.Columns.Single(c => c.Name == constraint.ReferencedColumns[ index ] );
 
-                        if ( referencedTable.Rows.Any( r =>((IComparable)foreignKey).CompareTo((IComparable)r[ referencedColumn.Order - 1 ]) == 0 )  == false ) 
+                        if ( referencedTable.Rows.Any( r =>((IComparable)foreignKey).CompareTo((IComparable)r[ referencedColumn.Order ]) == 0 )  == false ) 
                         {
                             throw new SqlInsertInvalidForeignKeyException( constraint.Name, referencedTable.FullName, referencedColumn.Name );
                         }

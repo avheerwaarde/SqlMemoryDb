@@ -69,7 +69,7 @@ namespace SqlMemoryDb.Helpers
         {
             foreach ( var columnDefinition in tableDefinition.ColumnDefinitions )
             {
-                var column = new Column( table, columnDefinition.Name.Value, columnDefinition.DataType.Sql, table.Columns.Count + 1 );
+                var column = new Column( table, columnDefinition.Name.Value, columnDefinition.DataType.Sql, table.Columns.Count );
                 foreach ( var constraint in columnDefinition.Constraints )
                 {
                     switch ( constraint.Type )
