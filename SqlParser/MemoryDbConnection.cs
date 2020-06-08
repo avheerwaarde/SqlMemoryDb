@@ -32,7 +32,11 @@ namespace SqlMemoryDb
 
         protected override DbTransaction BeginDbTransaction( IsolationLevel isolationLevel )
         {
-            throw new NotImplementedException( );
+            if ( State != ConnectionState.Open )
+            {
+                throw new InvalidOperationException("The Connection should be opened.");
+            }
+            return new MemoryDbTransaction( this, isolationLevel );
         }
 
 

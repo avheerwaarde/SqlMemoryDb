@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DeepCloner" Version="0.10.2" />
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="150.37051.0" />
   </ItemGroup>
 

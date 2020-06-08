@@ -10,7 +10,7 @@ using SqlMemoryDb.Exceptions;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SelectGroupByTests
+    public class SqlSelectGroupByTests
     {
         [TestInitialize]
         public async Task InsertDb( )

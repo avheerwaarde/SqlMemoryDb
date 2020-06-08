@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using Force.DeepCloner;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
@@ -15,6 +16,8 @@ namespace SqlMemoryDb
     {
         public Dictionary<string, Table> Tables = new Dictionary<string, Table>();
         public Decimal? LastIdentitySet;
+        public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
+        public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
 
         public int ExecuteSqlStatement( string commandText, MemoryDbCommand command )
         {
@@ -104,6 +107,38 @@ namespace SqlMemoryDb
             }
 
             return null;
+        }
+
+        public void SaveSnapshot( )
+        {
+            var savedTables = Tables.DeepClone( );
+            TablesStack.Push( savedTables );
+        }
+
+        public void RemoveSnapshot( )
+        {
+            TablesStack.Pop( );
+        }
+
+        public void RestoreSnapshot( )
+        {
+            Tables = TablesStack.Pop( );
+        }
+
+        public void SaveSnapshotForTransaction( )
+        {
+            var savedTables = Tables.DeepClone( );
+            TablesTransactionStack.Push( savedTables );
+        }
+
+        public void RestoreSnapshotForTransaction( )
+        {
+            Tables = TablesTransactionStack.Pop( );
+        }
+
+        public void RemoveSnapshotForTransaction( )
+        {
+            TablesTransactionStack.Pop( );
         }
     }
 }
