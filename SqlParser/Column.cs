@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlParser;
 
-namespace SqlParser
+namespace SqlMemoryDb
 {
     public class Column
     {
@@ -21,6 +20,7 @@ namespace SqlParser
         public int Precision;
         public int Scale;
         public int Size;
+        public int Order;
 
         public ColumnIdentity Identity;
 
@@ -29,9 +29,11 @@ namespace SqlParser
         public bool IsFixedSize { get ; set ; }
 
         public bool IsIdentity => Identity != null;
-        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue );
+        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue ) == false;
         public bool IsUnique { get ; set ; }
         public bool IsPrimaryKey { get ; set ; }
+        public int NextIdentityValue { get; set; }
+        public Table ParentTable { get; set; }
 
         private Dictionary<string, Action<Column, string>> _DataTypes = new Dictionary<string, Action<Column, string>>
         {
@@ -69,9 +71,11 @@ namespace SqlParser
         };
 
 
-        public Column( string name, string sqlType )
+        public Column( Table table, string name, string sqlType, int order )
         {
+            ParentTable = table;
             Name = name;
+            Order = order;
             InitDbType( sqlType );
             IsNullable = true;
         }

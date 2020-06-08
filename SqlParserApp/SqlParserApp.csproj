@@ -7,11 +7,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="150.37051.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.3.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SqlParser\SqlParser.csproj" />
+    <ProjectReference Include="..\SqlParser\SqlMemoryDb.csproj" />
   </ItemGroup>
 
 </Project>
