@@ -340,7 +340,60 @@ namespace SqlMemoryDb.Helpers
                 default:
                     throw new NotImplementedException();
             }
-
         }
+
+        public static TableAndColumn FindTableAndColumn( string tableName, string columnName,
+            Dictionary<string, Table> tables )
+        {
+            var result = new TableAndColumn(  );
+            result.Table = FindTable( tableName, tables );
+            result.Column = FindColumn( result.Table, columnName, tables );
+            return result;
+        }
+
+        private static Table FindTable( string tableName, Dictionary<string, Table> tables )
+        {
+            if ( string.IsNullOrWhiteSpace( tableName ) == false )
+            {
+                if ( tables.ContainsKey( tableName ) )
+                {
+                    return tables[ tableName ];
+                }
+                else
+                {
+                    var foundTables = tables.Values.Where( t => t.Name == tableName ).ToList( );
+                    if ( foundTables.Count( ) != 1 )
+                    {
+                        throw new SqlInvalidTableNameException( tableName );
+                    }
+
+                    return foundTables.First( );
+                }
+            }
+
+            return null;
+        }
+
+        private static Column FindColumn( Table table, string columnName, Dictionary<string, Table> tables )
+        {
+            if ( table == null )
+            {
+                var foundTables = tables.Values.Where( t => t.Columns.Any( c => c.Name == columnName ) ).ToList( );
+                if ( foundTables.Count != 1 )
+                {
+                    throw new SqlUnqualifiedColumnNameException( columnName );
+                }
+
+                table = foundTables.Single( );
+            }
+
+            if ( table.Columns.Any( c => c.Name == columnName) == false )
+            {
+                throw new SqlInvalidColumnNameException( columnName );
+            }
+
+            return table.Columns.Single( c => c.Name == columnName );
+        }
+
     }
 }

@@ -35,8 +35,9 @@ namespace SqlMemoryDb
                     switch ( child )
                     {
                         case SqlCreateTableStatement createTable: new TableInfo( this ).Add( createTable ); break;
-                        case SqlInsertStatement insertStatement: new ExecuteNonQueryStatement( command ).Execute( Tables, insertStatement ); break; 
-                        case SqlUpdateStatement updateStatement: new ExecuteUpdateStatement( command ).Execute( Tables, updateStatement ); break; 
+                        case SqlInsertStatement insertStatement : new ExecuteNonQueryStatement( command ).Execute( Tables, insertStatement ); break; 
+                        case SqlUpdateStatement updateStatement : new ExecuteUpdateStatement( command ).Execute( Tables, updateStatement ); break; 
+                        case SqlNullStatement nullStatement     : new ExecuteNullStatement( command ).Execute( Tables, nullStatement ); break;
                     }
                 }
             }
