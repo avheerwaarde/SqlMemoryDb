@@ -205,5 +205,12 @@ namespace SqlMemoryDb
                 }
             }
         }
+
+        public void Execute( Dictionary<string, Table> tables, SqlIfElseStatement ifElseStatement )
+        {
+            var evaluator = new EvaluateBooleanExpression( new RawData{ Parameters = _Command.Parameters }, _Command );
+            var isTrue = evaluator.Evaluate( new List<RawData.RawDataRow>( ), ifElseStatement.Condition );
+            throw new NotImplementedException( );
+        }
     }
 }

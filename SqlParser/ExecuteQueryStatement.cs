@@ -26,13 +26,18 @@ namespace SqlMemoryDb
         {
             var rawData = new RawData{ Parameters = _Command.Parameters };
 
-            var expression = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
-            if (expression.FromClause != null )
+            var sqlQuery = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
+            Execute( tables, rawData, sqlQuery, selectStatement.SelectSpecification.OrderByClause );
+        }
+
+        public void Execute( Dictionary<string, Table> tables, RawData rawData, SqlQuerySpecification sqlQuery, SqlOrderByClause orderByClause = null )
+        {
+            if (sqlQuery.FromClause != null )
             {
-                rawData.AddTablesFromClause( expression.FromClause, tables );
-                if ( expression.WhereClause != null )
+                rawData.AddTablesFromClause( sqlQuery.FromClause, tables );
+                if ( sqlQuery.WhereClause != null )
                 {
-                    rawData.ExecuteWhereClause( expression.WhereClause );
+                    rawData.ExecuteWhereClause( sqlQuery.WhereClause );
                 }
             }
             else
@@ -42,19 +47,18 @@ namespace SqlMemoryDb
             }
 
             var batch = new MemoryDbDataReader.ResultBatch(  );
-            InitializeFields( batch, expression.SelectClause.Children.ToList(  ), rawData );
-            if ( expression.GroupByClause != null )
+            InitializeFields( batch, sqlQuery.SelectClause.Children.ToList(  ), rawData );
+            if ( sqlQuery.GroupByClause != null )
             {
-                rawData.AddGroupByClause( expression.GroupByClause );
+                rawData.AddGroupByClause( sqlQuery.GroupByClause );
             }
-
-            rawData.HavingClause = expression.HavingClause?.Expression;
-            rawData.SortOrder =  selectStatement.SelectSpecification.OrderByClause?.Items;
+            
+            rawData.HavingClause = sqlQuery.HavingClause?.Expression;
+            rawData.SortOrder =  orderByClause?.Items;
 
             new QueryResultBuilder( rawData ).AddData( batch );            
             _Reader.AddResultBatch( batch );
         }
-
 
         private void InitializeFields( MemoryDbDataReader.ResultBatch batch, List<SqlCodeObject> columns, RawData rawData )
         {
@@ -132,5 +136,6 @@ namespace SqlMemoryDb
             };
             batch.Fields.Add( readerField );
         }
+
     }
 }

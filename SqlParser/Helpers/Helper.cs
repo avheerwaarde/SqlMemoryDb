@@ -301,46 +301,6 @@ namespace SqlMemoryDb.Helpers
             return null;
         }
 
-        public static IRowFilter GetRowFilter( SqlBooleanExpression booleanExpression, RawData rawData )
-        {
-            switch ( booleanExpression )
-            {
-                case SqlComparisonBooleanExpression compareExpression: return new RowFilterComparison( rawData, compareExpression );
-                case SqlBinaryBooleanExpression binaryExpression     : return new RowFilterBinary( rawData, binaryExpression );
-                default :
-                    throw new NotImplementedException();
-            }
-        }
-
-        public static bool IsTrue( SqlBooleanOperatorType booleanOperator, bool leftIsValid, bool rightIsValid )
-        {
-            if ( booleanOperator == SqlBooleanOperatorType.Or )
-            {
-                return leftIsValid || rightIsValid;
-            }
-            return leftIsValid && rightIsValid;
-        }
-
-        public static bool IsPredicateCorrect( object left, object right, SqlComparisonBooleanExpressionType comparisonOperator )
-        {
-            var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
-
-            switch ( comparisonOperator )
-            {
-                case SqlComparisonBooleanExpressionType.Equals: return comparison == 0;
-                case SqlComparisonBooleanExpressionType.LessThan: return comparison < 0;
-                case SqlComparisonBooleanExpressionType.ValueEqual: return comparison == 0;
-                case SqlComparisonBooleanExpressionType.NotEqual: return comparison != 0;
-                case SqlComparisonBooleanExpressionType.GreaterThan: return comparison > 0;
-                case SqlComparisonBooleanExpressionType.GreaterThanOrEqual: return comparison >= 0;
-                case SqlComparisonBooleanExpressionType.LessOrGreaterThan: return comparison != 0;
-                case SqlComparisonBooleanExpressionType.LessThanOrEqual: return comparison <= 0;
-                case SqlComparisonBooleanExpressionType.NotLessThan: return comparison >= 0;
-                case SqlComparisonBooleanExpressionType.NotGreaterThan: return comparison <= 0;
-                default:
-                    throw new NotImplementedException();
-            }
-        }
 
         public static TableAndColumn FindTableAndColumn( string tableName, string columnName,
             Dictionary<string, Table> tables )

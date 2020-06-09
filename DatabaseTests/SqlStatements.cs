@@ -83,6 +83,18 @@ SELECT Id, Name, Action, [Order], fk_application
 FROM application_action
 ";
 
+        public const string SqlCreateDbScriptsRun = @"
+CREATE TABLE [dbo].[DbScriptsRun]
+(
+	[Id] INT IDENTITY (1, 1) NOT NULL PRIMARY KEY, 
+    [ScriptId] UNIQUEIDENTIFIER NOT NULL, 
+    [DateInserted] DATETIME2 NOT NULL
+)";
+
+        public const string SqlSelectDbScriptRun = @"
+SELECT Id, ScriptId, DateInserted
+FROM DbScriptsRun
+";
 
     }
 

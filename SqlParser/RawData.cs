@@ -85,7 +85,7 @@ namespace SqlMemoryDb
             }
 
             var newTableRows = new List<List<RawData.RawDataRow>>( );
-            var filter = Helper.GetRowFilter( onClause.Expression, this );
+            var filter = HelperConditional.GetRowFilter( onClause.Expression, this );
             foreach ( var currentRawRows in RawRowList )
             {
                 foreach ( var row in table.Rows )
@@ -128,7 +128,7 @@ namespace SqlMemoryDb
         {
             foreach ( var child in whereClause.Children )
             {
-                var filter = Helper.GetRowFilter( ( SqlBooleanExpression ) child, this );
+                var filter = HelperConditional.GetRowFilter( ( SqlBooleanExpression ) child, this );
                 RawRowList = RawRowList.Where( r => filter.IsValid( r )  ).ToList(  );
             }
         }
