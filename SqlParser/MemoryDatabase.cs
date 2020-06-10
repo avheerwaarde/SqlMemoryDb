@@ -32,18 +32,42 @@ namespace SqlMemoryDb
                 command.LastIdentitySet = null;
                 foreach ( var child in batch.Children )
                 {
-                    switch ( child )
-                    {
-                        case SqlCreateTableStatement createTable: new TableInfo( this ).Add( createTable ); break;
-                        case SqlInsertStatement insertStatement : new ExecuteNonQueryStatement( command ).Execute( Tables, insertStatement ); break; 
-                        case SqlUpdateStatement updateStatement : new ExecuteUpdateStatement( command ).Execute( Tables, updateStatement ); break; 
-                        case SqlNullStatement nullStatement     : new ExecuteNullStatement( command ).Execute( Tables, nullStatement ); break;
-                        case SqlIfElseStatement ifElseStatement : new ExecuteNonQueryStatement( command ).Execute( Tables, ifElseStatement ); break; 
-                    }
+                    ExecuteStatement( command, child );
                 }
             }
 
             return 1;
+        }
+
+        public void ExecuteStatement( MemoryDbCommand command, SqlCodeObject child )
+        {
+            switch ( child )
+            {
+                case SqlCreateTableStatement createTable:
+                    new TableInfo( this ).Add( createTable );
+                    break;
+                case SqlInsertStatement insertStatement:
+                    new ExecuteNonQueryStatement( this, command ).Execute( Tables, insertStatement );
+                    break;
+                case SqlUpdateStatement updateStatement:
+                    new ExecuteUpdateStatement( this, command ).Execute( Tables, updateStatement );
+                    break;
+                case SqlNullStatement nullStatement:
+                    new ExecuteNullStatement( this, command ).Execute( Tables, nullStatement );
+                    break;
+                case SqlIfElseStatement ifElseStatement:
+                    new ExecuteNonQueryStatement( this, command ).Execute( Tables, ifElseStatement );
+                    break;
+                case SqlSelectStatement selectStatement:
+                    new ExecuteQueryStatement( this, command, command.DataReader ).Execute( Tables, selectStatement );
+                    break;
+                case SqlCompoundStatement compoundStatement:
+                    foreach ( var compoundChild in compoundStatement.Children )
+                    {
+                        ExecuteStatement( command, compoundChild );
+                    }
+                    break;
+            }
         }
 
         public DbDataReader ExecuteSqlReader( string commandText, MemoryDbCommand command, CommandBehavior behavior )
@@ -54,22 +78,16 @@ namespace SqlMemoryDb
                 throw new SqlServerParserException( result.Errors );
             }
 
-            using ( var reader = new MemoryDbDataReader( behavior ) )
+            command.DataReader = new MemoryDbDataReader( behavior );
+            foreach ( var batch in result.Script.Batches )
             {
-                foreach ( var batch in result.Script.Batches )
+                command.LastIdentitySet = null;
+                foreach ( var child in batch.Children )
                 {
-                    command.LastIdentitySet = null;
-                    foreach ( var child in batch.Children )
-                    {
-                        switch ( child )
-                        {
-                            case SqlSelectStatement selectStatement: new ExecuteQueryStatement( command, reader ).Execute( Tables, selectStatement ); break; 
-                        }
-                    }
+                    ExecuteStatement( command, child );
                 }
-
-                return reader;
             }
+            return command.DataReader;
         }
 
         public object ExecuteSqlScalar( string commandText, MemoryDbCommand command )
@@ -80,31 +98,23 @@ namespace SqlMemoryDb
                 throw new SqlServerParserException( result.Errors );
             }
 
+
+            command.DataReader = new MemoryDbDataReader( CommandBehavior.SingleResult );
             foreach ( var batch in result.Script.Batches )
             {
                 command.LastIdentitySet = null;
                 foreach ( var child in batch.Children )
                 {
-                    switch ( child )
+                    ExecuteStatement( command, child );
+                    if ( command.DataReader.IsScalarResult )
                     {
-                        case SqlSelectStatement selectStatement:
-                            using ( var reader = new MemoryDbDataReader( CommandBehavior.SingleResult ) )
-                            {
-                                new ExecuteQueryStatement( command, reader ).Execute( Tables, selectStatement );
-                                if ( reader.IsScalarResult )
-                                {
-                                    reader.Read( );
-                                    return reader.GetValue( 0 );
-                                }
-                                else
-                                {
-                                    throw new SqlNoScalarResultException( );
-                                }
-                            }
-
-                        default:
-                            throw new NotImplementedException();
+                        command.DataReader.Read( );
+                        var value = command.DataReader.GetValue( 0 );
+                        command.DataReader.Dispose(  );
+                        command.DataReader = null;
+                        return value;
                     }
+                    throw new SqlNoScalarResultException( );
                 }
             }
 

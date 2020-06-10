@@ -33,7 +33,8 @@ namespace SqlMemoryDb.Helpers
 
         private bool EvaluateSide( List<RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression )
         {
-            var evaluator = new EvaluateBooleanExpression( _RawData, null );
+            var database = MemoryDbConnection.GetMemoryDatabase( );
+            var evaluator = new EvaluateBooleanExpression( _RawData, database, null );
             return evaluator.Evaluate( rawDataRows, expression );
         }
     }

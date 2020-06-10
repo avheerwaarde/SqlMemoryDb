@@ -16,9 +16,11 @@ namespace SqlMemoryDb
         };
 
         private readonly MemoryDbCommand _Command;
+        private readonly MemoryDatabase _Database;
 
-        public ExecuteNullStatement( MemoryDbCommand command )
+        public ExecuteNullStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
         {
+            _Database = memoryDatabase;
             _Command = command;
         }
 

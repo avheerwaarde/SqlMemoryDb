@@ -13,8 +13,11 @@ namespace SqlMemoryDb
     class ExecuteNonQueryStatement
     {
         private readonly MemoryDbCommand _Command;
-        public ExecuteNonQueryStatement( MemoryDbCommand command )
+        private readonly MemoryDatabase _Database;
+
+        public ExecuteNonQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
         {
+            _Database = memoryDatabase;
             _Command = command;
         }
 
@@ -208,9 +211,17 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlIfElseStatement ifElseStatement )
         {
-            var evaluator = new EvaluateBooleanExpression( new RawData{ Parameters = _Command.Parameters }, _Command );
+            var rawData = new RawData{ Parameters = _Command.Parameters };
+            var evaluator = new EvaluateBooleanExpression( rawData, _Database, _Command );
             var isTrue = evaluator.Evaluate( new List<RawData.RawDataRow>( ), ifElseStatement.Condition );
-            throw new NotImplementedException( );
+            if ( isTrue && ifElseStatement.TrueStatement != null )
+            {
+                _Database.ExecuteStatement( _Command, ifElseStatement.TrueStatement );                
+            }
+            else if ( isTrue == false && ifElseStatement.FalseStatement != null )
+            {
+                _Database.ExecuteStatement( _Command, ifElseStatement.FalseStatement );                
+            }
         }
     }
 }

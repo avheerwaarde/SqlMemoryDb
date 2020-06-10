@@ -14,10 +14,13 @@ namespace SqlMemoryDb
 
         private readonly MemoryDbCommand _Command;
         private readonly MemoryDbDataReader _Reader;
+        private readonly MemoryDatabase _Database;
 
 
-        public ExecuteQueryStatement( MemoryDbCommand command, MemoryDbDataReader reader )
+        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command,
+            MemoryDbDataReader reader )
         {
+            _Database = memoryDatabase;
             _Command = command;
             _Reader = reader;
         }

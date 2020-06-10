@@ -10,10 +10,12 @@ namespace SqlMemoryDb.Helpers
     {
         private readonly RawData _RawData;
         private readonly MemoryDbCommand _Command;
+        private readonly MemoryDatabase _Database;
 
-        public EvaluateBooleanExpression( RawData rawData, MemoryDbCommand command )
+        public EvaluateBooleanExpression( RawData rawData, MemoryDatabase database, MemoryDbCommand command )
         {
             _RawData = rawData;
+            _Database = database;
             _Command = command;
         }
 
@@ -47,13 +49,18 @@ namespace SqlMemoryDb.Helpers
 
         private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlExistsBooleanExpression expression )
         {
+            bool hasRows;
             using ( var reader = new MemoryDbDataReader( CommandBehavior.SingleResult ) )
             {
+                _Command.DataReader = reader;
                 var tables = MemoryDbConnection.GetMemoryDatabase( ).Tables;
 
-                new ExecuteQueryStatement( _Command, reader ).Execute( tables, _RawData, ( SqlQuerySpecification ) expression.QueryExpression );
-                return reader.HasRows;
+                new ExecuteQueryStatement( _Database, _Command, _Command.DataReader ).Execute( tables, _RawData, ( SqlQuerySpecification ) expression.QueryExpression );
+                hasRows =  reader.HasRows;
+                _Command.DataReader = null;
             }
+
+            return hasRows;
         }
 
     }

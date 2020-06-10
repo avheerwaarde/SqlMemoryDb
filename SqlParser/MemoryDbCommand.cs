@@ -16,6 +16,7 @@ namespace SqlMemoryDb
         public override UpdateRowSource UpdatedRowSource { get; set; }
         public Decimal? LastIdentitySet;
         internal int RowsAffected;
+        public MemoryDbDataReader DataReader { get; set; }
 
         public MemoryDbCommand( DbConnection connection )
         {
