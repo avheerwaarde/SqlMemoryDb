@@ -11,20 +11,21 @@ namespace SqlMemoryDb.Helpers
         private readonly SqlComparisonBooleanExpression _Expression;
         private readonly RawData _RawData;
         private readonly Type _Type;
+        private readonly bool _InvertResult;
 
-        public RowFilterComparison( RawData rawData, SqlComparisonBooleanExpression expression )
+        public RowFilterComparison( RawData rawData, SqlComparisonBooleanExpression expression, bool invertResult )
         {
             _Expression = expression;
             _RawData = rawData;
             _Type = Helper.DetermineType( _Expression.Left, _Expression.Right, _RawData);
-
+            _InvertResult = invertResult;
         }
 
         public bool IsValid( List<RawData.RawDataRow> rawDataRows )
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRows );
             var right = Helper.GetValue( _Expression.Right, _Type, _RawData, rawDataRows );
-            return Helper.IsPredicateCorrect( left, right, _Expression.ComparisonOperator );
+            return HelperConditional.IsPredicateCorrect( left, right, _Expression.ComparisonOperator ) ^ _InvertResult;
         }
 
         public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList,
@@ -32,7 +33,7 @@ namespace SqlMemoryDb.Helpers
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRowList );
             var right = Helper.GetValue( _Expression.Right, _Type, _RawData, rawDataRowList );
-            return Helper.IsPredicateCorrect( left, right, _Expression.ComparisonOperator );
+            return HelperConditional.IsPredicateCorrect( left, right, _Expression.ComparisonOperator ) ^ _InvertResult;
         }
     }
 }

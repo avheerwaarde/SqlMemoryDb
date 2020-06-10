@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -45,5 +46,36 @@ namespace DatabaseTests
             schemaColumns.Rows[ 3 ][ "TABLE_NAME" ].Should( ).Be( "application" );
             schemaColumns.Rows[ 3 ][ "COLUMN_NAME" ].Should( ).Be( "DefName" );
         }
+
+        [TestMethod]
+        public async Task CreateJoinedTable_Constraint_JoinCreated( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            db.Tables.Clear( );
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" + SqlStatements.SqlCreateTableApplicationAction;
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            var fk = db.Tables[ "dbo.application_action" ].ForeignKeyConstraints.Single( );
+            fk.ReferencedTableName.Should( ).Be( "dbo.application" );
+        }
+
+        [TestMethod]
+        public async Task CreateJoinedTable_AlterTable_JoinCreated( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            db.Tables.Clear( );
+            await using var connection = new MemoryDbConnection( );
+            await connection.OpenAsync( );
+            var command = connection.CreateCommand( );
+            command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" + SqlStatements.SqlCreateTableApplicationAction2;
+            await command.PrepareAsync( );
+            await command.ExecuteNonQueryAsync( );
+            var fk = db.Tables[ "dbo.application_action" ].ForeignKeyConstraints.Single( );
+            fk.ReferencedTableName.Should( ).Be( "dbo.application" );
+        }
+
     }
 }

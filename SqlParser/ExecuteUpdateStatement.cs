@@ -10,9 +10,11 @@ namespace SqlMemoryDb
     public class ExecuteUpdateStatement
     {
         private readonly MemoryDbCommand _Command;
+        private readonly MemoryDatabase _Database;
 
-        public ExecuteUpdateStatement( MemoryDbCommand command )
+        public ExecuteUpdateStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
         {
+            _Database = memoryDatabase;
             _Command = command;
         }
 

@@ -120,7 +120,7 @@ namespace SqlMemoryDb.SelectData
 
             if ( _RawData.HavingClause != null )
             {
-                var filter = Helper.GetRowFilter( _RawData.HavingClause, _RawData );
+                var filter = HelperConditional.GetRowFilter( _RawData.HavingClause, _RawData );
                 if ( filter.IsValid( rawRows, fields ) == false )
                 {
                     return null;

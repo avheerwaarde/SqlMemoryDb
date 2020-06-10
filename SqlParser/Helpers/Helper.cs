@@ -19,7 +19,7 @@ namespace SqlMemoryDb.Helpers
 
         public static string GetQualifiedName( SqlObjectIdentifier identifier )
         {
-            return identifier.SchemaName.Value ?? "dbo" + "." + identifier.ObjectName;
+            return (identifier.SchemaName.Value ?? "dbo" ) + "." + identifier.ObjectName;
         }
 
         public static string GetColumnName( SqlScalarRefExpression expression )
@@ -48,18 +48,32 @@ namespace SqlMemoryDb.Helpers
             {
                 switch ( column.DbDataType )
                 {
-                    case DbType.Boolean: return source.ToUpper( ) == "TRUE" || source == "1";
-                    case DbType.Byte   : return Convert.ToByte( source ); 
-                    case DbType.Int16  : return Convert.ToInt16( source );
-                    case DbType.Int32  : return Convert.ToInt32( source );
-                    case DbType.Int64  : return Convert.ToInt64( source );
-                    case DbType.Single : return Convert.ToSingle( source );
-                    case DbType.Double : return Convert.ToDouble( source );
-                    case DbType.Decimal: return Convert.ToDecimal( source );
-                    default            :
+                    case DbType.Boolean   : return source.ToUpper( ) == "TRUE" || source == "1";
+                    case DbType.Byte      : return Convert.ToByte( source ); 
+                    case DbType.Int16     : return Convert.ToInt16( source );
+                    case DbType.Int32     : return Convert.ToInt32( source );
+                    case DbType.Int64     : return Convert.ToInt64( source );
+                    case DbType.Single    : return Convert.ToSingle( source );
+                    case DbType.Double    : return Convert.ToDouble( source );
+                    case DbType.Decimal   : return Convert.ToDecimal( source );
+                    case DbType.Guid      : return Guid.Parse( source );
+                    case DbType.Date      : 
+                    case DbType.DateTime  : 
+                    case DbType.DateTime2 :
+                        return GetValueFromDateString( source );
+                    default               :
                         throw new NotImplementedException( $"Defaults not supported for type {column.DbDataType }" );
                 }
             }
+        }
+
+        private static DateTime GetValueFromDateString( string source )
+        {
+            if ( source.ToUpper() == "CURRENT_TIMESTAMP" )
+            {
+                return DateTime.Now;
+            }
+            return DateTime.Parse( source );
         }
 
         public static object GetValueFromString( Type type, string source )
@@ -70,6 +84,7 @@ namespace SqlMemoryDb.Helpers
             }
             switch ( Type.GetTypeCode(type) )
             {
+                case TypeCode.Boolean: return source.ToUpper( ) == "TRUE" || source == "1";
                 case TypeCode.Byte   : return Convert.ToByte( source ); 
                 case TypeCode.Int16  : return Convert.ToInt16( source );
                 case TypeCode.Int32  : return Convert.ToInt32( source );
@@ -112,20 +127,9 @@ namespace SqlMemoryDb.Helpers
 
         public static TableColumn GetTableColumn( SqlColumnRefExpression expression, RawData rawData )
         {
-            var list = new List<TableColumn>( );
             var columnName = GetColumnName( expression );
-            foreach ( var row in rawData.RawRowList )
-            {
-                foreach ( var tableRow in row )
-                {
-                    var column = tableRow.Table.Columns.FirstOrDefault( c => c.Name == columnName );
-                    if ( column != null )
-                    {
-                        list.Add( new TableColumn{ TableName = tableRow.Name, Column = column } );
-                    }
-                }
-            }
-            return list.First();
+            var tc = FindTableAndColumn( null, columnName, rawData.TableAliasList );
+            return new TableColumn{ TableName = tc.TableName, Column = tc.Column };
         }
 
         public static TableColumn GetTableColumn( SqlObjectIdentifier objectIdentifier, RawData rawData )
@@ -301,46 +305,64 @@ namespace SqlMemoryDb.Helpers
             return null;
         }
 
-        public static IRowFilter GetRowFilter( SqlBooleanExpression booleanExpression, RawData rawData )
+
+        public static TableAndColumn FindTableAndColumn( string tableName, string columnName,
+            Dictionary<string, Table> tables )
         {
-            switch ( booleanExpression )
-            {
-                case SqlComparisonBooleanExpression compareExpression: return new RowFilterComparison( rawData, compareExpression );
-                case SqlBinaryBooleanExpression binaryExpression     : return new RowFilterBinary( rawData, binaryExpression );
-                default :
-                    throw new NotImplementedException();
-            }
+            var result = FindTable( tableName, tables );
+            result.Column = FindColumn( result, columnName, tables );
+            return result;
         }
 
-        public static bool IsTrue( SqlBooleanOperatorType booleanOperator, bool leftIsValid, bool rightIsValid )
+        private static TableAndColumn FindTable( string tableName, Dictionary<string, Table> tables )
         {
-            if ( booleanOperator == SqlBooleanOperatorType.Or )
+            var result = new TableAndColumn(  );
+            if ( string.IsNullOrWhiteSpace( tableName ) == false )
             {
-                return leftIsValid || rightIsValid;
-            }
-            return leftIsValid && rightIsValid;
-        }
+                if ( tables.ContainsKey( tableName ) )
+                {
+                    result.TableName = tableName;
+                    result.Table = tables[ tableName ];
+                    return result;
+                }
+                else
+                {
+                    var foundTables = tables.Where( t => t.Value.Name == tableName ).ToList( );
+                    if ( foundTables.Count( ) != 1 )
+                    {
+                        throw new SqlInvalidTableNameException( tableName );
+                    }
 
-        public static bool IsPredicateCorrect( object left, object right, SqlComparisonBooleanExpressionType comparisonOperator )
-        {
-            var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
-
-            switch ( comparisonOperator )
-            {
-                case SqlComparisonBooleanExpressionType.Equals: return comparison == 0;
-                case SqlComparisonBooleanExpressionType.LessThan: return comparison < 0;
-                case SqlComparisonBooleanExpressionType.ValueEqual: return comparison == 0;
-                case SqlComparisonBooleanExpressionType.NotEqual: return comparison != 0;
-                case SqlComparisonBooleanExpressionType.GreaterThan: return comparison > 0;
-                case SqlComparisonBooleanExpressionType.GreaterThanOrEqual: return comparison >= 0;
-                case SqlComparisonBooleanExpressionType.LessOrGreaterThan: return comparison != 0;
-                case SqlComparisonBooleanExpressionType.LessThanOrEqual: return comparison <= 0;
-                case SqlComparisonBooleanExpressionType.NotLessThan: return comparison >= 0;
-                case SqlComparisonBooleanExpressionType.NotGreaterThan: return comparison <= 0;
-                default:
-                    throw new NotImplementedException();
+                    result.TableName = foundTables[0].Key;
+                    result.Table = foundTables[0].Value;
+                    return result;
+                }
             }
 
+            return result;
         }
+
+        private static Column FindColumn( TableAndColumn tableAndColumn, string columnName, Dictionary<string, Table> tables )
+        {
+            if ( tableAndColumn.Table == null )
+            {
+                var foundTables = tables.Where( t => t.Value.Columns.Any( c => c.Name == columnName ) ).ToList( );
+                if ( foundTables.Count != 1 )
+                {
+                    throw new SqlUnqualifiedColumnNameException( columnName );
+                }
+
+                tableAndColumn.TableName = foundTables[0].Key;
+                tableAndColumn.Table = foundTables[0].Value;
+            }
+
+            if ( tableAndColumn.Table.Columns.Any( c => c.Name == columnName) == false )
+            {
+                throw new SqlInvalidColumnNameException( columnName );
+            }
+
+            return tableAndColumn.Table.Columns.Single( c => c.Name == columnName );
+        }
+
     }
 }
