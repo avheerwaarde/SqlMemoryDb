@@ -61,3 +61,8 @@ INNER JOIN application_action ON application.Id = application_action.fk_applicat
 
 ## Licence
 MIT licence
+
+## Revisions
+Version | Description
+--------|---------------
+0.10.1| SQL statement IF (NOT) EXISTS, CURRENT_TIMESTAMP, GUID value from string
