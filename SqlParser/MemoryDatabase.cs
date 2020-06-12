@@ -67,6 +67,14 @@ namespace SqlMemoryDb
                         ExecuteStatement( command, compoundChild );
                     }
                     break;
+                case SqlVariableDeclareStatement variableDeclaration:
+                    AddVariable( command, variableDeclaration );
+                    break;
+                case SqlSetAssignmentStatement assignment:
+                    SetVariable( command, assignment );
+                    break;
+                default:
+                    throw new NotImplementedException($"Statements of type {child.GetType(  )} are not implemented yet");
             }
         }
 
@@ -106,20 +114,46 @@ namespace SqlMemoryDb
                 foreach ( var child in batch.Children )
                 {
                     ExecuteStatement( command, child );
-                    if ( command.DataReader.IsScalarResult )
-                    {
-                        command.DataReader.Read( );
-                        var value = command.DataReader.GetValue( 0 );
-                        command.DataReader.Dispose(  );
-                        command.DataReader = null;
-                        return value;
-                    }
-                    throw new SqlNoScalarResultException( );
                 }
-            }
+                if ( command.DataReader.IsScalarResult )
+                {
+                    command.DataReader.Read( );
+                    var value = command.DataReader.GetValue( 0 );
+                    command.DataReader.Dispose(  );
+                    command.DataReader = null;
+                    return value;
+                }
+                throw new SqlNoScalarResultException( );            }
 
             return null;
         }
+
+        private void AddVariable( MemoryDbCommand command, SqlVariableDeclareStatement variableDeclaration )
+        {
+            foreach ( var declaration in variableDeclaration.Declarations )
+            {
+                var column = new Column( null, declaration.Name, declaration.Type.Sql, 1 );
+                var variable = new MemoryDbParameter
+                {
+                    ParameterName = column.Name,
+                    DbType = column.DbDataType,
+                    NetDataType = column.NetDataType,
+                    Precision = ( byte ) column.Precision,
+                    Scale = ( byte ) column.Scale,
+                    Size = column.Size,
+                    IsNullable = true
+                };
+                command.Variables.Add( variable );
+            }
+        }
+
+        private void SetVariable( MemoryDbCommand command, SqlSetAssignmentStatement assignment )
+        {
+            var scalarAssignment = (SqlScalarVariableAssignment)(assignment.VariableAssignment);
+            var param = Helper.GetParameter( command, scalarAssignment.Variable );
+            param.Value = Helper.GetValue( scalarAssignment.Value, param.NetDataType, new RawData( command ), new List<RawData.RawDataRow>( ) );
+        }
+
 
         public void SaveSnapshot( )
         {

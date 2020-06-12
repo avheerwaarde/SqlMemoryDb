@@ -36,7 +36,7 @@ namespace SqlMemoryDb.SelectData
             return Activator.CreateInstance( _Functions[ functionName ], args:new object[]{ functionCall, rawData }) as ISelectDataFunction;
         }
 
-        internal ISelectDataFunction Build( string fullMethod )
+        internal ISelectDataFunction Build( string fullMethod, RawData rawData )
         {
             // This is a bit of a hack to create an instance of this type.
             // There are no public constructors, so we hack it a little bit.
@@ -47,7 +47,7 @@ namespace SqlMemoryDb.SelectData
             var function = (SqlBuiltinScalarFunctionCallExpression) typeof(SqlBuiltinScalarFunctionCallExpression)
                 .GetMethod( "Create", BindingFlags.NonPublic | BindingFlags.Static)
                 .Invoke( null, new object[]{ functionName, null } );
-            return Build( function, new RawData( ) );
+            return Build( function, rawData );
 
         }
 

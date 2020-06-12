@@ -20,7 +20,7 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlUpdateStatement updateStatement )
         {
-            var rawData = new RawData{ Parameters = _Command.Parameters };
+            var rawData = new RawData( _Command );
 
             var specification = updateStatement.UpdateSpecification;
             rawData.AddTable( specification.Target, tables );

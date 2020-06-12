@@ -26,6 +26,14 @@ namespace SqlMemoryDb
         public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
         public List<TableColumn> GroupByFields = new List<TableColumn>();
 
+        public readonly MemoryDbCommand Command;
+
+        public RawData( MemoryDbCommand command )
+        {
+            Command = command;
+            Parameters = command.Parameters;
+        }
+
         public void AddTablesFromClause( SqlFromClause fromClause, Dictionary<string, Table> tables )
         {
             foreach (var expression in fromClause.TableExpressions)

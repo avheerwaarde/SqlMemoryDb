@@ -67,7 +67,7 @@ namespace SqlMemoryDb
             {
                 if ( value.Contains( "(" ) && value.Contains( ")" ) || value.StartsWith( "@@" ))
                 {
-                    var select = new SelectDataBuilder(  ).Build( value );
+                    var select = new SelectDataBuilder(  ).Build( value, new RawData( _Command ) );
                     row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
                 }
                 else
@@ -211,7 +211,7 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlIfElseStatement ifElseStatement )
         {
-            var rawData = new RawData{ Parameters = _Command.Parameters };
+            var rawData = new RawData( _Command );
             var evaluator = new EvaluateBooleanExpression( rawData, _Database, _Command );
             var isTrue = evaluator.Evaluate( new List<RawData.RawDataRow>( ), ifElseStatement.Condition );
             if ( isTrue && ifElseStatement.TrueStatement != null )
