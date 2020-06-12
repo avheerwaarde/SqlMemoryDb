@@ -12,6 +12,7 @@ namespace SqlMemoryDb
         }
 
         public override DbType DbType { get; set; }
+        public Type NetDataType { get ; set ; }
         public override ParameterDirection Direction { get; set; }
         public override bool IsNullable { get; set; }
         public override string ParameterName { get; set; }

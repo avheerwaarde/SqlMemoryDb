@@ -17,11 +17,13 @@ namespace SqlMemoryDb
         public Decimal? LastIdentitySet;
         internal int RowsAffected;
         public MemoryDbDataReader DataReader { get; set; }
+        public DbParameterCollection Variables { get; set; }
 
-        public MemoryDbCommand( DbConnection connection )
+        public MemoryDbCommand( DbConnection connection, DbParameterCollection parameterCollection = null, DbParameterCollection variableCollection = null )
         {
             DbConnection = connection;
-            DbParameterCollection = new MemoryDataParameterCollection( );
+            DbParameterCollection = parameterCollection ?? new MemoryDataParameterCollection( );
+            Variables = variableCollection ?? new MemoryDataParameterCollection(  );
         }
 
 

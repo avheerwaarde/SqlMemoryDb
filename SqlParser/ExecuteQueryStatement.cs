@@ -27,7 +27,7 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
         {
-            var rawData = new RawData{ Parameters = _Command.Parameters };
+            var rawData = new RawData( _Command );
 
             var sqlQuery = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
             Execute( tables, rawData, sqlQuery, selectStatement.SelectSpecification.OrderByClause );
@@ -73,6 +73,7 @@ namespace SqlMemoryDb
                     switch ( scalarExpression.Expression )
                     {
                         case SqlGlobalScalarVariableRefExpression globalRef     : AddFieldFromGlobalVariable( globalRef, name, batch, rawData ); break;
+                        case SqlScalarVariableRefExpression variableRef         : AddFieldFromVariable( variableRef, name, batch, rawData ); break;
                         case SqlScalarRefExpression scalarRef                   : AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
                         case SqlLiteralExpression literalExpression             : AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
                         case SqlBuiltinScalarFunctionCallExpression functionCall: AddFieldForFunctionCall( functionCall, name, batch, rawData ); break;
@@ -92,15 +93,13 @@ namespace SqlMemoryDb
         private void AddFieldFromGlobalVariable( SqlGlobalScalarVariableRefExpression globalRef, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var select = new SelectDataBuilder(  ).BuildGlobalVariable( globalRef.VariableName, rawData );
-            var readerField = new MemoryDbDataReader.ReaderFieldData
-            {
-                Name = name,
-                DbType = select.DbType,
-                NetType = select.ReturnType,
-                FieldIndex = batch.Fields.Count,
-                SelectFieldData = select
-            };
-            batch.Fields.Add( readerField );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
+        private void AddFieldFromVariable( SqlScalarVariableRefExpression variableRef, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataFromVariables( variableRef, _Command );
+            AddFieldFromSelectData( name, batch, select );
         }
 
         private void AddFieldFromColumn( SqlObjectIdentifier objectIdentifier, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
@@ -118,6 +117,7 @@ namespace SqlMemoryDb
         }
 
 
+
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
@@ -129,6 +129,11 @@ namespace SqlMemoryDb
         private void AddFieldForFunctionCall( SqlBuiltinScalarFunctionCallExpression functionCall, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var select = new SelectDataBuilder(  ).Build( functionCall, rawData );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
+        private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectDataFunction select )
+        {
             var readerField = new MemoryDbDataReader.ReaderFieldData
             {
                 Name = name,
@@ -139,6 +144,5 @@ namespace SqlMemoryDb
             };
             batch.Fields.Add( readerField );
         }
-
     }
 }

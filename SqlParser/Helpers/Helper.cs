@@ -12,6 +12,37 @@ namespace SqlMemoryDb.Helpers
 {
     class Helper
     {
+        public static Dictionary<SqlDbType, DbType> DatabaseFieldTypes = new Dictionary<SqlDbType, DbType>( )
+        {
+            { SqlDbType.Bit             , DbType.Boolean},
+            { SqlDbType.TinyInt         , DbType.Byte},
+            { SqlDbType.SmallInt        , DbType.Int16},
+            { SqlDbType.Int             , DbType.Int32},
+            { SqlDbType.BigInt          , DbType.Int64},
+            { SqlDbType.Real            , DbType.Single},
+            { SqlDbType.Float           , DbType.Double},
+            { SqlDbType.Decimal         , DbType.Decimal},
+            { SqlDbType.UniqueIdentifier, DbType.Guid},
+            { SqlDbType.Date            , DbType.Date},
+            { SqlDbType.DateTime        , DbType.DateTime},
+            { SqlDbType.DateTime2       , DbType.DateTime2},
+            { SqlDbType.Binary          , DbType.Binary},
+            { SqlDbType.VarBinary       , DbType.Binary},
+            { SqlDbType.Char            , DbType.AnsiStringFixedLength},
+            { SqlDbType.VarChar         , DbType.AnsiString},
+            { SqlDbType.NChar           , DbType.StringFixedLength},
+            { SqlDbType.NVarChar        , DbType.String},
+        };
+
+        public static DbType GetDbType( SqlDbType sqlDbType )
+        {
+            if ( DatabaseFieldTypes.ContainsKey( sqlDbType ) )
+            {
+                return DatabaseFieldTypes[ sqlDbType ];
+            }
+            throw new NotImplementedException();
+        }
+
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
             return tableRef.Alias == null ? GetQualifiedName(tableRef.ObjectIdentifier) : tableRef.Alias.Value;
@@ -182,20 +213,41 @@ namespace SqlMemoryDb.Helpers
                     return new SelectDataFromColumn( field ).Select( row );
                 }
 
-                case SqlLiteralExpression literal : 
-                    return GetValueFromString( type, literal.Value ); 
+                case SqlLiteralExpression literal:
+                {
+                    return GetValueFromString( type, literal.Value );
+                }
 
                 case SqlScalarVariableRefExpression variableRef:
+                {
                     return GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
+                }
 
                 case SqlScalarRefExpression scalarRef:
                 {
                     var field = GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
                     return new SelectDataFromColumn( field ).Select( row );
                 }
+                case SqlGlobalScalarVariableRefExpression globalRef:
+                {
+                    return new SelectDataFromGlobalVariables( globalRef.VariableName, rawData ).Select( row );
+                }
+
+                case SqlBuiltinScalarFunctionCallExpression functionCall:
+                {
+                    var select = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    return select.Select( row );
+                }
+
+                case SqlScalarSubQueryExpression subQuery:
+                {
+                    var database = MemoryDbConnection.GetMemoryDatabase( );
+                    var command = new MemoryDbCommand( rawData.Command.Connection, rawData.Command.Parameters, rawData.Command.Variables );
+                    return database.ExecuteSqlScalar( subQuery.QueryExpression.Sql, command );
+                }
 
                 default:
-                    throw new NotImplementedException( );
+                    throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
             }
         }
 
@@ -364,5 +416,24 @@ namespace SqlMemoryDb.Helpers
             return tableAndColumn.Table.Columns.Single( c => c.Name == columnName );
         }
 
+        public static MemoryDbParameter GetParameter( MemoryDbCommand command, SqlScalarExpression scalarExpression )
+        {
+            switch ( scalarExpression )
+            {
+                case SqlScalarVariableRefExpression variableRef:
+                {
+                    if ( command.Parameters.Contains( variableRef.VariableName ) )
+                    {
+                        return ( MemoryDbParameter ) command.Parameters[ variableRef.VariableName ];
+                    }
+                    if ( command.Variables.Contains( variableRef.VariableName ) )
+                    {
+                        return ( MemoryDbParameter ) command.Variables[ variableRef.VariableName ];
+                    }
+                    throw new SqlInvalidVariableException( variableRef.VariableName );
+                }
+            }
+            throw new NotImplementedException();
+        }
     }
 }
