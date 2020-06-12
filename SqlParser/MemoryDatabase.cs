@@ -18,6 +18,16 @@ namespace SqlMemoryDb
         public Decimal? LastIdentitySet;
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
+        public Dictionary<string,SqlStatementCollection> StoredProcedures = new Dictionary<string, SqlStatementCollection>();
+
+        public void Clear( )
+        {
+            Tables.Clear( );
+            TablesStack.Clear(  );
+            TablesTransactionStack.Clear( );
+            StoredProcedures.Clear(  );
+        }
+
 
         public int ExecuteSqlStatement( string commandText, MemoryDbCommand command )
         {
@@ -73,6 +83,21 @@ namespace SqlMemoryDb
                 case SqlSetAssignmentStatement assignment:
                     SetVariable( command, assignment );
                     break;
+                case SqlCreateProcedureStatement createProcedure:
+                {
+                    new ExecuteProcedure( this ).Execute( createProcedure );
+                    break;
+                }
+                case SqlAlterProcedureStatement alterProcedure:
+                {
+                    new ExecuteProcedure( this ).Execute( alterProcedure );
+                    break;
+                }
+                case SqlDropProcedureStatement dropProcedure:
+                {
+                    new ExecuteProcedure( this ).Execute( dropProcedure );
+                    break;
+                }
                 default:
                     throw new NotImplementedException($"Statements of type {child.GetType(  )} are not implemented yet");
             }

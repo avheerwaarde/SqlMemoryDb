@@ -23,7 +23,7 @@ namespace DatabaseTests
             string sqlInsert = $"INSERT INTO application_feature ([{fieldName}]) VALUES ({setValue})";
             string sqlSelect = $"SELECT [{fieldName}] FROM application_feature";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( SqlStatements.SqlCreateTableApplication + "\n" 
                                         + SqlStatements.SqlCreateTableApplicationFeature );
@@ -41,7 +41,7 @@ namespace DatabaseTests
             string sqlInsert = $"INSERT INTO application_feature ([int]) VALUES (99)";
             string sqlSelect = $"SELECT {identityMethod}";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( SqlStatements.SqlCreateTableApplication + "\n" 
                                                                                    + SqlStatements.SqlCreateTableApplicationFeature );

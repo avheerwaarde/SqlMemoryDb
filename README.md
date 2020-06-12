@@ -66,3 +66,5 @@ MIT licence
 Version | Description
 --------|---------------
 0.10.1| SQL statement IF (NOT) EXISTS, CURRENT_TIMESTAMP, GUID value from string
+0.10.2| SQL local variables, sub queries
+0.10.3| Stored procedures

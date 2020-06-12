@@ -29,7 +29,7 @@ END";
         [TestMethod]
         public void IfExists_NoEntries_RowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 
             using var connection = new MemoryDbConnection( );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
@@ -40,7 +40,7 @@ END";
         [TestMethod]
         public void IfExists_ExistingSameEntry_NoRowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 
             using var connection = new MemoryDbConnection( );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
@@ -52,7 +52,7 @@ END";
         [TestMethod]
         public void IfExists_ExistingOtherEntry_RowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 
             using var connection = new MemoryDbConnection( );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
