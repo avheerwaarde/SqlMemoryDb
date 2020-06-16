@@ -10,9 +10,31 @@ namespace SqlMemoryDb
 {
     public class ExecuteNullStatement
     {
-        private readonly List<string> _Tokens_AddForeignKeyConstraint = new List<string>
+        class TokenAction
         {
-            "TOKEN_ALTER", "TOKEN_TABLE", "TOKEN_ADD", "TOKEN_CONSTRAINT", "TOKEN_FOREIGN", "TOKEN_KEY", "TOKEN_REFERENCES"   
+            public List<string> Tokens;
+            public Action< ExecuteNullStatement, Dictionary<string, Table>, List<Token>> Action;
+        }
+
+        private List<TokenAction> _TokenActions = new List<TokenAction>
+        {
+            new TokenAction
+            {
+                Action = AddForeignKeyConstraint,
+                Tokens = new List<string>
+                {
+                    "TOKEN_ALTER", "TOKEN_TABLE", "TOKEN_ADD", "TOKEN_CONSTRAINT", "TOKEN_FOREIGN", "TOKEN_KEY",
+                    "TOKEN_REFERENCES"
+                }
+            },
+            new TokenAction
+            {
+                Action = SetIdentityInsert,
+                Tokens = new List<string>
+                {
+                    "TOKEN_SET", "TOKEN_IDENTITY_INSERT", "TOKEN_ID"   
+                }
+            }
         };
 
         private readonly MemoryDbCommand _Command;
@@ -29,13 +51,17 @@ namespace SqlMemoryDb
             var tokens = nullStatement.Tokens.ToList( ).ConvertAll( t => ( Token ) t ).ToList( );
             var tokenTypeList = tokens.Select( t => t.Type ).ToList( );
 
-            if ( _Tokens_AddForeignKeyConstraint.All( t => tokenTypeList.Contains( t )  ))
+            foreach ( var tokenAction in _TokenActions )
             {
-                AddForeignKeyConstraint( tables, tokens );
+                if ( tokenAction.Tokens.All( t => tokenTypeList.Contains( t )  ))
+                {
+                    tokenAction.Action( this, tables, tokens );
+                    break;
+                }
             }
         }
 
-        private void AddForeignKeyConstraint( Dictionary<string, Table> tables, List<Token> tokens )
+        private static void AddForeignKeyConstraint( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )
         {
             var finder = new TokenFinder( tokens );
             var tableName = finder.GetIdAfterToken( "TOKEN_TABLE" );
@@ -60,5 +86,15 @@ namespace SqlMemoryDb
             };
             table.Table.ForeignKeyConstraints.Add( fk );
         }
+
+        private static void SetIdentityInsert( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )
+        {
+            var finder = new TokenFinder( tokens );
+            var tableName = finder.GetIdAfterToken( "TOKEN_IDENTITY_INSERT" );
+            var isOn = finder.GetTokenAfterToken( "TOKEN_ON", "TOKEN_ID" );
+            var tc = Helper.FindTable( tableName, tables );
+            tc.Table.Options[ Table.OptionEnum.IdentityInsert ] = (isOn != null ? "on" : "off");
+        }
+
     }
 }

@@ -16,6 +16,27 @@ namespace SqlMemoryDb.Helpers
             CurrentIndex = 0;
         }
 
+        public string GetTokenAfterToken( string tokenType, string afterTokenType, int startIndex = 0 )
+        {
+            var index = startIndex;
+            while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
+            return GetToken( tokenType, index );
+        }
+
+        private string GetToken( string tokenType, int index )
+        {
+            while ( ++index < _Tokens.Count )
+            {
+                if ( IsToken( index, tokenType ) )
+                {
+                    return _Tokens[ index ].Text.Trim( new[] {'[', ']'} );
+                }
+            } 
+
+            CurrentIndex = index;
+            return null;
+        }
+
         public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true)
         {
             var index = startIndex;
@@ -44,6 +65,11 @@ namespace SqlMemoryDb.Helpers
             return _Tokens[ index ].Type == "LEX_WHITE"
                    || ( skipParenthesis
                         && ( _Tokens[ index ].Type == "(" || _Tokens[ index ].Type == ")" ) );
+        }
+
+        private bool IsToken( int index, string tokenType )
+        {
+            return _Tokens[ index ].Type == tokenType;
         }
 
         private bool IsIdToken( int index )

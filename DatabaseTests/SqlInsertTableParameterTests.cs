@@ -14,7 +14,7 @@ namespace DatabaseTests
     public class SqlInsertTableParameterTests
     {
         [TestInitialize]
-        public async Task InsertDb( )
+        public async Task InitializeDb( )
         {
             MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 

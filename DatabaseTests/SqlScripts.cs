@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using SqlMemoryDb;
 
 namespace DatabaseTests
 {
     class SqlScripts
     {
+
         public static async Task InitDbAsync( )
         {
             MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
@@ -40,6 +42,13 @@ namespace DatabaseTests
                 await command.PrepareAsync( );
                 await command.ExecuteNonQueryAsync( );
             }
+        }
+
+        public static void InitNorthWindDatabase( )
+        {
+            MemoryDbConnection.GetMemoryDatabase( ).Clear( );
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( SqlStatements.SqlCreateNorthWindCustom );
         }
     }
 }

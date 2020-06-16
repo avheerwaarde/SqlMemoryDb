@@ -103,6 +103,12 @@ namespace SqlMemoryDb
                     new ExecuteProcedure( this, command ).Execute( executeModule );
                     break;
                 }
+                case SqlCreateIndexStatement createIndex:
+                case SqlDropExistingIndexOption dropIndex:
+                {
+                    // We will never implement this and function without it
+                    break;
+                }
                 default:
                     throw new NotImplementedException($"Statements of type {child.GetType(  )} are not implemented yet");
             }

@@ -12,7 +12,7 @@ namespace SqlMemoryDb.Helpers
 {
     class Helper
     {
-        private static string _DefaultSchemaName = "dbo";
+        public static string DefaultSchemaName = "dbo";
 
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
@@ -21,7 +21,7 @@ namespace SqlMemoryDb.Helpers
 
         public static string GetQualifiedName( SqlObjectIdentifier identifier )
         {
-            return (identifier.SchemaName.Value ?? _DefaultSchemaName ) + "." + identifier.ObjectName;
+            return (identifier.SchemaName.Value ?? DefaultSchemaName ) + "." + identifier.ObjectName;
         }
 
         public static string GetColumnName( SqlScalarRefExpression expression )
@@ -337,8 +337,12 @@ namespace SqlMemoryDb.Helpers
             return result;
         }
 
-        private static TableAndColumn FindTable( string tableName, Dictionary<string, Table> tables )
+        internal static TableAndColumn FindTable( string tableName, Dictionary<string, Table> tables )
         {
+            if ( tableName.StartsWith( "\"" ) && tableName.EndsWith( "\"" )  )
+            {
+                tableName = tableName.Substring( 1, tableName.Length - 2 );
+            }
             var result = new TableAndColumn(  );
             if ( string.IsNullOrWhiteSpace( tableName ) == false )
             {
@@ -367,6 +371,10 @@ namespace SqlMemoryDb.Helpers
 
         private static Column FindColumn( TableAndColumn tableAndColumn, string columnName, Dictionary<string, Table> tables )
         {
+            if ( columnName.StartsWith( "\"" ) && columnName.EndsWith( "\"" )  )
+            {
+                columnName = columnName.Substring( 1, columnName.Length - 2 );
+            }
             if ( tableAndColumn.Table == null )
             {
                 var foundTables = tables.Where( t => t.Value.Columns.Any( c => c.Name == columnName ) ).ToList( );

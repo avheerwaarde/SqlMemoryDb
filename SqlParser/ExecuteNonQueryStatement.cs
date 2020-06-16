@@ -126,7 +126,7 @@ namespace SqlMemoryDb
             {
                 if ( column.IsIdentity )
                 {
-                    if ( columns.Any( c => c.Name == column.Name ) )
+                    if ( columns.Any( c => c.Name == column.Name ) && table.Options[ Table.OptionEnum.IdentityInsert].ToUpper() == "OFF")
                     {
                         throw new SqlInsertIdentityException( table.Name, column.Name );
                     }
