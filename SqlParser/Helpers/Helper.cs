@@ -12,6 +12,8 @@ namespace SqlMemoryDb.Helpers
 {
     class Helper
     {
+        private static string _DefaultSchemaName = "dbo";
+
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
             return tableRef.Alias == null ? GetQualifiedName(tableRef.ObjectIdentifier) : tableRef.Alias.Value;
@@ -19,7 +21,7 @@ namespace SqlMemoryDb.Helpers
 
         public static string GetQualifiedName( SqlObjectIdentifier identifier )
         {
-            return (identifier.SchemaName.Value ?? "dbo" ) + "." + identifier.ObjectName;
+            return (identifier.SchemaName.Value ?? _DefaultSchemaName ) + "." + identifier.ObjectName;
         }
 
         public static string GetColumnName( SqlScalarRefExpression expression )
