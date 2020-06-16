@@ -18,6 +18,16 @@ namespace SqlMemoryDb
         public Decimal? LastIdentitySet;
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
+        public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
+
+        public void Clear( )
+        {
+            Tables.Clear( );
+            TablesStack.Clear(  );
+            TablesTransactionStack.Clear( );
+            StoredProcedures.Clear(  );
+        }
+
 
         public int ExecuteSqlStatement( string commandText, MemoryDbCommand command )
         {
@@ -73,6 +83,26 @@ namespace SqlMemoryDb
                 case SqlSetAssignmentStatement assignment:
                     SetVariable( command, assignment );
                     break;
+                case SqlCreateProcedureStatement createProcedure:
+                {
+                    new ExecuteProcedure( this, command ).Execute( createProcedure );
+                    break;
+                }
+                case SqlAlterProcedureStatement alterProcedure:
+                {
+                    new ExecuteProcedure( this, command ).Execute( alterProcedure );
+                    break;
+                }
+                case SqlDropProcedureStatement dropProcedure:
+                {
+                    new ExecuteProcedure( this, command ).Execute( dropProcedure );
+                    break;
+                }
+                case SqlExecuteModuleStatement executeModule:
+                {
+                    new ExecuteProcedure( this, command ).Execute( executeModule );
+                    break;
+                }
                 default:
                     throw new NotImplementedException($"Statements of type {child.GetType(  )} are not implemented yet");
             }
@@ -126,6 +156,28 @@ namespace SqlMemoryDb
                 throw new SqlNoScalarResultException( );            }
 
             return null;
+        }
+
+        public void AddParameters( MemoryDbCommand command, SqlParameterDeclarationCollection parameterDeclarations )
+        {
+            if ( parameterDeclarations != null )
+            {
+                foreach ( var parameterDeclaration in parameterDeclarations )
+                {
+                    var column = new Column( null, parameterDeclaration.Name, parameterDeclaration.Type.Sql, 1 );
+                    var parameter = new MemoryDbParameter
+                    {
+                        ParameterName = column.Name.TrimStart( new []{'@'} ),
+                        DbType = column.DbDataType,
+                        NetDataType = column.NetDataType,
+                        Precision = ( byte ) column.Precision,
+                        Scale = ( byte ) column.Scale,
+                        Size = column.Size,
+                        IsNullable = true
+                    };
+                    command.Parameters.Add( parameter );
+                }
+            }
         }
 
         private void AddVariable( MemoryDbCommand command, SqlVariableDeclareStatement variableDeclaration )
@@ -186,5 +238,6 @@ namespace SqlMemoryDb
         {
             TablesTransactionStack.Pop( );
         }
+
     }
 }

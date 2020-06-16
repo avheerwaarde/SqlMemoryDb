@@ -16,7 +16,7 @@ namespace DatabaseTests
         [TestInitialize]
         public async Task InsertDb( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Tables.Clear(  );
+            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 
             await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );

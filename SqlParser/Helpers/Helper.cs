@@ -12,36 +12,7 @@ namespace SqlMemoryDb.Helpers
 {
     class Helper
     {
-        public static Dictionary<SqlDbType, DbType> DatabaseFieldTypes = new Dictionary<SqlDbType, DbType>( )
-        {
-            { SqlDbType.Bit             , DbType.Boolean},
-            { SqlDbType.TinyInt         , DbType.Byte},
-            { SqlDbType.SmallInt        , DbType.Int16},
-            { SqlDbType.Int             , DbType.Int32},
-            { SqlDbType.BigInt          , DbType.Int64},
-            { SqlDbType.Real            , DbType.Single},
-            { SqlDbType.Float           , DbType.Double},
-            { SqlDbType.Decimal         , DbType.Decimal},
-            { SqlDbType.UniqueIdentifier, DbType.Guid},
-            { SqlDbType.Date            , DbType.Date},
-            { SqlDbType.DateTime        , DbType.DateTime},
-            { SqlDbType.DateTime2       , DbType.DateTime2},
-            { SqlDbType.Binary          , DbType.Binary},
-            { SqlDbType.VarBinary       , DbType.Binary},
-            { SqlDbType.Char            , DbType.AnsiStringFixedLength},
-            { SqlDbType.VarChar         , DbType.AnsiString},
-            { SqlDbType.NChar           , DbType.StringFixedLength},
-            { SqlDbType.NVarChar        , DbType.String},
-        };
-
-        public static DbType GetDbType( SqlDbType sqlDbType )
-        {
-            if ( DatabaseFieldTypes.ContainsKey( sqlDbType ) )
-            {
-                return DatabaseFieldTypes[ sqlDbType ];
-            }
-            throw new NotImplementedException();
-        }
+        private static string _DefaultSchemaName = "dbo";
 
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
@@ -50,7 +21,7 @@ namespace SqlMemoryDb.Helpers
 
         public static string GetQualifiedName( SqlObjectIdentifier identifier )
         {
-            return (identifier.SchemaName.Value ?? "dbo" ) + "." + identifier.ObjectName;
+            return (identifier.SchemaName.Value ?? _DefaultSchemaName ) + "." + identifier.ObjectName;
         }
 
         public static string GetColumnName( SqlScalarRefExpression expression )

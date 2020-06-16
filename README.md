@@ -12,7 +12,7 @@ When I get to it, I will start a project wiki. Until this one is up and running,
 * .net standard 2.0
 
 ## Limitations
-It is still in it's alpha fase, so please do not expect anything more than support for columns, literals and connection parameters. There is no explicit type conversion, methods, Common Table Expressions (CTE), views, stored procedure, etc. Non supported functionality will throw a NotImplementedException exception. Please feel free to add features yourself if you need anything right now. Please look in the test project to see what is currently supported.
+It is still in it's alpha fase and this is a hobby project. So the tests are not production/release worthy and not everything is fully implemented. For instance there is no explicit type conversion, methods, Common Table Expressions (CTE), views, etc. Non supported functionality will throw a NotImplementedException exception. Please feel free to add features yourself if you need anything right now. Please look in the test project to see what is currently supported.
 The usage of keywords like: SELECT, UPDATE, INSERT, GROUP BY, HAVING are supported as is an alias.
 
 ## Installation
@@ -66,3 +66,5 @@ MIT licence
 Version | Description
 --------|---------------
 0.10.1| SQL statement IF (NOT) EXISTS, CURRENT_TIMESTAMP, GUID value from string
+0.10.2| SQL local variables, sub queries
+0.10.3| Stored procedures
