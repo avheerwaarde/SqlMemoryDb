@@ -37,14 +37,14 @@ namespace SqlMemoryDb.Helpers
             return null;
         }
 
-        public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true)
+        public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true, bool isSingleTokenId = false )
         {
             var index = startIndex;
             while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
-            return GetId( index, skipParenthesis );
+            return GetId( index, skipParenthesis, isSingleTokenId );
         }
 
-        private string GetId( int index, bool skipParenthesis )
+        private string GetId( int index, bool skipParenthesis, bool isSingleTokenId )
         {
             string id = "";
 
@@ -53,6 +53,10 @@ namespace SqlMemoryDb.Helpers
                 if ( IsIdToken( index ) )
                 {
                     id += GetIdPart( _Tokens[ index ] );
+                    if ( isSingleTokenId )
+                    {
+                        return id;
+                    }
                 }
             } 
 

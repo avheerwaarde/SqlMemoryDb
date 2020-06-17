@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
@@ -65,7 +66,7 @@ namespace SqlMemoryDb
             }
             else
             {
-                if ( value.Contains( "(" ) && value.Contains( ")" ) || value.StartsWith( "@@" ))
+                if ( Regex.IsMatch( value, "\\b[^()]+\\((.*)\\)$" ) || value.StartsWith( "@@" ))
                 {
                     var select = new SelectDataBuilder(  ).Build( value, new RawData( _Command ) );
                     row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
@@ -112,7 +113,7 @@ namespace SqlMemoryDb
                 {
                     startTokenFound = true;
                 }
-                else if ( startTokenFound && token.Type != "," )
+                else if ( startTokenFound && token.Type != "," && token.Type != "LEX_WHITE" )
                 {
                     values.Add( token.Text );
                 }
@@ -166,6 +167,10 @@ namespace SqlMemoryDb
 
         private static List<Column> GetInsertColumns( SqlInsertSpecification spec, Table table )
         {
+            if ( spec.TargetColumns == null )
+            {
+                return table.Columns;
+            }
             var columns = new List<Column>( );
             var columnRefs = spec.TargetColumns as SqlColumnRefExpressionCollection;
             foreach ( var columnRef in columnRefs )

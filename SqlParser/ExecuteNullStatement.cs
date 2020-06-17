@@ -38,6 +38,14 @@ namespace SqlMemoryDb
             },
             new TokenAction
             {
+                Action = SetGlobalVariable,
+                Tokens = new List<string>
+                {
+                    "TOKEN_SET", "TOKEN_ID", "TOKEN_ID"   
+                }
+            },
+            new TokenAction
+            {
                 Action = SetCheckConstraint,
                 Tokens = new List<string>
                 {
@@ -103,6 +111,26 @@ namespace SqlMemoryDb
             var isOn = finder.GetTokenAfterToken( "TOKEN_ON", "TOKEN_ID" );
             var tc = Helper.FindTable( tableName, tables );
             tc.Table.Options[ Table.OptionEnum.IdentityInsert ] = (isOn != null ? "on" : "off");
+        }
+
+        private static void SetGlobalVariable( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )
+        {
+            var finder = new TokenFinder( tokens );
+            var variableName = finder.GetIdAfterToken( "TOKEN_SET", isSingleTokenId:true );
+            var variableValue = finder.GetTokenAfterToken( "TOKEN_ID", "TOKEN_ID" );
+            var options = MemoryDbConnection.GetMemoryDatabase( ).Options;
+
+            if ( string.IsNullOrWhiteSpace( variableName ) == false 
+                 && string.IsNullOrWhiteSpace( variableValue ) == false 
+                 && options.ContainsKey( variableName ))
+            {
+                if ( variableValue == "NULL" )
+                {
+                    variableValue = null;
+                }
+
+                options[ variableName ] = variableValue;
+            }
         }
 
         private static void SetCheckConstraint( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )

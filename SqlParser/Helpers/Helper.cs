@@ -14,6 +14,15 @@ namespace SqlMemoryDb.Helpers
     class Helper
     {
         public static string DefaultSchemaName = "dbo";
+        private static Dictionary< string, string[]> _DateFormats = new Dictionary<string, string[]>
+        {
+            {"mdy", new []{ "M/d/yyyy h:mm:ss tt", "M-d-yyyy h:mm:ss tt", "M/d/yyyy h:mm:ss", "M-d-yyyy h:mm:ss", "M/d/yyyy", "M-d-yyyy" } },
+            {"dmy", new []{ "d/M/yyyy h:mm:ss tt", "d-M-yyyy h:mm:ss tt", "d/M/yyyy h:mm:ss", "d-M-yyyy h:mm:ss", "d/M/yyyy", "d-M-yyyy" } },
+            {"ymd", new []{ "yyyy/M/d h:mm:ss tt", "yyyy-M-d h:mm:ss tt", "yyyy/M/d h:mm:ss", "yyyy-M-d h:mm:ss", "yyyy/M/d", "yyyy-M-d" } },
+            {"ydm", new []{ "yyyy/d/M h:mm:ss tt", "yyyy-d-M h:mm:ss tt", "yyyy/d/M h:mm:ss", "yyyy-d-M h:mm:ss", "yyyy/d/M", "yyyy-d-M" } },
+            {"myd", new []{ "M/yyyy/d h:mm:ss tt", "M-yyyy-d h:mm:ss tt", "M/yyyy/d h:mm:ss", "M-yyyy-d h:mm:ss", "M/yyyy/d", "M-yyyy-d" } },
+            {"dym", new []{ "d/yyyy/M h:mm:ss tt", "d-yyyy-M h:mm:ss tt", "d/yyyy/M h:mm:ss", "d-yyyy-M h:mm:ss", "d/yyyy/M", "d-yyyy-M" } }
+        };
 
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
@@ -50,6 +59,10 @@ namespace SqlMemoryDb.Helpers
             }
             else
             {
+                if ( source.ToUpper() == "NULL" )
+                {
+                    return null;
+                }
                 switch ( column.DbDataType )
                 {
                     case DbType.Boolean   : return source.ToUpper( ) == "TRUE" || source == "1";
@@ -98,7 +111,35 @@ namespace SqlMemoryDb.Helpers
             {
                 return DateTime.Now;
             }
-            return DateTime.Parse( source );
+
+            source = GetStringValue( source );
+            var formatKey = MemoryDbConnection.GetMemoryDatabase( ).Options["DATEFORMAT"];
+            var dateFormat = _DateFormats[ formatKey ];
+            return ToDate(source, dateFormat ).Value;
+        }
+
+        private static DateTime? ToDate( string dateTimeStr, params string[] dateFmt)
+        {
+            // example: var dt = "2011-03-21 13:26".ToDate(new string[]{"yyyy-MM-dd HH:mm", 
+            //                                                  "M/d/yyyy h:mm:ss tt"});
+            // or simpler: 
+            // var dt = "2011-03-21 13:26".ToDate("yyyy-MM-dd HH:mm", "M/d/yyyy h:mm:ss tt");
+            const DateTimeStyles style = DateTimeStyles.AllowWhiteSpaces;
+            if (dateFmt == null)
+            {
+                var dateInfo = System.Threading.Thread.CurrentThread.CurrentCulture.DateTimeFormat;
+                dateFmt=dateInfo.GetAllDateTimePatterns();
+            }
+            // Commented out below because it can be done shorter as shown below.
+            // For older C# versions (older than C#7) you need it like that:
+            // DateTime? result = null;
+            // DateTime dt;
+            // if (DateTime.TryParseExact(dateTimeStr, dateFmt,
+            //    CultureInfo.InvariantCulture, style, out dt)) result = dt;
+            // In C#7 and above, we can simply write:
+            var result = DateTime.TryParseExact(dateTimeStr, dateFmt, CultureInfo.InvariantCulture,
+                style, out var dt) ? dt : null as DateTime?;
+            return result;
         }
 
         public static object GetValueFromString( Type type, string source )
