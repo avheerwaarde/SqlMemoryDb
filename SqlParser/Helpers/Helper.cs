@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
@@ -40,6 +41,7 @@ namespace SqlMemoryDb.Helpers
         {
             if ( column.NetDataType == typeof(string) )
             {
+                source = GetStringValue( source );
                 if ( column.Size > 0 && column.Size < source.Length )
                 {
                     throw new SqlDataTruncatedException( column.Size, source.Length );
@@ -61,12 +63,33 @@ namespace SqlMemoryDb.Helpers
                     case DbType.Guid      : return Guid.Parse( source );
                     case DbType.Date      : 
                     case DbType.DateTime  : 
-                    case DbType.DateTime2 :
-                        return GetValueFromDateString( source );
+                    case DbType.DateTime2 : return GetValueFromDateString( source );
+                    case DbType.Binary    : return ConvertHexStringToByteArray( source );
                     default               :
                         throw new NotImplementedException( $"Defaults not supported for type {column.DbDataType }" );
                 }
             }
+        }
+
+        public static byte[] ConvertHexStringToByteArray(string hexString)
+        {
+            if ( hexString.StartsWith( "0x" ) == false )
+            {
+                throw new ArgumentException("The string must start with 0x");
+            }
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException(String.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
+            }
+
+            byte[] data = new byte[hexString.Length / 2];
+            for (int index = 0; index < (data.Length-1); index++)
+            {
+                string byteValue = hexString.Substring((index+1) * 2, 2);
+                data[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+
+            return data; 
         }
 
         private static DateTime GetValueFromDateString( string source )
@@ -100,6 +123,20 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
+        public static string CleanName( string name )
+        {
+            if ( name == null )
+            {
+                name = "";
+            }
+            else if ( name.StartsWith( "\"" ) && name.EndsWith( "\"" )  )
+            {
+                name = name.Substring( 1, name.Length - 2 );
+            }
+
+            return name;
+        }
+
         public static string CleanSql( string sourceSql )
         {
             return sourceSql.Replace( '\n', ' ' ).Replace( '\r', ' ' ).Replace( '\t', ' ' ).Trim( );
@@ -107,9 +144,13 @@ namespace SqlMemoryDb.Helpers
 
         public static string GetStringValue( string part )
         {
-            if ( (part.StartsWith( "N'" ) || part.StartsWith( "'" )) && part.EndsWith( "'" ))
+            if ( part.StartsWith( "N'" ) && part.EndsWith( "'" ) )
             {
-                return part.TrimStart( new[] {'N', 'n'} ).TrimStart( new[] {'\''} ).TrimEnd( new[] {'\''} );
+                return part.Substring( 2, part.Length - 3 );
+            }
+            else if ( part.StartsWith( "'" ) && part.EndsWith( "'" ))
+            {
+                return part.Substring( 1, part.Length - 2 );
             }
 
             return part;
@@ -339,10 +380,8 @@ namespace SqlMemoryDb.Helpers
 
         internal static TableAndColumn FindTable( string tableName, Dictionary<string, Table> tables )
         {
-            if ( tableName.StartsWith( "\"" ) && tableName.EndsWith( "\"" )  )
-            {
-                tableName = tableName.Substring( 1, tableName.Length - 2 );
-            }
+            tableName = CleanName( tableName );
+
             var result = new TableAndColumn(  );
             if ( string.IsNullOrWhiteSpace( tableName ) == false )
             {
@@ -371,10 +410,8 @@ namespace SqlMemoryDb.Helpers
 
         private static Column FindColumn( TableAndColumn tableAndColumn, string columnName, Dictionary<string, Table> tables )
         {
-            if ( columnName.StartsWith( "\"" ) && columnName.EndsWith( "\"" )  )
-            {
-                columnName = columnName.Substring( 1, columnName.Length - 2 );
-            }
+            columnName = CleanName( columnName );
+
             if ( tableAndColumn.Table == null )
             {
                 var foundTables = tables.Where( t => t.Value.Columns.Any( c => c.Name == columnName ) ).ToList( );

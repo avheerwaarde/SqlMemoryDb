@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
@@ -34,8 +35,7 @@ namespace SqlMemoryDb
         private void AddRow( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
             var row = InitializeNewRow( table, columns );
-            var sql = Helper.CleanSql( source.Sql.Substring( 6 ) );
-            var values = GetValuesFromSql( sql );
+            var values = GetValuesFromSql( source.Tokens );
 
             if ( columns.Count > values.Count )
             {
@@ -98,18 +98,24 @@ namespace SqlMemoryDb
             }
         }
 
-        private List<string> GetValuesFromSql( string sql )
+        private List<string> GetValuesFromSql( IEnumerable<Token> tokens )
         {
             var values = new List<string>( );
-            if ( sql.StartsWith( "(" ) )
+            var startTokenFound = false;
+            foreach ( var token in tokens )
             {
-                sql = sql.Substring( 1, sql.Length - 2 );
-            }
-            var parts = sql.Split( new[] {','}, StringSplitOptions.RemoveEmptyEntries );
-            foreach ( var part in parts )
-            {
-                var value = Helper.GetStringValue( part.Trim() );
-                values.Add( value );
+                if ( token.Type == ")" )
+                {
+                    break;
+                }
+                if ( token.Type == "(" )
+                {
+                    startTokenFound = true;
+                }
+                else if ( startTokenFound && token.Type != "," )
+                {
+                    values.Add( token.Text );
+                }
             }
             return values;
         }
@@ -189,7 +195,7 @@ namespace SqlMemoryDb
 
         private void ValidateAllForeignKeyConstraints( ArrayList row, Table table )
         {
-            foreach ( var constraint in table.ForeignKeyConstraints )
+            foreach ( var constraint in table.ForeignKeyConstraints.Where( k => k.CheckThrowsException ) )
             {
                 for ( int index = 0; index < constraint.Columns.Count; index++ )
                 {

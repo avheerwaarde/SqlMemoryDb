@@ -9,11 +9,13 @@ namespace SqlMemoryDb
         public List<string> Columns;
         public string ReferencedTableName;
         public List<string> ReferencedColumns;
+        public bool CheckThrowsException;
 
         public ForeignKeyConstraint( )
         {
             Columns = new List<string>();
             ReferencedColumns = new List<string>();
+            CheckThrowsException = true;
         }
 
         public SqlForeignKeyAction DeleteAction { get; set; }

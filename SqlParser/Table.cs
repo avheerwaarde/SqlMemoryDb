@@ -12,8 +12,7 @@ namespace SqlParser
     {
         public enum OptionEnum
         {
-            IdentityInsert = 1,
-            CheckConstraint = 2
+            IdentityInsert = 1
         }
 
         public string Name;
@@ -36,8 +35,7 @@ namespace SqlParser
             Rows = new List<ArrayList>();
             Options = new Dictionary<OptionEnum, string>
             {
-                [ OptionEnum.IdentityInsert ] = "off",
-                [ OptionEnum.CheckConstraint ] = "ALL"
+                [ OptionEnum.IdentityInsert ] = "off"
             };
         }
     }

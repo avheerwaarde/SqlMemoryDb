@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
 using SqlParser;
 
@@ -16,7 +17,7 @@ namespace SqlMemoryDb
             public Action< ExecuteNullStatement, Dictionary<string, Table>, List<Token>> Action;
         }
 
-        private List<TokenAction> _TokenActions = new List<TokenAction>
+        private static readonly List<TokenAction> _TokenActions = new List<TokenAction>
         {
             new TokenAction
             {
@@ -33,6 +34,14 @@ namespace SqlMemoryDb
                 Tokens = new List<string>
                 {
                     "TOKEN_SET", "TOKEN_IDENTITY_INSERT", "TOKEN_ID"   
+                }
+            },
+            new TokenAction
+            {
+                Action = SetCheckConstraint,
+                Tokens = new List<string>
+                {
+                    "TOKEN_ALTER", "TOKEN_TABLE", "TOKEN_CONSTRAINT"   
                 }
             }
         };
@@ -94,6 +103,39 @@ namespace SqlMemoryDb
             var isOn = finder.GetTokenAfterToken( "TOKEN_ON", "TOKEN_ID" );
             var tc = Helper.FindTable( tableName, tables );
             tc.Table.Options[ Table.OptionEnum.IdentityInsert ] = (isOn != null ? "on" : "off");
+        }
+
+        private static void SetCheckConstraint( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )
+        {
+            string constraint = null;
+            var finder = new TokenFinder( tokens );
+            var tableName = finder.GetIdAfterToken( "TOKEN_TABLE" );
+            var isCheck = finder.GetTokenAfterToken( "TOKEN_CHECK", "TOKEN_ID" );
+            var isAll = finder.GetTokenAfterToken( "TOKEN_ALL", "TOKEN_CONSTRAINT" );
+            if ( isAll == null )
+            {
+                constraint = finder.GetTokenAfterToken( "TOKEN_ID", "TOKEN_CONSTRAINT" );
+                constraint = Helper.CleanName( constraint );
+            }
+            var tc = Helper.FindTable( tableName, tables );
+            var constraints = tc.Table.ForeignKeyConstraints;
+            if ( isAll != null )
+            {
+                foreach ( var keyConstraint in constraints )
+                {
+                    keyConstraint.CheckThrowsException = isCheck != null;
+                }
+            }
+            else
+            {
+                var keyConstraint = constraints.SingleOrDefault( c => c.Name == constraint );
+                if ( keyConstraint == null )
+                {
+                    throw new SqlInvalidConstraintException( constraint );
+                }
+
+                keyConstraint.CheckThrowsException = isCheck != null;
+            }
         }
 
     }
