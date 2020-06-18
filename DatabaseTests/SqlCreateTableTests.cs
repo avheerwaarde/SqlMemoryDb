@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Dapper;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -75,6 +76,23 @@ namespace DatabaseTests
             await command.ExecuteNonQueryAsync( );
             var fk = db.Tables[ "dbo.application_action" ].ForeignKeyConstraints.Single( );
             fk.ReferencedTableName.Should( ).Be( "dbo.application" );
+        }
+
+        [TestMethod]
+        public void CreateTable_MultiColumnPrimaryKey_IsCreated( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            db.Tables.Clear( );
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( SqlStatements.SqlCreateCustomerCustomerDemo );
+            var table = db.Tables[ "dbo.CustomerCustomerDemo" ];
+            table.PrimaryKeyConstraints.Should( ).ContainKey( "PK_CustomerCustomerDemo" );
+            table.PrimaryKeyConstraints[ "PK_CustomerCustomerDemo" ].Count.Should( ).Be( 2 );
+            table.PrimaryKeys.Count.Should( ).Be( 2 );
+            foreach ( var column in table.Columns )
+            {
+                column.IsPrimaryKey.Should( ).BeTrue( );
+            }
         }
 
     }

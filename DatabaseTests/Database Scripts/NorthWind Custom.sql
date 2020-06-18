@@ -8906,85 +8906,85 @@ GO
 
 --  The following adds constraints to the Northwind database
 
---ALTER TABLE CustomerCustomerDemo
---	ADD CONSTRAINT [PK_CustomerCustomerDemo] PRIMARY KEY  NONCLUSTERED 
---	(
---		[CustomerID],
---		[CustomerTypeID]
---	) ON [PRIMARY]
---GO
+ALTER TABLE CustomerCustomerDemo
+	ADD CONSTRAINT [PK_CustomerCustomerDemo] PRIMARY KEY  NONCLUSTERED 
+	(
+		[CustomerID],
+		[CustomerTypeID]
+	) ON [PRIMARY]
+GO
 
---ALTER TABLE CustomerDemographics
---	ADD CONSTRAINT [PK_CustomerDemographics] PRIMARY KEY  NONCLUSTERED 
---	(
---		[CustomerTypeID]
---	) ON [PRIMARY]
---GO
+ALTER TABLE CustomerDemographics
+	ADD CONSTRAINT [PK_CustomerDemographics] PRIMARY KEY  NONCLUSTERED 
+	(
+		[CustomerTypeID]
+	) ON [PRIMARY]
+GO
 
---ALTER TABLE CustomerCustomerDemo
---	ADD CONSTRAINT [FK_CustomerCustomerDemo] FOREIGN KEY 
---	(
---		[CustomerTypeID]
---	) REFERENCES [dbo].[CustomerDemographics] (
---		[CustomerTypeID]
---	)
---GO
+ALTER TABLE CustomerCustomerDemo
+	ADD CONSTRAINT [FK_CustomerCustomerDemo] FOREIGN KEY 
+	(
+		[CustomerTypeID]
+	) REFERENCES [dbo].[CustomerDemographics] (
+		[CustomerTypeID]
+	)
+GO
 
---ALTER TABLE CustomerCustomerDemo
---	ADD CONSTRAINT [FK_CustomerCustomerDemo_Customers] FOREIGN KEY
---	(
---		[CustomerID]
---	) REFERENCES [dbo].[Customers] (
---		[CustomerID]
---	)
---GO
+ALTER TABLE CustomerCustomerDemo
+	ADD CONSTRAINT [FK_CustomerCustomerDemo_Customers] FOREIGN KEY
+	(
+		[CustomerID]
+	) REFERENCES [dbo].[Customers] (
+		[CustomerID]
+	)
+GO
 
---ALTER TABLE Region
---	ADD CONSTRAINT [PK_Region] PRIMARY KEY  NONCLUSTERED 
---	(
---		[RegionID]
---	)  ON [PRIMARY] 
---GO
+ALTER TABLE Region
+	ADD CONSTRAINT [PK_Region] PRIMARY KEY  NONCLUSTERED 
+	(
+		[RegionID]
+	)  ON [PRIMARY] 
+GO
 
---ALTER TABLE Territories
---	ADD CONSTRAINT [PK_Territories] PRIMARY KEY  NONCLUSTERED 
---	(
---		[TerritoryID]
---	)  ON [PRIMARY] 
---GO
+ALTER TABLE Territories
+	ADD CONSTRAINT [PK_Territories] PRIMARY KEY  NONCLUSTERED 
+	(
+		[TerritoryID]
+	)  ON [PRIMARY] 
+GO
 
---ALTER TABLE Territories
---	ADD CONSTRAINT [FK_Territories_Region] FOREIGN KEY 
---	(
---		[RegionID]
---	) REFERENCES [dbo].[Region] (
---		[RegionID]
---	)
---GO
+ALTER TABLE Territories
+	ADD CONSTRAINT [FK_Territories_Region] FOREIGN KEY 
+	(
+		[RegionID]
+	) REFERENCES [dbo].[Region] (
+		[RegionID]
+	)
+GO
 
---ALTER TABLE EmployeeTerritories
---	ADD CONSTRAINT [PK_EmployeeTerritories] PRIMARY KEY  NONCLUSTERED 
---	(
---		[EmployeeID],
---		[TerritoryID]
---	) ON [PRIMARY]
---GO
+ALTER TABLE EmployeeTerritories
+	ADD CONSTRAINT [PK_EmployeeTerritories] PRIMARY KEY  NONCLUSTERED 
+	(
+		[EmployeeID],
+		[TerritoryID]
+	) ON [PRIMARY]
+GO
 
---ALTER TABLE EmployeeTerritories
---	ADD CONSTRAINT [FK_EmployeeTerritories_Employees] FOREIGN KEY 
---	(
---		[EmployeeID]
---	) REFERENCES [dbo].[Employees] (
---		[EmployeeID]
---	)
---GO
+ALTER TABLE EmployeeTerritories
+	ADD CONSTRAINT [FK_EmployeeTerritories_Employees] FOREIGN KEY 
+	(
+		[EmployeeID]
+	) REFERENCES [dbo].[Employees] (
+		[EmployeeID]
+	)
+GO
 
 
---ALTER TABLE EmployeeTerritories	
---	ADD CONSTRAINT [FK_EmployeeTerritories_Territories] FOREIGN KEY 
---	(
---		[TerritoryID]
---	) REFERENCES [dbo].[Territories] (
---		[TerritoryID]
---	)
---GO
+ALTER TABLE EmployeeTerritories	
+	ADD CONSTRAINT [FK_EmployeeTerritories_Territories] FOREIGN KEY 
+	(
+		[TerritoryID]
+	) REFERENCES [dbo].[Territories] (
+		[TerritoryID]
+	)
+GO

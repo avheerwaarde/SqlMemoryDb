@@ -30,6 +30,14 @@ namespace SqlMemoryDb
             },
             new TokenAction
             {
+                Action = AddPrimaryKeyConstraint,
+                Tokens = new List<string>
+                {
+                    "TOKEN_ALTER", "TOKEN_TABLE", "TOKEN_ADD", "TOKEN_CONSTRAINT", "TOKEN_PRIMARY", "TOKEN_KEY"
+                }
+            },
+            new TokenAction
+            {
                 Action = SetIdentityInsert,
                 Tokens = new List<string>
                 {
@@ -102,6 +110,23 @@ namespace SqlMemoryDb
                 ReferencedColumns = new List<string> {referencedColumnName}
             };
             table.Table.ForeignKeyConstraints.Add( fk );
+        }
+
+        private static void AddPrimaryKeyConstraint( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )
+        {
+            var finder = new TokenFinder( tokens );
+            var tableName = finder.GetIdAfterToken( "TOKEN_TABLE" );
+            var columnNames = finder.GetIdListAfterToken( "(" );
+            var primaryKeyName = finder.GetIdAfterToken( "TOKEN_CONSTRAINT" );
+
+            var table = Helper.FindTable( tableName, tables ).Table;
+            var columns = table.Columns.Where( c => columnNames.Contains( c.Name ) ).ToList(  );
+            table.PrimaryKeyConstraints.Add( primaryKeyName, columns );
+            table.PrimaryKeys.AddRange( columns );
+            foreach ( var column in columns )
+            {
+                column.IsPrimaryKey = true;
+            }
         }
 
         private static void SetIdentityInsert( ExecuteNullStatement statement, Dictionary<string, Table> tables, List<Token> tokens )

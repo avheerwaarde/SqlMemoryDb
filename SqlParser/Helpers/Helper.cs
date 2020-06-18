@@ -292,6 +292,12 @@ namespace SqlMemoryDb.Helpers
                     return select.Select( row );
                 }
 
+                case SqlSearchedCaseExpression caseExpression:
+                {
+                    var select = new SelectDataFromCaseExpression( caseExpression, rawData );
+                    return select.Select( row );
+                }
+
                 case SqlScalarSubQueryExpression subQuery:
                 {
                     var database = MemoryDbConnection.GetMemoryDatabase( );
@@ -405,9 +411,73 @@ namespace SqlMemoryDb.Helpers
                     var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
                     return selectFunction.ReturnType;
                 }
+                case SqlSearchedCaseExpression caseExpression:
+                {
+                    var selectFunction =  new SelectDataFromCaseExpression( caseExpression, rawData );
+                    return selectFunction.ReturnType;
+                }
             }
 
             return null;
+        }
+
+
+        public static FullTypeInfo DetermineFullTypeInfo( SqlScalarExpression expression, RawData rawData )
+        {
+            switch ( expression )
+            {
+                case SqlColumnRefExpression columnRef:
+                {
+                    var field = Helper.GetTableColumn( columnRef, rawData );
+                    return new FullTypeInfo { DbDataType = field.Column.DbDataType.ToString(), NetDataType = field.Column.NetDataType };
+                }
+                case SqlScalarVariableRefExpression variableRef:
+                {
+//                    Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
+                    return null;
+                }
+                case SqlScalarRefExpression scalarRef:
+                {
+                    var field = Helper.GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
+                    return new FullTypeInfo { DbDataType = field.Column.DbDataType.ToString(), NetDataType = field.Column.NetDataType };
+                }
+                case SqlAggregateFunctionCallExpression functionCall:
+                {
+                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    return new FullTypeInfo { DbDataType = selectFunction.DbType, NetDataType = selectFunction.ReturnType };
+                }
+                case SqlSearchedCaseExpression caseExpression:
+                {
+                    var selectFunction =  new SelectDataFromCaseExpression( caseExpression, rawData );
+                    return new FullTypeInfo { DbDataType = selectFunction.DbType, NetDataType = selectFunction.ReturnType };
+                }
+                case SqlLiteralExpression literalExpression:
+                {
+                    return new FullTypeInfo { DbDataType = literalExpression.Type.ToString(), NetDataType = GetTypeFromLiteralType( literalExpression.Type ) };
+                }
+            }
+
+            return null;
+        }
+
+        private static Type GetTypeFromLiteralType( LiteralValueType literalExpressionType )
+        {
+            switch ( literalExpressionType )
+            {
+                case LiteralValueType.Binary: return typeof(byte[]);
+                case LiteralValueType.Identifier: return typeof(int);
+                case LiteralValueType.Integer: return typeof(int);
+                case LiteralValueType.Image: return typeof(byte[]);
+                case LiteralValueType.Money: return typeof(decimal);
+                case LiteralValueType.Null: return typeof(string);
+                case LiteralValueType.Numeric: return typeof(double);
+                case LiteralValueType.Real: return typeof(float);
+                case LiteralValueType.Default: 
+                case LiteralValueType.String:
+                case LiteralValueType.UnicodeString:
+                default:
+                    return typeof(string);
+            }
         }
 
 

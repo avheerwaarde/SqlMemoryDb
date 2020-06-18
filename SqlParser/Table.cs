@@ -20,6 +20,7 @@ namespace SqlParser
         public string FullName;
         public readonly List<Column> Columns;
         public readonly List<Column> PrimaryKeys;
+        public readonly Dictionary<string, List<Column>> PrimaryKeyConstraints;
         public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
         public readonly List<ArrayList> Rows;
         public readonly Dictionary<OptionEnum, string> Options;
@@ -31,6 +32,7 @@ namespace SqlParser
             FullName = Helper.GetQualifiedName( name );
             Columns = new List<Column>();
             PrimaryKeys = new List<Column>();
+            PrimaryKeyConstraints = new Dictionary<string, List<Column>>();
             ForeignKeyConstraints = new List<ForeignKeyConstraint>();
             Rows = new List<ArrayList>();
             Options = new Dictionary<OptionEnum, string>

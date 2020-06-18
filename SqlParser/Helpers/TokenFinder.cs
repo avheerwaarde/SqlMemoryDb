@@ -37,6 +37,34 @@ namespace SqlMemoryDb.Helpers
             return null;
         }
 
+        public List<string> GetIdListAfterToken( string afterTokenType )
+        {
+            var idList = new List<string>( );
+            var index = 0;
+            while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
+            string id = "";
+
+            while ( ++index < _Tokens.Count && (IsSkipToken( index, false ) || IsIdToken( index ) || IsSeparatorToken( index )) )
+            {
+                if ( IsIdToken( index ) )
+                {
+                    id += GetIdPart( _Tokens[ index ] );
+                }
+
+                if ( IsSeparatorToken( index ) && string.IsNullOrWhiteSpace( id ) == false )
+                {
+                    idList.Add( id );
+                    id = "";
+                }
+            } 
+            if ( string.IsNullOrWhiteSpace( id ) == false )
+            {
+                idList.Add( id );
+            }
+
+            return idList;
+        }
+
         public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true, bool isSingleTokenId = false )
         {
             var index = startIndex;
@@ -81,6 +109,11 @@ namespace SqlMemoryDb.Helpers
             return _Tokens[ index ].Type == "." || _Tokens[ index ].Type == "TOKEN_ID";
         }
 
+        private bool IsSeparatorToken( int index )
+        {
+            return _Tokens[ index ].Type == ",";
+        }
+
         private string GetIdPart( Token token )
         {
             if ( token.Type == "." )
@@ -95,5 +128,6 @@ namespace SqlMemoryDb.Helpers
 
             return "";
         }
+
     }
 }
