@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace DatabaseTests
 {
     internal class SqlStatements
     {
+        private static string _NorthWindCustomSql;
+
         public const string SqlCreateTableApplication = @"
 CREATE TABLE [dbo].[application](
 	[Id] int IDENTITY(1,1) NOT NULL,
@@ -95,6 +98,32 @@ CREATE TABLE [dbo].[DbScriptsRun]
 SELECT Id, ScriptId, DateInserted
 FROM DbScriptsRun
 ";
+        public static string SqlCreateNorthWindCustom {
+            get
+            {
+                if ( string.IsNullOrWhiteSpace( _NorthWindCustomSql ) )
+                {
+                    _NorthWindCustomSql = File.ReadAllText( @"Database Scripts\NorthWind Custom.Sql");
+                }
+                return _NorthWindCustomSql;
+            }
+        }
+
+
+        public const string SqlCreateCustomerCustomerDemo = @"
+CREATE TABLE [dbo].[CustomerCustomerDemo] 
+	([CustomerID] nchar (5) NOT NULL,
+	[CustomerTypeID] [nchar] (10) NOT NULL
+) ON [PRIMARY] 
+GO
+ALTER TABLE CustomerCustomerDemo
+	ADD CONSTRAINT [PK_CustomerCustomerDemo] PRIMARY KEY  NONCLUSTERED 
+	(
+		[CustomerID],
+		[CustomerTypeID]
+	) ON [PRIMARY]
+GO";
+
 
     }
 

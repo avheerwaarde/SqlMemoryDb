@@ -19,4 +19,10 @@
     <ProjectReference Include="..\SqlParser\SqlMemoryDb.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Database Scripts\NorthWind Custom.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

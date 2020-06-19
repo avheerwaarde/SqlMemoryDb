@@ -19,6 +19,10 @@ namespace SqlMemoryDb
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
         public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
+        public readonly Dictionary<string, string> Options = new Dictionary<string, string>
+        {
+            {"DATEFORMAT", "mdy"}
+        };
 
         public void Clear( )
         {
@@ -101,6 +105,12 @@ namespace SqlMemoryDb
                 case SqlExecuteModuleStatement executeModule:
                 {
                     new ExecuteProcedure( this, command ).Execute( executeModule );
+                    break;
+                }
+                case SqlCreateIndexStatement createIndex:
+                case SqlDropExistingIndexOption dropIndex:
+                {
+                    // We will never implement this and function without it
                     break;
                 }
                 default:

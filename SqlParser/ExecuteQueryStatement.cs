@@ -77,6 +77,7 @@ namespace SqlMemoryDb
                         case SqlScalarRefExpression scalarRef                   : AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
                         case SqlLiteralExpression literalExpression             : AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
                         case SqlBuiltinScalarFunctionCallExpression functionCall: AddFieldForFunctionCall( functionCall, name, batch, rawData ); break;
+                        case SqlSearchedCaseExpression caseExpression           : AddFieldFromCaseExpression( caseExpression, name, batch, rawData ); break;
                     }
                 }
                 else if ( column is SqlTopSpecification topSpecification )
@@ -131,6 +132,13 @@ namespace SqlMemoryDb
             var select = new SelectDataBuilder(  ).Build( functionCall, rawData );
             AddFieldFromSelectData( name, batch, select );
         }
+
+        private void AddFieldFromCaseExpression( SqlSearchedCaseExpression caseExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataFromCaseExpression( caseExpression, rawData );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
 
         private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectDataFunction select )
         {

@@ -13,7 +13,7 @@ namespace DatabaseTests
     public class SqlSelectGroupByTests
     {
         [TestInitialize]
-        public async Task InsertDb( )
+        public async Task InitializeDb( )
         {
             await SqlScripts.InitDbAsync( );
         }

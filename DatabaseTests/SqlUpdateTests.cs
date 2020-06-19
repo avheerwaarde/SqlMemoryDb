@@ -15,7 +15,7 @@ namespace DatabaseTests
     public class SqlUpdateTests
     {
         [TestInitialize]
-        public async Task InsertDb( )
+        public async Task InitializeDb( )
         {
             await SqlScripts.InitDbAsync( );
         }

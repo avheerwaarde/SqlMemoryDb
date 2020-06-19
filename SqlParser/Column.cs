@@ -82,6 +82,10 @@ namespace SqlMemoryDb
 
         private void InitDbType( string sqlType )
         {
+            if ( sqlType.StartsWith( "\"" ) && sqlType.EndsWith( "\"" )  )
+            {
+                sqlType = sqlType.Substring( 1, sqlType.Length - 2 );
+            }
             var match = Regex.Match(sqlType.ToUpper(), @"^([^\(]+)?(\([^\)]+\))?");
             if (match.Success)
             {

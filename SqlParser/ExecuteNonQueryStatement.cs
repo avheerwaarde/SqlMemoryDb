@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
@@ -34,8 +36,7 @@ namespace SqlMemoryDb
         private void AddRow( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
             var row = InitializeNewRow( table, columns );
-            var sql = Helper.CleanSql( source.Sql.Substring( 6 ) );
-            var values = GetValuesFromSql( sql );
+            var values = GetValuesFromSql( source.Tokens );
 
             if ( columns.Count > values.Count )
             {
@@ -65,7 +66,7 @@ namespace SqlMemoryDb
             }
             else
             {
-                if ( value.Contains( "(" ) && value.Contains( ")" ) || value.StartsWith( "@@" ))
+                if ( Regex.IsMatch( value, "\\b[^()]+\\((.*)\\)$" ) || value.StartsWith( "@@" ))
                 {
                     var select = new SelectDataBuilder(  ).Build( value, new RawData( _Command ) );
                     row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
@@ -98,18 +99,38 @@ namespace SqlMemoryDb
             }
         }
 
-        private List<string> GetValuesFromSql( string sql )
+        private List<string> GetValuesFromSql( IEnumerable<Token> tokens )
         {
             var values = new List<string>( );
-            if ( sql.StartsWith( "(" ) )
+            var parenthesisCount = 0;
+            var id = "";
+            foreach ( var token in tokens )
             {
-                sql = sql.Substring( 1, sql.Length - 2 );
-            }
-            var parts = sql.Split( new[] {','}, StringSplitOptions.RemoveEmptyEntries );
-            foreach ( var part in parts )
-            {
-                var value = Helper.GetStringValue( part.Trim() );
-                values.Add( value );
+                if ( parenthesisCount == 1 
+                     && (token.Type == ")" || token.Type == ",") 
+                     && string.IsNullOrWhiteSpace( id ) == false )
+                {
+                    values.Add( id );
+                    id = "";
+                }
+
+                if ( token.Type == ")" )
+                {
+                    parenthesisCount--;
+                    if ( parenthesisCount == 0 )
+                    {
+                        break;
+                    }
+                }
+
+                if ( parenthesisCount > 0 && token.Type != "," && token.Type != "LEX_WHITE" )
+                {
+                    id += token.Text;
+                }
+                if ( token.Type == "(" )
+                {
+                    parenthesisCount++;
+                }
             }
             return values;
         }
@@ -126,7 +147,7 @@ namespace SqlMemoryDb
             {
                 if ( column.IsIdentity )
                 {
-                    if ( columns.Any( c => c.Name == column.Name ) )
+                    if ( columns.Any( c => c.Name == column.Name ) && table.Options[ Table.OptionEnum.IdentityInsert].ToUpper() == "OFF")
                     {
                         throw new SqlInsertIdentityException( table.Name, column.Name );
                     }
@@ -160,6 +181,10 @@ namespace SqlMemoryDb
 
         private static List<Column> GetInsertColumns( SqlInsertSpecification spec, Table table )
         {
+            if ( spec.TargetColumns == null )
+            {
+                return table.Columns;
+            }
             var columns = new List<Column>( );
             var columnRefs = spec.TargetColumns as SqlColumnRefExpressionCollection;
             foreach ( var columnRef in columnRefs )
@@ -189,7 +214,7 @@ namespace SqlMemoryDb
 
         private void ValidateAllForeignKeyConstraints( ArrayList row, Table table )
         {
-            foreach ( var constraint in table.ForeignKeyConstraints )
+            foreach ( var constraint in table.ForeignKeyConstraints.Where( k => k.CheckThrowsException ) )
             {
                 for ( int index = 0; index < constraint.Columns.Count; index++ )
                 {

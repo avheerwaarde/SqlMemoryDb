@@ -9,7 +9,7 @@ namespace DatabaseTests
     public class SqlSelectJoinTests
     {
         [TestInitialize]
-        public async Task InsertDb( )
+        public async Task InitializeDb( )
         {
             await SqlScripts.InitDbAsync( );
         }

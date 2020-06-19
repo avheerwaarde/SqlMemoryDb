@@ -16,14 +16,63 @@ namespace SqlMemoryDb.Helpers
             CurrentIndex = 0;
         }
 
-        public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true)
+        public string GetTokenAfterToken( string tokenType, string afterTokenType, int startIndex = 0 )
         {
             var index = startIndex;
             while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
-            return GetId( index, skipParenthesis );
+            return GetToken( tokenType, index );
         }
 
-        private string GetId( int index, bool skipParenthesis )
+        private string GetToken( string tokenType, int index )
+        {
+            while ( ++index < _Tokens.Count )
+            {
+                if ( IsToken( index, tokenType ) )
+                {
+                    return _Tokens[ index ].Text.Trim( new[] {'[', ']'} );
+                }
+            } 
+
+            CurrentIndex = index;
+            return null;
+        }
+
+        public List<string> GetIdListAfterToken( string afterTokenType )
+        {
+            var idList = new List<string>( );
+            var index = 0;
+            while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
+            string id = "";
+
+            while ( ++index < _Tokens.Count && (IsSkipToken( index, false ) || IsIdToken( index ) || IsSeparatorToken( index )) )
+            {
+                if ( IsIdToken( index ) )
+                {
+                    id += GetIdPart( _Tokens[ index ] );
+                }
+
+                if ( IsSeparatorToken( index ) && string.IsNullOrWhiteSpace( id ) == false )
+                {
+                    idList.Add( id );
+                    id = "";
+                }
+            } 
+            if ( string.IsNullOrWhiteSpace( id ) == false )
+            {
+                idList.Add( id );
+            }
+
+            return idList;
+        }
+
+        public string GetIdAfterToken( string afterTokenType, int startIndex = 0, bool skipParenthesis = true, bool isSingleTokenId = false )
+        {
+            var index = startIndex;
+            while ( _Tokens[ index ].Type != afterTokenType && ++index < _Tokens.Count  ){ }
+            return GetId( index, skipParenthesis, isSingleTokenId );
+        }
+
+        private string GetId( int index, bool skipParenthesis, bool isSingleTokenId )
         {
             string id = "";
 
@@ -32,6 +81,10 @@ namespace SqlMemoryDb.Helpers
                 if ( IsIdToken( index ) )
                 {
                     id += GetIdPart( _Tokens[ index ] );
+                    if ( isSingleTokenId )
+                    {
+                        return id;
+                    }
                 }
             } 
 
@@ -46,9 +99,19 @@ namespace SqlMemoryDb.Helpers
                         && ( _Tokens[ index ].Type == "(" || _Tokens[ index ].Type == ")" ) );
         }
 
+        private bool IsToken( int index, string tokenType )
+        {
+            return _Tokens[ index ].Type == tokenType;
+        }
+
         private bool IsIdToken( int index )
         {
             return _Tokens[ index ].Type == "." || _Tokens[ index ].Type == "TOKEN_ID";
+        }
+
+        private bool IsSeparatorToken( int index )
+        {
+            return _Tokens[ index ].Type == ",";
         }
 
         private string GetIdPart( Token token )
@@ -65,5 +128,6 @@ namespace SqlMemoryDb.Helpers
 
             return "";
         }
+
     }
 }
