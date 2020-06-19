@@ -1,4 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using Dapper;
+using DatabaseTests.Dto;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -206,7 +210,48 @@ namespace DatabaseTests
             recordsRead.Should( ).Be( 4 );
         }
 
+        [TestMethod]
+        public void SelectApplication_WhereIn_RowsRead( )
+        {
+            const string sql = @"
+SELECT  
+	Id, Name, [User], DefName
+FROM  application 
+WHERE Id IN (1,2)
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 2 );
+        }
 
+        [TestMethod]
+        public void SelectApplication_WhereNotIn_RowsRead( )
+        {
+            const string sql = @"
+SELECT  
+	Id, Name, [User], DefName
+FROM  application 
+WHERE Id Not IN (1,2)
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 1 );
+        }
+
+
+        [TestMethod]
+        public void SelectApplication_WhereInSelect_RowsRead( )
+        {
+            const string sql = @"
+SELECT  
+	Id, Name, [User], DefName
+FROM  application 
+WHERE Id IN (SELECT fk_application from application_action WHERE fk_application = 1 OR fk_application = 2)
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 2 );
+        }
 
     }
 }

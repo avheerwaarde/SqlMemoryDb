@@ -69,3 +69,4 @@ Version | Description
 0.10.2| SQL local variables, sub queries
 0.10.3| Stored procedures
 0.10.4| SQL case statement, Identity insert on / off, Alter table check constraint, better insert values parsing
+0.10.5| SQL in clause
