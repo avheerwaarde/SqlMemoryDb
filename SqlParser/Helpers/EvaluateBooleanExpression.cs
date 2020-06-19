@@ -27,6 +27,7 @@ namespace SqlMemoryDb.Helpers
                 case SqlComparisonBooleanExpression booleanExpression: return EvaluateExpression( rawDataRows, booleanExpression ) ^ invertResult ;
                 case SqlBinaryBooleanExpression binaryExpression     : return EvaluateExpression( rawDataRows, binaryExpression ) ^ invertResult;
                 case SqlExistsBooleanExpression existsExpression     : return EvaluateExpression( rawDataRows, existsExpression) ^ invertResult;
+                case SqlIsNullBooleanExpression isNullExpression     : return EvaluateExpression( rawDataRows, isNullExpression) ^ invertResult;
                 default :
                     throw new NotImplementedException();
             }
@@ -61,6 +62,13 @@ namespace SqlMemoryDb.Helpers
             }
 
             return hasRows;
+        }
+
+        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlIsNullBooleanExpression expression )
+        {
+            var type = Helper.DetermineType( expression.Expression, _RawData);
+            var val = Helper.GetValue(expression.Expression, type, _RawData, rawDataRows);
+            return val == null;
         }
 
     }

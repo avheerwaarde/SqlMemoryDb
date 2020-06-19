@@ -73,7 +73,7 @@ namespace SqlMemoryDb.Helpers
                     case DbType.Single    : return Convert.ToSingle( source );
                     case DbType.Double    : return Convert.ToDouble( source );
                     case DbType.Decimal   : return Convert.ToDecimal( source );
-                    case DbType.Guid      : return Guid.Parse( source );
+                    case DbType.Guid      : return Guid.Parse( GetStringValue( source ) );
                     case DbType.Date      : 
                     case DbType.DateTime  : 
                     case DbType.DateTime2 : return GetValueFromDateString( source );

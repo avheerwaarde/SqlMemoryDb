@@ -34,7 +34,16 @@ namespace SqlMemoryDb.SelectData
 
         public object Select( List<RawData.RawDataRow> rows )
         {
-            return Helper.GetValue( _ScalarExpression, ReturnType, _RawData, rows );
+            var evaluator = new EvaluateBooleanExpression( _RawData, MemoryDbConnection.GetMemoryDatabase( ), _RawData.Command  );
+            foreach ( var whenClause in _Expression.WhenClauses )
+            {
+                if ( evaluator.Evaluate( rows, whenClause.WhenExpression ) )
+                {
+                    return Helper.GetValue( whenClause.ThenExpression, ReturnType, _RawData, rows );
+                }             
+            }
+
+            return Helper.GetValue( _Expression.ElseExpression, ReturnType, _RawData, rows );
         }
 
         public bool IsAggregate => false;

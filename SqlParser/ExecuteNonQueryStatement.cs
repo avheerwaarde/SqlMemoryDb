@@ -102,20 +102,34 @@ namespace SqlMemoryDb
         private List<string> GetValuesFromSql( IEnumerable<Token> tokens )
         {
             var values = new List<string>( );
-            var startTokenFound = false;
+            var parenthesisCount = 0;
+            var id = "";
             foreach ( var token in tokens )
             {
+                if ( parenthesisCount == 1 
+                     && (token.Type == ")" || token.Type == ",") 
+                     && string.IsNullOrWhiteSpace( id ) == false )
+                {
+                    values.Add( id );
+                    id = "";
+                }
+
                 if ( token.Type == ")" )
                 {
-                    break;
+                    parenthesisCount--;
+                    if ( parenthesisCount == 0 )
+                    {
+                        break;
+                    }
+                }
+
+                if ( parenthesisCount > 0 && token.Type != "," && token.Type != "LEX_WHITE" )
+                {
+                    id += token.Text;
                 }
                 if ( token.Type == "(" )
                 {
-                    startTokenFound = true;
-                }
-                else if ( startTokenFound && token.Type != "," && token.Type != "LEX_WHITE" )
-                {
-                    values.Add( token.Text );
+                    parenthesisCount++;
                 }
             }
             return values;

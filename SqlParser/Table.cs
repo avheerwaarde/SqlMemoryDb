@@ -29,6 +29,7 @@ namespace SqlParser
         public Table( SqlObjectIdentifier name )
         {
             Name = name.ObjectName.Value;
+            SchemaName = name.SchemaName?.Value ?? Helper.DefaultSchemaName;
             FullName = Helper.GetQualifiedName( name );
             Columns = new List<Column>();
             PrimaryKeys = new List<Column>();

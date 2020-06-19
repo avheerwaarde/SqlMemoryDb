@@ -13,11 +13,11 @@ namespace DatabaseTests
     public class SqlScalarTests
     {
         [DataTestMethod]
+        [DataRow( "GETDATE()", "DateTime", typeof(DateTime) )]
         [DataRow("1", "bit", typeof(bool))]
         [DataRow("99", "byte", typeof(byte))]
         [DataRow("99", "numeric", typeof(decimal))]
         [DataRow("99", "int", typeof(int))]
-        [DataRow( "GETDATE()", "DateTime", typeof(DateTime) )]
         public async Task ExecuteScalar_ByType_TypeShouldBeCorrect( string setValue, string fieldName, Type expectedType )
         {
             string sqlInsert = $"INSERT INTO application_feature ([{fieldName}]) VALUES ({setValue})";
