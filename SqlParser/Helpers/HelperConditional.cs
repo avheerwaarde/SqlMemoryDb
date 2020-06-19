@@ -14,8 +14,9 @@ namespace SqlMemoryDb.Helpers
                 case SqlNotBooleanExpression notExpression           : return GetRowFilter( notExpression.Expression, rawData, true );
                 case SqlComparisonBooleanExpression compareExpression: return new RowFilterComparison( rawData, compareExpression, invertResult );
                 case SqlBinaryBooleanExpression binaryExpression     : return new RowFilterBinary( rawData, binaryExpression, invertResult );
+                case SqlInBooleanExpression inExpression             : return new RowFilterIn( rawData, inExpression );
                 default :
-                    throw new NotImplementedException();
+                    throw new NotImplementedException($"unsupported row filter {booleanExpression}");
             }
         }
 
