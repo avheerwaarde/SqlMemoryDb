@@ -7,6 +7,7 @@ using DatabaseTests.Dto;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
+using SqlMemoryDb.Exceptions;
 
 namespace DatabaseTests
 {
@@ -43,8 +44,48 @@ WHERE Country = 'Brazil';";
             connection.Execute( _SqlCreateViewBrazilianCustomers );
             var db = MemoryDbConnection.GetMemoryDatabase( );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
-            var customers = connection.Query<CustomerViewDto>( "SELECT CompanyName, CustomerName from [Brazil Customers]" );
+            var customers = connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
             customers.Count( ).Should( ).NotBe( 0 );
+        }
+
+        [TestMethod]
+        public void View_AlterExisting_ViewAltered( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( _SqlCreateViewBrazilianCustomers );
+            db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
+            connection.Execute( _SqlAlterViewBrazilianCustomers );
+            db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
+        }
+
+        [TestMethod]
+        public void View_DropExisting_ViewDeleted( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( _SqlCreateViewBrazilianCustomers );
+            db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
+            connection.Execute( _SqlDropViewBrazilianCustomers );
+            db.Views.Should( ).NotContainKey( "dbo.Brazil Customers" );
+        }
+
+        [TestMethod]
+        public void View_AlterNew_ThrowsException( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            using var connection = new MemoryDbConnection( );
+            Func<int> act = ( ) => connection.Execute( _SqlAlterViewBrazilianCustomers );
+            act.Should( ).Throw<SqlInvalidObjectNameException>( );
+        }
+
+        [TestMethod]
+        public void View_DropNew_ThrowsException( )
+        {
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            using var connection = new MemoryDbConnection( );
+            Func<int> act = ( ) => connection.Execute( _SqlDropViewBrazilianCustomers );
+            act.Should( ).Throw<SqlDropViewException>( );
         }
     }
 }
