@@ -70,3 +70,4 @@ Version | Description
 0.10.3| Stored procedures
 0.10.4| SQL case statement, Identity insert on / off, Alter table check constraint, better insert values parsing
 0.10.5| SQL in clause
+0.10.6| Views

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
 using SqlMemoryDb.SelectData;
 using SqlParser;
@@ -27,11 +29,13 @@ namespace SqlMemoryDb
         public List<TableColumn> GroupByFields = new List<TableColumn>();
 
         public readonly MemoryDbCommand Command;
+        private readonly MemoryDatabase _Database;
 
         public RawData( MemoryDbCommand command )
         {
             Command = command;
             Parameters = command.Parameters;
+            _Database = MemoryDbConnection.GetMemoryDatabase( );
         }
 
         public void AddTablesFromClause( SqlFromClause fromClause, Dictionary<string, Table> tables )
@@ -49,8 +53,21 @@ namespace SqlMemoryDb
                 case SqlTableRefExpression tableRef:
                 {
                     var name = Helper.GetAliasName(tableRef);
-                    var table = tables[Helper.GetQualifiedName(tableRef.ObjectIdentifier)];
-                    AddAllTableRows( table, name );
+                    var qualifiedName = Helper.GetQualifiedName(tableRef.ObjectIdentifier);
+                    if ( tables.ContainsKey( qualifiedName ) )
+                    {
+                        var table = tables[ qualifiedName ];
+                        AddAllTableRows( table, name );
+                    }
+                    else if ( _Database.Views.ContainsKey( qualifiedName ) )
+                    {
+                        var view = _Database.Views[ qualifiedName ];
+                        AddAllViewRows( view, name );
+                    }
+                    else
+                    {
+                        throw new SqlInvalidObjectNameException( name );
+                    }
                     break;
                 }
                 case SqlQualifiedJoinTableExpression joinExpression:
@@ -83,6 +100,54 @@ namespace SqlMemoryDb
                 var rows = new List<RawData.RawDataRow>( ) {tableRow};
                 RawRowList.Add( rows );
             }
+        }
+
+        private void AddAllViewRows( SqlCreateAlterViewStatementBase view, string name )
+        {
+            var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
+            var rawData = new RawData( command );
+            var reader = new MemoryDbDataReader( CommandBehavior.SingleResult );
+            new ExecuteQueryStatement( _Database, command, reader ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
+            var batch = reader.GetCurrentBatch( );
+
+            var identifier = view.Definition.Name;
+
+            var rowList = ResultBatch2RowList( name, identifier, batch );
+            RawRowList.AddRange( rowList );
+        }
+
+        private List<List<RawDataRow>> ResultBatch2RowList( string name, SqlObjectIdentifier identifier, MemoryDbDataReader.ResultBatch batch )
+        {
+            var rowList = new List<List<RawDataRow>>( );
+            var table = new Table( identifier );
+            foreach ( var field in batch.Fields )
+            {
+                var dataType = field.DbType;
+                if ( dataType.ToUpper() == "STRING" )
+                {
+                    dataType = "NVARCHAR(MAX)";
+                }
+                var column = new Column( table, field.Name, dataType, table.Columns.Count );
+                table.Columns.Add( column );
+            }
+            if ( TableAliasList.ContainsKey( name ) == false )
+            {
+                TableAliasList.Add( name, table );
+            }
+
+            foreach ( var row in batch.ResultRows )
+            {
+                var tableRow = new RawData.RawDataRow
+                {
+                    Name = name,
+                    Table = table,
+                    Row = row
+                };
+                var rows = new List<RawData.RawDataRow>( ) {tableRow};
+                rowList.Add( rows );
+            }
+
+            return rowList;
         }
 
         public void AddAllTableJoinRows(Table table, string name, SqlConditionClause onClause )

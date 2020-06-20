@@ -72,21 +72,44 @@ namespace SqlMemoryDb
                     var name = Helper.GetColumnAlias( scalarExpression );
                     switch ( scalarExpression.Expression )
                     {
-                        case SqlGlobalScalarVariableRefExpression globalRef     : AddFieldFromGlobalVariable( globalRef, name, batch, rawData ); break;
-                        case SqlScalarVariableRefExpression variableRef         : AddFieldFromVariable( variableRef, name, batch, rawData ); break;
-                        case SqlScalarRefExpression scalarRef                   : AddFieldFromColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, name, batch, rawData ); break;
-                        case SqlLiteralExpression literalExpression             : AddFieldFromLiteral( literalExpression, name, batch, rawData ); break;
-                        case SqlBuiltinScalarFunctionCallExpression functionCall: AddFieldForFunctionCall( functionCall, name, batch, rawData ); break;
-                        case SqlSearchedCaseExpression caseExpression           : AddFieldFromCaseExpression( caseExpression, name, batch, rawData ); break;
+                        case SqlGlobalScalarVariableRefExpression globalRef:
+                            AddFieldFromGlobalVariable( globalRef, name, batch, rawData );
+                            break;
+                        case SqlScalarVariableRefExpression variableRef:
+                            AddFieldFromVariable( variableRef, name, batch, rawData );
+                            break;
+                        case SqlScalarRefExpression scalarRef:
+                            AddFieldFromColumn( ( SqlObjectIdentifier ) scalarRef.MultipartIdentifier, name, batch,
+                                rawData );
+                            break;
+                        case SqlLiteralExpression literalExpression:
+                            AddFieldFromLiteral( literalExpression, name, batch, rawData );
+                            break;
+                        case SqlBuiltinScalarFunctionCallExpression functionCall:
+                            AddFieldForFunctionCall( functionCall, name, batch, rawData );
+                            break;
+                        case SqlSearchedCaseExpression caseExpression:
+                            AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
+                            break;
                     }
                 }
                 else if ( column is SqlTopSpecification topSpecification )
                 {
-                    batch.MaxRowsCount = int.Parse(topSpecification.Value.Sql);
+                    batch.MaxRowsCount = int.Parse( topSpecification.Value.Sql );
+                }
+                else if ( column is SqlSelectStarExpression selectStarExpression )
+                {
+                    foreach ( var tableAlias in rawData.TableAliasList )
+                    {
+                        foreach ( var valueColumn in tableAlias.Value.Columns )
+                        {
+                            AddFieldFromColumn( valueColumn, tableAlias.Key, batch, rawData );
+                        }
+                    }
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new NotImplementedException( $"Not implemented column specification {column}" );
                 }
             }
         }
@@ -117,6 +140,19 @@ namespace SqlMemoryDb
             batch.Fields.Add( readerField );
         }
 
+
+        private void AddFieldFromColumn( Column column, string tableName, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var readerField = new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = column.Name,
+                DbType = column.DbDataType.ToString(),
+                NetType = column.NetDataType,
+                FieldIndex = batch.Fields.Count,
+                SelectFieldData = new SelectDataFromColumn( new TableColumn{ Column = column, TableName = tableName } )
+            };
+            batch.Fields.Add( readerField );
+        }
 
 
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )

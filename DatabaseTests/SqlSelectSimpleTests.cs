@@ -42,6 +42,15 @@ namespace DatabaseTests
         }
 
         [TestMethod]
+        public void SelectApplication_StarColumn_RowsRead( )
+        {
+            const string sql = @"SELECT * FROM  application";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 3 );
+        }
+
+        [TestMethod]
         public async Task SelectApplication_CorrectSqlSingleRow_RowRead( )
         {
             await using var connection = new MemoryDbConnection( );
