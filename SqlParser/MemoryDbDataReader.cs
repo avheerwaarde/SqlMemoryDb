@@ -203,5 +203,7 @@ namespace SqlMemoryDb
                 _CurrentBatch = _ResultBatches[ _CurrentBatchIndex ];
             }
         }
+
+        public ResultBatch GetCurrentBatch( ) => _CurrentBatch;
     }
 }

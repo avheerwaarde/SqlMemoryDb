@@ -15,10 +15,12 @@ namespace SqlMemoryDb
     public class MemoryDatabase
     {
         public Dictionary<string, Table> Tables = new Dictionary<string, Table>();
+        public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
+        public Dictionary<string,SqlCreateAlterViewStatementBase> Views = new Dictionary<string, SqlCreateAlterViewStatementBase>();
+
         public Decimal? LastIdentitySet;
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
-        public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
         public readonly Dictionary<string, string> Options = new Dictionary<string, string>
         {
             {"DATEFORMAT", "mdy"}
@@ -30,6 +32,7 @@ namespace SqlMemoryDb
             TablesStack.Clear(  );
             TablesTransactionStack.Clear( );
             StoredProcedures.Clear(  );
+            Views.Clear(  );
         }
 
 
@@ -111,6 +114,21 @@ namespace SqlMemoryDb
                 case SqlDropExistingIndexOption dropIndex:
                 {
                     // We will never implement this and function without it
+                    break;
+                }
+                case SqlCreateViewStatement createView:
+                {
+                    new ExecuteView( this, command ).Execute( createView );
+                    break;
+                }
+                case SqlDropViewStatement dropView:
+                {
+                    new ExecuteView( this, command ).Execute( dropView );
+                    break;
+                }
+                case SqlAlterViewStatement alterView:
+                {
+                    new ExecuteView( this, command ).Execute( alterView );
                     break;
                 }
                 default:
