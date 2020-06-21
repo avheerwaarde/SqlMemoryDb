@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
 using SqlMemoryDb.SelectData;
 using SqlParser;
@@ -57,10 +58,38 @@ namespace SqlMemoryDb
             }
             
             rawData.HavingClause = sqlQuery.HavingClause?.Expression;
-            rawData.SortOrder =  orderByClause?.Items;
+            rawData.SortOrder =  GetSortOrder( orderByClause, sqlQuery );
 
             new QueryResultBuilder( rawData ).AddData( batch );            
             _Reader.AddResultBatch( batch );
+        }
+
+        private static SqlOrderByItemCollection GetSortOrder( SqlOrderByClause orderByClause,
+                                                                SqlQuerySpecification sqlQuery )
+        {
+            if ( sqlQuery.OrderByClause != null && orderByClause == null )
+            {
+                orderByClause = sqlQuery.OrderByClause;
+                if ( IsPartialQuery( sqlQuery.Parent ) && IsMissingTopOffsetOrForXml( sqlQuery ) )
+                {
+                    throw new SqlOrderByException( );
+                }
+            }
+            return orderByClause?.Items;
+        }
+
+        private static bool IsPartialQuery( SqlCodeObject sqlQuery )
+        {
+            return sqlQuery is SqlViewDefinition
+                   || sqlQuery is SqlCommonTableExpression
+                   || sqlQuery is SqlScalarSubQueryExpression;
+        }
+
+        private static bool IsMissingTopOffsetOrForXml( SqlQuerySpecification sqlQuery )
+        {
+            return sqlQuery.Children.Any( c => c is SqlTopSpecification ) == false
+                   && sqlQuery.Children.Any( c => c is SqlForXmlClause ) == false
+                   && sqlQuery.Children.Any( c => c is SqlOffsetFetchClause ) == false;
         }
 
         private void InitializeFields( MemoryDbDataReader.ResultBatch batch, List<SqlCodeObject> columns, RawData rawData )
