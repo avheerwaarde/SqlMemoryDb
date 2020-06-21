@@ -87,5 +87,41 @@ WHERE Country = 'Brazil';";
             Func<int> act = ( ) => connection.Execute( _SqlDropViewBrazilianCustomers );
             act.Should( ).Throw<SqlDropViewException>( );
         }
+
+        [TestMethod]
+        public void View_CreateTop10OrderBy_CreatedAndRead( )
+        {
+            const string sqlCreateViewBrazilianCustomers = @"
+CREATE VIEW [Brazil Customers] AS
+SELECT Top 10 CompanyName, ContactName
+FROM Customers
+WHERE Country = 'Brazil'
+ORDER BY ContactName;";
+
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( sqlCreateViewBrazilianCustomers );
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
+            var customers = connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
+            customers.Count( ).Should( ).BeLessOrEqualTo( 10 );
+        }
+
+        [TestMethod]
+        public void View_CreateOrderBy_ThrowsException( )
+        {
+            const string sqlCreateViewBrazilianCustomers = @"
+CREATE VIEW [Brazil Customers] AS
+SELECT CompanyName, ContactName
+FROM Customers
+WHERE Country = 'Brazil'
+ORDER BY ContactName;";
+
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( sqlCreateViewBrazilianCustomers );
+            var db = MemoryDbConnection.GetMemoryDatabase( );
+            db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
+            Func<IEnumerable<CustomerViewDto>> act = ( ) => connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
+            act.Should( ).Throw<SqlOrderByException>( );
+        }
     }
 }
