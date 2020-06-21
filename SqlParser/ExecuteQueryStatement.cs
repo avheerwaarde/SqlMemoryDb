@@ -87,9 +87,14 @@ namespace SqlMemoryDb
 
         private static bool IsMissingTopOffsetOrForXml( SqlQuerySpecification sqlQuery )
         {
-            return sqlQuery.Children.Any( c => c is SqlTopSpecification ) == false
-                   && sqlQuery.Children.Any( c => c is SqlForXmlClause ) == false
-                   && sqlQuery.Children.Any( c => c is SqlOffsetFetchClause ) == false;
+            var select = sqlQuery.Children.FirstOrDefault( c => c is SqlSelectClause ) as SqlSelectClause;
+            if ( select == null )
+            {
+                return true;
+            }
+            return select.Children.Any( c => c is SqlTopSpecification ) == false
+                   && select.Children.Any( c => c is SqlForXmlClause ) == false
+                   && select.Children.Any( c => c is SqlOffsetFetchClause ) == false;
         }
 
         private void InitializeFields( MemoryDbDataReader.ResultBatch batch, List<SqlCodeObject> columns, RawData rawData )
