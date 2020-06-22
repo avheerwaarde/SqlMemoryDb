@@ -262,5 +262,20 @@ WHERE Id IN (SELECT fk_application from application_action WHERE fk_application 
             applications.Count( ).Should( ).Be( 2 );
         }
 
+        [TestMethod]
+        public void Select_Union_RowsRead( )
+        {
+            const string sql = @"
+SELECT Id, Name FROM  application 
+UNION
+SELECT Id, Name FROM  application_action
+ORDER BY Name
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 15 );
+        }
+
+
     }
 }
