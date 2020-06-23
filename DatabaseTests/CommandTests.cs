@@ -30,7 +30,7 @@ namespace DatabaseTests
         [TestMethod]
         public async Task Prepare_NewConnection_FailConnectionShouldSet()
         {
-            var command = new MemoryDbCommand( null );
+            var command = new MemoryDbCommand( null, null, null );
             Func<Task> act = async () => { await command.PrepareAsync( ); };
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage("The Connection should be set.");

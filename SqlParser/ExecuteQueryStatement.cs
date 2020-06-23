@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -30,12 +31,13 @@ namespace SqlMemoryDb
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
         {
             var rawData = new RawData( _Command );
-            var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, orderByClause:selectStatement.SelectSpecification.OrderByClause );
+            var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
             _Reader.AddResultBatch( batch );
         }
 
-        private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables, SqlQueryExpression expression, 
-            SqlBinaryQueryOperatorType binaryOperator = SqlBinaryQueryOperatorType.UnionAll, SqlOrderByClause orderByClause = null )
+        private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
+            SqlQueryExpression expression,
+            SqlOrderByClause orderByClause = null )
         {
             switch ( expression )
             {
@@ -43,11 +45,17 @@ namespace SqlMemoryDb
                 {
                     var commandLeft = new MemoryDbCommand( _Command );
                     var rawDataLeft = new RawData( commandLeft );
-                    var batchLeft = Execute( rawDataLeft, tables, binaryQueryExpression.Left, binaryQueryExpression.Operator );
+                    var batchLeft = Execute( rawDataLeft, tables, binaryQueryExpression.Left );
                     var commandRight = new MemoryDbCommand( _Command );
                     var rawDataRight = new RawData( commandRight );
-                    var batchRight = Execute( rawDataRight, tables, binaryQueryExpression.Right, binaryQueryExpression.Operator );
-                    return MergeBatches( batchLeft, batchRight, binaryQueryExpression.Operator, orderByClause );
+                    var batchRight = Execute( rawDataRight, tables, binaryQueryExpression.Right );
+                    var batch = MergeBatches( batchLeft, batchRight, binaryQueryExpression.Operator );
+                    if ( orderByClause != null )
+                    {
+                        var resultRawData = new RawData( _Command, batch );
+                        batch.ResultRows = new QueryResultBuilder( resultRawData ).OrderResultRows( batch, orderByClause.Items );
+                    }
+                    return batch;
                 }
                 case SqlQuerySpecification sqlQuery:
                 {
@@ -60,8 +68,7 @@ namespace SqlMemoryDb
 
         private MemoryDbDataReader.ResultBatch MergeBatches( MemoryDbDataReader.ResultBatch batchLeft, 
             MemoryDbDataReader.ResultBatch batchRight, 
-            SqlBinaryQueryOperatorType @operator, 
-            SqlOrderByClause orderByClause )
+            SqlBinaryQueryOperatorType @operator)
         {
             if ( batchLeft.Fields.Count != batchRight.Fields.Count )
             {
@@ -82,10 +89,32 @@ namespace SqlMemoryDb
                     batch.ResultRows.AddRange( batchLeft.ResultRows );
                     batch.ResultRows.AddRange( batchRight.ResultRows );
                     break;
+                case SqlBinaryQueryOperatorType.Union:
+                    batch.ResultRows.AddRange( batchRight.ResultRows );
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) == false ) ) );
+                    break;
+                case SqlBinaryQueryOperatorType.Intersect:
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) ) ) );
+                    break;
+                case SqlBinaryQueryOperatorType.Except:
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r)  ) == false ) );
+                    break;
                 default:
-                    throw new NotImplementedException();
+                    throw new NotImplementedException( $"not implemented for type: {@operator}");
             }
-            return batchLeft;
+
+            return batch;
+        }
+
+        private bool ContainsRow( ArrayList row1, ArrayList row2 )
+        {
+            bool isEqual = true;
+            for ( int index = 0; (index < row2.Count) && isEqual; index++ )
+            {
+                isEqual &= row2[ index ].Equals( row1[ index ] );
+            }
+
+            return isEqual;
         }
 
 

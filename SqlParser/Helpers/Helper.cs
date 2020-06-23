@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -256,6 +257,7 @@ namespace SqlMemoryDb.Helpers
             return new TableColumn {TableName = tableAlias, Column = column};
         }
 
+
         public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row )
         {
             switch ( expression )
@@ -309,6 +311,38 @@ namespace SqlMemoryDb.Helpers
                     throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
             }
         }
+
+        public static object GetValue( SqlScalarExpression expression, MemoryDbDataReader.ResultBatch batch, ArrayList row )
+        {
+            switch ( expression )
+            {
+                case SqlColumnRefExpression columnRef:
+                {
+                    var name = GetColumnName( columnRef );
+                    var field = batch.Fields.FirstOrDefault( f => f.Name == name );
+                    if ( field == null )
+                    {
+                        throw new SqlInvalidColumnNameException( name );
+                    }
+
+                    return row[ field.FieldIndex ];
+                }
+
+                case SqlLiteralExpression literal:
+                {
+                    if ( literal.Type == LiteralValueType.Integer )
+                    {
+                        var fieldIndex = int.Parse( literal.Value );
+                        return row[ fieldIndex ];
+                    }
+                    throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
+                }
+
+                default:
+                    throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
+            }
+        }
+
 
         public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData,
             List<List<RawData.RawDataRow>> rows )

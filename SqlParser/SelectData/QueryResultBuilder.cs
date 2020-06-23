@@ -145,6 +145,13 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
+        public List<ArrayList> OrderResultRows( MemoryDbDataReader.ResultBatch batch, SqlOrderByItemCollection sortOrderList )
+        {
+            var fields = batch.Fields.Cast<MemoryDbDataReader.ReaderFieldData>(  ).ToList();
+            var internalList = batch.ResultRows.Select( r => new InternalResultRow { ResultRow = r } ).ToList( );
+            return OrderResultRows( fields, internalList, sortOrderList );
+        }
+
         private List<ArrayList> OrderResultRows( List<MemoryDbDataReader.ReaderFieldData> fields, List<InternalResultRow> internalList,
                                                 SqlOrderByItemCollection sortOrderList )
         {
@@ -178,13 +185,17 @@ namespace SqlMemoryDb.SelectData
             {
                 orderedRows = isAggregateRowList
                     ? internalList.OrderByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawAggregateRowList ) )
-                    : internalList.OrderByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
+                    : _RawData.Batch != null 
+                        ? internalList.OrderByDescending( r => Helper.GetValue( sortOrder.Expression, _RawData.Batch, r.ResultRow ) )
+                        : internalList.OrderByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
             }
             else
             {
                 orderedRows = isAggregateRowList
                     ? internalList.OrderBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawAggregateRowList ) )
-                    : internalList.OrderBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
+                    : _RawData.Batch != null 
+                        ? internalList.OrderBy( r => Helper.GetValue( sortOrder.Expression, _RawData.Batch, r.ResultRow ) )
+                        : internalList.OrderBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
             }
 
             return orderedRows;
@@ -196,13 +207,17 @@ namespace SqlMemoryDb.SelectData
             {
                 orderedRows = isAggregateRowList
                     ? orderedRows.ThenByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawAggregateRowList ) )
-                    : orderedRows.ThenByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
+                    : _RawData.Batch != null 
+                        ? orderedRows.ThenByDescending( r => Helper.GetValue( sortOrder.Expression, _RawData.Batch, r.ResultRow ) )
+                        : orderedRows.ThenByDescending( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
             }
             else
             {
                 orderedRows = isAggregateRowList
                     ? orderedRows.ThenBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawAggregateRowList ) )
-                    : orderedRows.ThenBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
+                    : _RawData.Batch != null 
+                        ? orderedRows.ThenBy( r => Helper.GetValue( sortOrder.Expression, _RawData.Batch, r.ResultRow ) )
+                        : orderedRows.ThenBy( r => Helper.GetValue( sortOrder.Expression, null, _RawData, r.RawRowList ) );
             }
 
             return orderedRows;

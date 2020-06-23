@@ -263,19 +263,98 @@ WHERE Id IN (SELECT fk_application from application_action WHERE fk_application 
         }
 
         [TestMethod]
-        public void Select_Union_RowsRead( )
+        public void Select_UnionAllSortId_RowsRead( )
         {
             const string sql = @"
 SELECT Id, Name FROM  application 
-UNION
+UNION ALL
 SELECT Id, Name FROM  application_action
-ORDER BY Name
+ORDER BY Id
 ";
             using var connection = new MemoryDbConnection( );
             var applications = connection.Query<ApplicationDto>( sql );
             applications.Count( ).Should( ).Be( 15 );
+            var compareId = -1;
+            foreach ( var application in applications )
+            {
+                application.Id.Should( ).BeGreaterOrEqualTo( compareId );
+                compareId = application.Id;
+            }
         }
 
+        [TestMethod]
+        public void Select_UnionAllSortFirstField_RowsRead( )
+        {
+            const string sql = @"
+SELECT Id, Name FROM  application 
+UNION ALL
+SELECT Id, Name FROM  application_action
+ORDER BY 0
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 15 );
+            var compareId = -1;
+            foreach ( var application in applications )
+            {
+                application.Id.Should( ).BeGreaterOrEqualTo( compareId );
+                compareId = application.Id;
+            }
+        }
+
+        [TestMethod]
+        public void Select_Union_RowsRead( )
+        {
+            const string sql = @"
+SELECT Name FROM  application 
+UNION
+SELECT Name FROM  application_action
+ORDER BY Name
+";
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( "UPDATE application_action SET Name = 'Name String'" );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 12 );
+        }
+
+        [TestMethod]
+        public void Select_Intersect_CommonRowsRead( )
+        {
+            const string sql = @"
+SELECT Id FROM  application 
+INTERSECT
+SELECT Id FROM  application_action
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 3 );
+        }
+
+        [TestMethod]
+        public void Select_Except_RowsReadExceptApplicationAction( )
+        {
+            const string sql = @"
+SELECT Id FROM  application 
+EXCEPT
+SELECT Id FROM  application_action
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 0 );
+        }
+
+        [TestMethod]
+        public void Select_Except_RowsReadExceptApplication( )
+        {
+            const string sql = @"
+SELECT Id FROM  application_action 
+EXCEPT
+SELECT Id FROM  application
+";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 9 );
+        }
 
     }
 }
