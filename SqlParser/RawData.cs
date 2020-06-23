@@ -24,18 +24,19 @@ namespace SqlMemoryDb
         public DbParameterCollection Parameters { get; set; }
         public SqlBooleanExpression HavingClause { get; set; }
         public SqlOrderByItemCollection SortOrder { get; set; }
-
+        public MemoryDbDataReader.ResultBatch Batch { get; set; }
         public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
         public List<TableColumn> GroupByFields = new List<TableColumn>();
 
         public readonly MemoryDbCommand Command;
         private readonly MemoryDatabase _Database;
 
-        public RawData( MemoryDbCommand command )
+        public RawData( MemoryDbCommand command, MemoryDbDataReader.ResultBatch batch = null )
         {
             Command = command;
             Parameters = command.Parameters;
             _Database = MemoryDbConnection.GetMemoryDatabase( );
+            Batch = batch;
         }
 
         public void AddTablesFromClause( SqlFromClause fromClause, Dictionary<string, Table> tables )
@@ -107,11 +108,8 @@ namespace SqlMemoryDb
             var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
             var rawData = new RawData( command );
             var reader = new MemoryDbDataReader( CommandBehavior.SingleResult );
-            new ExecuteQueryStatement( _Database, command, reader ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
-            var batch = reader.GetCurrentBatch( );
-
+            var batch = new ExecuteQueryStatement( _Database, command, reader ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
             var identifier = view.Definition.Name;
-
             var rowList = ResultBatch2RowList( name, identifier, batch );
             RawRowList.AddRange( rowList );
         }

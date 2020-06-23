@@ -26,6 +26,12 @@ namespace SqlMemoryDb
             Variables = variableCollection ?? new MemoryDataParameterCollection(  );
         }
 
+        public MemoryDbCommand( MemoryDbCommand command )
+        {
+            DbConnection = command.Connection;
+            DbParameterCollection = command.Parameters;
+            Variables = command.Variables;
+        }
 
         public override void Cancel( )
         {

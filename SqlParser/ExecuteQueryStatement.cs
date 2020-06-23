@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
@@ -29,12 +31,96 @@ namespace SqlMemoryDb
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
         {
             var rawData = new RawData( _Command );
-
-            var sqlQuery = (SqlQuerySpecification)selectStatement.SelectSpecification.QueryExpression;
-            Execute( tables, rawData, sqlQuery, selectStatement.SelectSpecification.OrderByClause );
+            var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
+            _Reader.AddResultBatch( batch );
         }
 
-        public void Execute( Dictionary<string, Table> tables, RawData rawData, SqlQuerySpecification sqlQuery, SqlOrderByClause orderByClause = null )
+        private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
+            SqlQueryExpression expression,
+            SqlOrderByClause orderByClause = null )
+        {
+            switch ( expression )
+            {
+                case SqlBinaryQueryExpression binaryQueryExpression:
+                {
+                    var commandLeft = new MemoryDbCommand( _Command );
+                    var rawDataLeft = new RawData( commandLeft );
+                    var batchLeft = Execute( rawDataLeft, tables, binaryQueryExpression.Left );
+                    var commandRight = new MemoryDbCommand( _Command );
+                    var rawDataRight = new RawData( commandRight );
+                    var batchRight = Execute( rawDataRight, tables, binaryQueryExpression.Right );
+                    var batch = MergeBatches( batchLeft, batchRight, binaryQueryExpression.Operator );
+                    if ( orderByClause != null )
+                    {
+                        var resultRawData = new RawData( _Command, batch );
+                        batch.ResultRows = new QueryResultBuilder( resultRawData ).OrderResultRows( batch, orderByClause.Items );
+                    }
+                    return batch;
+                }
+                case SqlQuerySpecification sqlQuery:
+                {
+                    return Execute( tables, rawData, sqlQuery, orderByClause );
+                }
+                default:
+                    throw new NotImplementedException($"Query expressions of type {expression} are currently not implemented.");
+            }
+        }
+
+        private MemoryDbDataReader.ResultBatch MergeBatches( MemoryDbDataReader.ResultBatch batchLeft, 
+            MemoryDbDataReader.ResultBatch batchRight, 
+            SqlBinaryQueryOperatorType @operator)
+        {
+            if ( batchLeft.Fields.Count != batchRight.Fields.Count )
+            {
+                throw new SqlUnionExpressionCount(  );
+            }
+
+            for ( int fieldIndex = 0; fieldIndex < batchLeft.Fields.Count; fieldIndex++ )
+            {
+                if ( batchLeft.Fields[ fieldIndex ].NetType != batchRight.Fields[ fieldIndex].NetType )
+                {
+                    throw new SqlConversionException( batchLeft.Fields[ fieldIndex ].DbType,  batchRight.Fields[ fieldIndex].DbType );
+                }
+            }
+            var batch = new MemoryDbDataReader.ResultBatch{ Fields =  batchLeft.Fields };
+            switch ( @operator )
+            {
+                case SqlBinaryQueryOperatorType.UnionAll:
+                    batch.ResultRows.AddRange( batchLeft.ResultRows );
+                    batch.ResultRows.AddRange( batchRight.ResultRows );
+                    break;
+                case SqlBinaryQueryOperatorType.Union:
+                    batch.ResultRows.AddRange( batchRight.ResultRows );
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) == false ) ) );
+                    break;
+                case SqlBinaryQueryOperatorType.Intersect:
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) ) ) );
+                    break;
+                case SqlBinaryQueryOperatorType.Except:
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r)  ) == false ) );
+                    break;
+                default:
+                    throw new NotImplementedException( $"not implemented for type: {@operator}");
+            }
+
+            return batch;
+        }
+
+        private bool ContainsRow( ArrayList row1, ArrayList row2 )
+        {
+            bool isEqual = true;
+            for ( int index = 0; (index < row2.Count) && isEqual; index++ )
+            {
+                isEqual &= row2[ index ].Equals( row1[ index ] );
+            }
+
+            return isEqual;
+        }
+
+
+        public MemoryDbDataReader.ResultBatch Execute( Dictionary<string, Table> tables, RawData rawData,
+            SqlQuerySpecification sqlQuery,
+            SqlOrderByClause orderByClause = null )
         {
             if (sqlQuery.FromClause != null )
             {
@@ -60,8 +146,8 @@ namespace SqlMemoryDb
             rawData.HavingClause = sqlQuery.HavingClause?.Expression;
             rawData.SortOrder =  GetSortOrder( orderByClause, sqlQuery );
 
-            new QueryResultBuilder( rawData ).AddData( batch );            
-            _Reader.AddResultBatch( batch );
+            new QueryResultBuilder( rawData ).AddData( batch );
+            return batch;
         }
 
         private static SqlOrderByItemCollection GetSortOrder( SqlOrderByClause orderByClause,

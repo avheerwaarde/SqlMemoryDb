@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
@@ -56,8 +57,8 @@ namespace SqlMemoryDb.Helpers
                 _Command.DataReader = reader;
                 var tables = MemoryDbConnection.GetMemoryDatabase( ).Tables;
 
-                new ExecuteQueryStatement( _Database, _Command, _Command.DataReader ).Execute( tables, _RawData, ( SqlQuerySpecification ) expression.QueryExpression );
-                hasRows =  reader.HasRows;
+                var batch = new ExecuteQueryStatement( _Database, _Command, _Command.DataReader ).Execute( tables, _RawData, ( SqlQuerySpecification ) expression.QueryExpression );
+                hasRows =  batch.ResultRows.Any();
                 _Command.DataReader = null;
             }
 
