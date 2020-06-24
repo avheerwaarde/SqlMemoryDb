@@ -85,6 +85,10 @@ REFERENCES [dbo].[application] ([Id])
 SELECT Id, Name, Action, [Order], fk_application
 FROM application_action
 ";
+        public const string SqlSelectApplication = @"
+SELECT Id, Name, [User], [DefName]
+FROM application
+";
 
         public const string SqlCreateDbScriptsRun = @"
 CREATE TABLE [dbo].[DbScriptsRun]
