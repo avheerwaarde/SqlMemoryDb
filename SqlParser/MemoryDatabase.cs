@@ -75,6 +75,9 @@ namespace SqlMemoryDb
                 case SqlIfElseStatement ifElseStatement:
                     new ExecuteNonQueryStatement( this, command ).Execute( Tables, ifElseStatement );
                     break;
+                case SqlDeleteStatement deleteStatement:
+                    new ExecuteNonQueryStatement( this, command ).Execute( Tables, deleteStatement );
+                    break;
                 case SqlSelectStatement selectStatement:
                     new ExecuteQueryStatement( this, command, command.DataReader ).Execute( Tables, selectStatement );
                     break;

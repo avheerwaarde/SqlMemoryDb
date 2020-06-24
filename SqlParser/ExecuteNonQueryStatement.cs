@@ -248,5 +248,43 @@ namespace SqlMemoryDb
                 _Database.ExecuteStatement( _Command, ifElseStatement.FalseStatement );                
             }
         }
+
+        public void Execute( Dictionary<string, Table> tables, SqlDeleteStatement deleteStatement )
+        {
+            var rawData = GetRowsForDelete( tables, deleteStatement );
+            foreach ( var rows in rawData.RawRowList )
+            {
+                var rawRow = rows[ 0 ];
+                rawRow.Table.Rows.Remove( rawRow.Row );
+            }
+        }
+
+        private RawData GetRowsForDelete( Dictionary<string, Table> tables, SqlDeleteStatement deleteStatement )
+        {
+            var rawData = new RawData( _Command );
+
+            var specification = deleteStatement.DeleteSpecification;
+            if ( specification.FromClause != null )
+            {
+                rawData.AddTablesFromClause( specification.FromClause, tables );
+            }
+            else
+            {
+                rawData.AddTable( specification.Target, tables );
+            }
+
+            if ( specification.WhereClause != null )
+            {
+                rawData.ExecuteWhereClause( specification.WhereClause );
+            }
+
+            if ( specification.TopSpecification != null )
+            {
+                var rowCount = int.Parse( specification.TopSpecification.Value.Sql );
+                rawData.RawRowList = rawData.RawRowList.Take( rowCount ).ToList( );
+            }
+
+            return rawData;
+        }
     }
 }
