@@ -74,3 +74,4 @@ Version | Description
 0.10.7| Views + Order By clause
 0.10.8| Union, Union All, Except, Intersect
 0.10.9| delete statement
+0.10.10| select distinct

@@ -17,10 +17,11 @@ namespace SqlMemoryDb.SelectData
         }
 
         private readonly RawData _RawData;
-
-        public QueryResultBuilder( RawData rawData )
+        private readonly bool _DataIsDistinct;
+        public QueryResultBuilder( RawData rawData, bool isDistinct = false )
         {
             _RawData = rawData;
+            _DataIsDistinct = isDistinct;
         }
 
         public void AddData( MemoryDbDataReader.ResultBatch batch )
@@ -58,7 +59,7 @@ namespace SqlMemoryDb.SelectData
                     var aggregateRow = CreateAggregateRow( fields, @group, _RawData.GroupByFields );
                     if ( aggregateRow != null )
                     {
-                        internalList.Add( aggregateRow );
+                        AddRowToList( internalList, aggregateRow );
                     }
                 }
             }
@@ -67,7 +68,7 @@ namespace SqlMemoryDb.SelectData
                 var aggregateRow = CreateAggregateRow( fields, _RawData.RawRowList, new List<TableColumn>( ) );
                 if ( aggregateRow != null )
                 {
-                    internalList.Add( aggregateRow );
+                    AddRowToList( internalList, aggregateRow );
                 }
             }
         }
@@ -141,6 +142,15 @@ namespace SqlMemoryDb.SelectData
                     resultRow.Add( value );
                 }
                 var internalResult = new InternalResultRow{ ResultRow = resultRow, RawRowList = row };
+                AddRowToList( internalList, internalResult );
+            }
+        }
+
+        private void AddRowToList( List<InternalResultRow> internalList, InternalResultRow internalResult )
+        {
+            if ( _DataIsDistinct == false ||
+                 internalList.Any( i => RawData.RowsAreEqual( internalResult.ResultRow, i.ResultRow ) ) == false )
+            {
                 internalList.Add( internalResult );
             }
         }

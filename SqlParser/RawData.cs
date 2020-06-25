@@ -25,7 +25,7 @@ namespace SqlMemoryDb
         public SqlBooleanExpression HavingClause { get; set; }
         public SqlOrderByItemCollection SortOrder { get; set; }
         public MemoryDbDataReader.ResultBatch Batch { get; set; }
-        public Dictionary<string,Table> TableAliasList = new Dictionary<string, Table>();
+        public Dictionary<string, Table> TableAliasList = new Dictionary<string, Table>();
         public List<TableColumn> GroupByFields = new List<TableColumn>();
 
         public readonly MemoryDbCommand Command;
@@ -98,7 +98,7 @@ namespace SqlMemoryDb
                     Table = table,
                     Row = row
                 };
-                var rows = new List<RawData.RawDataRow>( ) {tableRow};
+                var rows = new List<RawDataRow>( ) {tableRow};
                 RawRowList.Add( rows );
             }
         }
@@ -141,7 +141,7 @@ namespace SqlMemoryDb
                     Table = table,
                     Row = row
                 };
-                var rows = new List<RawData.RawDataRow>( ) {tableRow};
+                var rows = new List<RawDataRow>( ) {tableRow};
                 rowList.Add( rows );
             }
 
@@ -155,13 +155,13 @@ namespace SqlMemoryDb
                 TableAliasList.Add( name, table );
             }
 
-            var newTableRows = new List<List<RawData.RawDataRow>>( );
+            var newTableRows = new List<List<RawDataRow>>( );
             var filter = HelperConditional.GetRowFilter( onClause.Expression, this );
             foreach ( var currentRawRows in RawRowList )
             {
                 foreach ( var row in table.Rows )
                 {
-                    var newRows = new List<RawData.RawDataRow>( currentRawRows );
+                    var newRows = new List<RawDataRow>( currentRawRows );
                     var tableRow = new RawData.RawDataRow
                     {
                         Name = name,
@@ -204,5 +204,15 @@ namespace SqlMemoryDb
             }
         }
 
+        public static bool RowsAreEqual( ArrayList row1, ArrayList row2 )
+        {
+            bool isEqual = true;
+            for ( int index = 0; (index < row2.Count) && isEqual; index++ )
+            {
+                isEqual &= row2[ index ].Equals( row1[ index ] );
+            }
+
+            return isEqual;
+        }
     }
 }

@@ -356,5 +356,14 @@ SELECT Id FROM  application
             applications.Count( ).Should( ).Be( 9 );
         }
 
+        [TestMethod]
+        public void Select_Distinct_SingleRowReturned( )
+        {
+            const string sql = "SELECT DISTINCT Name FROM application";
+            using var connection = new MemoryDbConnection( );
+            var applications = connection.Query<ApplicationDto>( sql );
+            applications.Count( ).Should( ).Be( 1 );
+        }
+
     }
 }
