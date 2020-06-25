@@ -91,30 +91,19 @@ namespace SqlMemoryDb
                     break;
                 case SqlBinaryQueryOperatorType.Union:
                     batch.ResultRows.AddRange( batchRight.ResultRows );
-                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) == false ) ) );
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => RawData.RowsAreEqual( rr, r) == false ) ) );
                     break;
                 case SqlBinaryQueryOperatorType.Intersect:
-                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r) ) ) );
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => RawData.RowsAreEqual( rr, r) ) ) );
                     break;
                 case SqlBinaryQueryOperatorType.Except:
-                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => ContainsRow( rr, r)  ) == false ) );
+                    batch.ResultRows.AddRange( batchLeft.ResultRows.Where( r => batchRight.ResultRows.Any( rr => RawData.RowsAreEqual( rr, r)  ) == false ) );
                     break;
                 default:
                     throw new NotImplementedException( $"not implemented for type: {@operator}");
             }
 
             return batch;
-        }
-
-        private bool ContainsRow( ArrayList row1, ArrayList row2 )
-        {
-            bool isEqual = true;
-            for ( int index = 0; (index < row2.Count) && isEqual; index++ )
-            {
-                isEqual &= row2[ index ].Equals( row1[ index ] );
-            }
-
-            return isEqual;
         }
 
 
@@ -146,7 +135,7 @@ namespace SqlMemoryDb
             rawData.HavingClause = sqlQuery.HavingClause?.Expression;
             rawData.SortOrder =  GetSortOrder( orderByClause, sqlQuery );
 
-            new QueryResultBuilder( rawData ).AddData( batch );
+            new QueryResultBuilder( rawData, sqlQuery.SelectClause.IsDistinct ).AddData( batch );
             return batch;
         }
 
