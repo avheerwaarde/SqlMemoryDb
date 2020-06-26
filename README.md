@@ -75,3 +75,4 @@ Version | Description
 0.10.8| Union, Union All, Except, Intersect
 0.10.9| delete statement
 0.10.10| select distinct
+0.10.11| like + wildards

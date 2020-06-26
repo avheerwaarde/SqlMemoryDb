@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Dapper;
@@ -12,6 +13,13 @@ namespace DatabaseTests
     [TestClass]
     public class SqlSelectSimpleTests
     {
+        public class LikeTestSet
+        {
+            public string LikeString { get; set; }
+            public List<string> TableValues { get; set; }
+            public List<string> ExpectedValues { get; set; }
+        }
+
         [TestInitialize]
         public async Task InitializeDb( )
         {
@@ -363,6 +371,75 @@ SELECT Id FROM  application
             using var connection = new MemoryDbConnection( );
             var applications = connection.Query<ApplicationDto>( sql );
             applications.Count( ).Should( ).Be( 1 );
+        }
+
+        [DynamicData("LikeTestSets")]
+        [DataTestMethod]
+        public void Select_Like_SingleRowReturned( LikeTestSet set )
+        {
+            using var connection = new MemoryDbConnection( );
+            foreach ( var tableValue in set.TableValues )
+            {
+                connection.Execute( $"INSERT INTO TextTable ([Text]) VALUES (N'{tableValue}')" );
+            }
+            var texts = connection.Query<TextDto>( $"SELECT [Text] FROM TextTable WHERE [Text] LIKE N'{set.LikeString}'" ).ToList(  );
+            texts.Count.Should( ).Be( set.ExpectedValues.Count );
+            foreach ( var text in texts )
+            {
+                set.ExpectedValues.Should( ).Contain( text.Text );
+            }
+        }
+
+        public static IEnumerable<object[]> LikeTestSets
+        {
+            get
+            {
+                return new []
+                {
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "h%t",
+                        TableValues = new List<string>{ "ht", "hat", "hazet", "ahut" },
+                        ExpectedValues = new List<string>{ "ht", "hat", "hazet" }
+                    }},
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "h[io]t",
+                        TableValues = new List<string>{ "hot", "hat", "hit", "hut", "put", "has", "shot" },
+                        ExpectedValues = new List<string>{ "hot", "hit" }
+                    }},
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "h[^io]t",
+                        TableValues = new List<string>{ "hot", "hat", "hit", "hut", "put", "has", "shot" },
+                        ExpectedValues = new List<string>{ "hat", "hut" }
+                    }},
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "h_t",
+                        TableValues = new List<string>{ "hot", "hat", "hit", "hut", "put", "has", "shot" },
+                        ExpectedValues = new List<string>{ "hot", "hat", "hit", "hut" }
+                    }},
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "%hot",
+                        TableValues = new List<string>{ "shot", "shots", "hots", "hot" },
+                        ExpectedValues = new List<string>{ "shot", "hot" }
+                    }},
+                    new object[] { new LikeTestSet
+                    {
+                        LikeString = "hot%",
+                        TableValues = new List<string>{ "shot", "shots", "hots", "hot" },
+                        ExpectedValues = new List<string>{ "hots", "hot" }
+                    }},
+                    new object[] { new LikeTestSet
+                                        {
+                                            LikeString = "hot",
+                                            TableValues = new List<string>{ "shot", "shots", "hots", "hot" },
+                                            ExpectedValues = new List<string>{ "hot" }
+                                        }}
+                };
+            }
         }
 
     }

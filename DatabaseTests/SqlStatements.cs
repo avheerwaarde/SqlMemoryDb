@@ -62,6 +62,15 @@ CONSTRAINT [FK_application_action_application] FOREIGN KEY ([fk_application]) RE
 ) ON[PRIMARY]
 ";
 
+        public const string SqlCreateTableTexts = @"
+CREATE TABLE[dbo].[TextTable]
+(
+
+   [Id] int IDENTITY(1,1) NOT NULL,
+   [Text] [nvarchar](max) NULL
+) ON[PRIMARY]
+";
+
         public const string SqlCreateTableApplicationAction2 = @"
 CREATE TABLE[dbo].[application_action]
 (

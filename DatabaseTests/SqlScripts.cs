@@ -19,7 +19,8 @@ namespace DatabaseTests
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" 
                                   + SqlStatements.SqlCreateTableApplicationFeature + "\n" 
-                                  + SqlStatements.SqlCreateTableApplicationAction ;
+                                  + SqlStatements.SqlCreateTableApplicationAction + "\n"
+                                  + SqlStatements.SqlCreateTableTexts;
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
 
