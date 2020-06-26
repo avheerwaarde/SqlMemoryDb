@@ -76,3 +76,4 @@ Version | Description
 0.10.9| delete statement
 0.10.10| select distinct
 0.10.11| like + wildards
+0.10.12| Insert into + Select
