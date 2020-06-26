@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
+using DatabaseTests.Dto;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -151,5 +153,15 @@ namespace DatabaseTests
             await act.Should( ).ThrowAsync<SqlInsertInvalidForeignKeyException>( );
         }
 
+        [TestMethod]
+        public async Task Insert_Select_RowsAreInserted( )
+        {
+            await SqlScripts.InitDbAsync( );
+
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( "INSERT INTO TextTable ([Text]) SELECT [Name] FROM application_action WHERE [Order] = 2" );
+            var texts = connection.Query<TextDto>( $"SELECT [Text] FROM TextTable" ).ToList(  );
+            texts.Count.Should( ).Be( 3 );
+        }
     }
 }

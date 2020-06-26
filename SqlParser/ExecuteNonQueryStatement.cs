@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
@@ -29,11 +30,20 @@ namespace SqlMemoryDb
             var table = GetInsertTable( tables, spec );
             var columns = GetInsertColumns( spec, table );
 
-            var source = spec.Children.First( c => c is SqlTableConstructorInsertSource ) as SqlTableConstructorInsertSource;
-            AddRow( table, columns, source );
+            switch ( spec.Source )
+            {
+                case SqlTableConstructorInsertSource tableSource:
+                    AddRowFromTableConstructor( table, columns, tableSource );
+                    break;
+                case SqlSelectSpecificationInsertSource selectSource:
+                    AddRowsFromSelect( table, columns, selectSource );
+                    break;
+                default:
+                    throw new NotImplementedException($"Not implemented for insert source {spec.Source.GetType(  ) }");
+            }
         }
 
-        private void AddRow( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
+        private void AddRowFromTableConstructor( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
             var row = InitializeNewRow( table, columns );
             var values = GetValuesFromSql( source.Tokens );
@@ -51,11 +61,46 @@ namespace SqlMemoryDb
             {
                 AddRowValue( row, columns[ index ], values[ index ] );
             }
+            AddRowToTable( table, row );
+        }
+
+        private void AddRowsFromSelect( Table table, List<Column> columns, SqlSelectSpecificationInsertSource selectSource )
+        {
+            var command = new MemoryDbCommand( _Command );
+            var rawData = new RawData( command );
+            var reader = new MemoryDbDataReader( CommandBehavior.SingleResult );
+            var select = selectSource.SelectSpecification;
+            var batch = new ExecuteQueryStatement( _Database, command, reader ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)select.QueryExpression, select.OrderByClause );
+
+            if ( columns.Count > batch.Fields.Count )
+            {
+                throw new SqlInsertTooManyColumnsException(  );
+            }
+            if ( columns.Count < batch.Fields.Count )
+            {
+                throw new SqlInsertTooManyValuesException(  );
+            }
+            
+            foreach ( var resultRow in batch.ResultRows )
+            {
+                var row = InitializeNewRow( table, columns );
+                for ( int index = 0; index < columns.Count; index++ )
+                {
+                    row[ columns[ index ].Order ] = resultRow[ index ];
+                }
+
+                AddRowToTable( table, row );
+            }
+        }
+
+        private void AddRowToTable( Table table, ArrayList row )
+        {
             ValidateAllRequiredFieldsAreSet( row, table );
             ValidateAllForeignKeyConstraints( row, table );
             table.Rows.Add( row );
             _Command.RowsAffected++;
         }
+
 
 
         private void AddRowValue( ArrayList row, Column column, string value )
