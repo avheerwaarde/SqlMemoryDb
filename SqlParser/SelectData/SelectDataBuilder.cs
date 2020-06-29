@@ -9,22 +9,23 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataBuilder
     {
-        private readonly Dictionary<string, Type > _Functions = new Dictionary<string, Type>
+        private readonly Dictionary<string, SelectDataFunctionInfo > _Functions = new Dictionary<string, SelectDataFunctionInfo>
         {
-            { "GETDATE", typeof(SelectDataFromFunctionGetDate) },
-            { "COUNT", typeof(SelectDataFromFunctionMathAggregate) },
-            { "MIN", typeof(SelectDataFromFunctionMathAggregate) },
-            { "MAX", typeof(SelectDataFromFunctionMathAggregate) },
-            { "AVG", typeof(SelectDataFromFunctionMathAggregate) },
-            { "SUM", typeof(SelectDataFromFunctionMathAggregate) },
-            { "CEILING", typeof(SelectDataFromFunctionMath) },
-            { "FLOOR", typeof(SelectDataFromFunctionMath) },
-            { "ROUND", typeof(SelectDataFromFunctionMath) },
-            { "ABS", typeof(SelectDataFromFunctionMath) },
-            { "SIGN", typeof(SelectDataFromFunctionMath) },
-            { "RAND", typeof(SelectDataFromFunctionRandom) },
-            { "SCOPE_IDENTITY", typeof(SelectDataFromFunctionIdentity) },
-            { "IDENT_CURRENT", typeof(SelectDataFromFunctionIdentity) },
+            { "GETDATE"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionGetDate) }},
+            { "COUNT"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
+            { "MIN"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
+            { "MAX"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
+            { "AVG"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
+            { "SUM"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
+            { "CEILING"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMath) }},
+            { "FLOOR"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMath) }},
+            { "ROUND"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMath) }},
+            { "ABS"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMath) }},
+            { "SIGN"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMath) }},
+            { "RAND"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionRandom) }},
+            { "SCOPE_IDENTITY", new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
+            { "IDENT_CURRENT" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
+            { "ASCII" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(byte), ReturnDbType = "byte"}},
         };
 
         private readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>
@@ -41,7 +42,14 @@ namespace SqlMemoryDb.SelectData
                 throw new SqlFunctionNotSupportedException( functionName );
             }
 
-            return Activator.CreateInstance( _Functions[ functionName ], args:new object[]{ functionCall, rawData }) as ISelectDataFunction;
+            var info = _Functions[ functionName ];
+            if ( info.MinimalArgumentCount > 0 
+                 && ( functionCall.Arguments == null || functionCall.Arguments.Count < info.MinimalArgumentCount ))
+            {
+                throw new SqlInvalidFunctionParameterCountException( functionCall.FunctionName, info.MinimalArgumentCount );
+            }
+
+            return Activator.CreateInstance( info.SelectType, args:new object[]{ functionCall, rawData, info }) as ISelectDataFunction;
         }
 
         internal ISelectDataFunction Build( string fullMethod, RawData rawData )

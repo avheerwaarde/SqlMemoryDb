@@ -282,6 +282,10 @@ namespace SqlMemoryDb.Helpers
 
                 case SqlLiteralExpression literal:
                 {
+                    if ( literal.Type == LiteralValueType.Null )
+                    {
+                        return null;
+                    }
                     return GetValueFromString( type, literal.Value );
                 }
 

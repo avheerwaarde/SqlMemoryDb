@@ -231,5 +231,26 @@ namespace DatabaseTests
             scalar.Should( ).BeLessThan( 1 );
         }
 
+        [DataTestMethod]
+        [DataRow("ASCII(null)", null)]
+        [DataRow("ASCII('')", null)]
+        [DataRow( "ASCII('t')", 116 )]
+        [DataRow( "ASCII('techonthenet.com')", 116 )]
+        [DataRow( "ASCII('T')", 84 )]
+        [DataRow( "ASCII('TechOnTheNet.com')", 84 )]
+        public void ASCII_Fixed_ValueIsReturned( string arguments, int? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<byte?>( $"SELECT {arguments};" );
+            scalar.Should( ).Be( (byte?)expected );
+        }
+
+        [TestMethod]
+        public void ASCII_FixedNoParameters_ThrowsException(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            Action act = () => connection.Execute( "SELECT ASCII();" );
+            act.Should( ).Throw<SqlInvalidFunctionParameterCountException>( );
+        }
     }
 }
