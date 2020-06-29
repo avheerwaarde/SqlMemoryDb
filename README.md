@@ -77,3 +77,4 @@ Version | Description
 0.10.10| select distinct
 0.10.11| like + wildards
 0.10.12| Insert into + Select
+0.10.13| Math Functions: Avg(), Sum(), FLOOR(), CEILING(), ROUND(), Abs(), Sign(), Rand()

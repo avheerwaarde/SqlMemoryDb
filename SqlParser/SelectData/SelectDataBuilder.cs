@@ -12,9 +12,17 @@ namespace SqlMemoryDb.SelectData
         private readonly Dictionary<string, Type > _Functions = new Dictionary<string, Type>
         {
             { "GETDATE", typeof(SelectDataFromFunctionGetDate) },
-            { "COUNT", typeof(SelectDataFromFunctionAggregate) },
-            { "MIN", typeof(SelectDataFromFunctionAggregate) },
-            { "MAX", typeof(SelectDataFromFunctionAggregate) },
+            { "COUNT", typeof(SelectDataFromFunctionMathAggregate) },
+            { "MIN", typeof(SelectDataFromFunctionMathAggregate) },
+            { "MAX", typeof(SelectDataFromFunctionMathAggregate) },
+            { "AVG", typeof(SelectDataFromFunctionMathAggregate) },
+            { "SUM", typeof(SelectDataFromFunctionMathAggregate) },
+            { "CEILING", typeof(SelectDataFromFunctionMath) },
+            { "FLOOR", typeof(SelectDataFromFunctionMath) },
+            { "ROUND", typeof(SelectDataFromFunctionMath) },
+            { "ABS", typeof(SelectDataFromFunctionMath) },
+            { "SIGN", typeof(SelectDataFromFunctionMath) },
+            { "RAND", typeof(SelectDataFromFunctionRandom) },
             { "SCOPE_IDENTITY", typeof(SelectDataFromFunctionIdentity) },
             { "IDENT_CURRENT", typeof(SelectDataFromFunctionIdentity) },
         };
