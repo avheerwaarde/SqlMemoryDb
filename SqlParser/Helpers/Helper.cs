@@ -5,7 +5,9 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
+using Generic.Math;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using MiscUtil;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.SelectData;
 using SqlParser;
@@ -71,8 +73,8 @@ namespace SqlMemoryDb.Helpers
                     case DbType.Int16     : return Convert.ToInt16( source );
                     case DbType.Int32     : return Convert.ToInt32( source );
                     case DbType.Int64     : return Convert.ToInt64( source );
-                    case DbType.Single    : return Convert.ToSingle( source );
-                    case DbType.Double    : return Convert.ToDouble( source );
+                    case DbType.Single    : return Single.Parse( source, CultureInfo.InvariantCulture );
+                    case DbType.Double    : return Double.Parse( source, CultureInfo.InvariantCulture );
                     case DbType.Decimal   : return Convert.ToDecimal( source );
                     case DbType.Guid      : return Guid.Parse( GetStringValue( source ) );
                     case DbType.Date      : 
@@ -157,7 +159,7 @@ namespace SqlMemoryDb.Helpers
                 case TypeCode.Int32  : return Convert.ToInt32( source );
                 case TypeCode.Int64  : return Convert.ToInt64( source );
                 case TypeCode.Single : return Convert.ToSingle( source );
-                case TypeCode.Double : return Convert.ToDouble( source );
+                case TypeCode.Double : return double.Parse( source, CultureInfo.InvariantCulture );
                 case TypeCode.Decimal: return Convert.ToDecimal( source );
                 case TypeCode.String : return source;
                 default:
@@ -266,6 +268,16 @@ namespace SqlMemoryDb.Helpers
                 {
                     var field = GetTableColumn( columnRef, rawData );
                     return new SelectDataFromColumn( field ).Select( row );
+                }
+
+                case SqlUnaryScalarExpression unaryScalarExpression:
+                {
+                    var value = GetValue( unaryScalarExpression.Expression, type, rawData, row );
+                    if ( unaryScalarExpression.Operator == SqlUnaryScalarOperatorType.Negative )
+                    {
+                        value = HelperReflection.Negate( value );
+                    }
+                    return value;
                 }
 
                 case SqlLiteralExpression literal:
