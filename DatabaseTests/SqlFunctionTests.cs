@@ -403,6 +403,76 @@ namespace DatabaseTests
             scalar.Should( ).Be( expected );
         }
 
+        [DataTestMethod]
+        [DataRow("SELECT RTRIM('TechOnTheNet.com   ');", "TechOnTheNet.com")]
+        [DataRow("SELECT RTRIM('   TechOnTheNet.com   ');", "   TechOnTheNet.com")]
+        [DataRow("SELECT RTRIM('Tech on the Net   ');", "Tech on the Net")]
+        public void Rtrim_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
 
+        [DataTestMethod]
+        [DataRow("SELECT SPACE(3);", "   ")]
+        [DataRow("SELECT SPACE(7);", "       ")]
+        [DataRow("SELECT SPACE(1);", " ")]
+        public void Space_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT STR(123);", "123")]
+        [DataRow("SELECT STR(123.5);", "124")]
+        [DataRow("SELECT STR(123.5, 5, 1);", "123.5")]
+        [DataRow("SELECT STR(123.456, 7, 3);", "123.456")]
+        [DataRow("SELECT STR(123.456, 7, 2);", "123.46")]
+        [DataRow("SELECT STR(123.456, 7, 1);", "123.5")]
+        [DataRow("SELECT STR(123.456, 7, 0);", "123")]
+        [DataRow("SELECT STR(123.456, 7);", "123")]
+        [DataRow("SELECT STR(123.456, 5, 3);", "123.5")]
+        public void Str_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 1, 12, 'CheckYourMath');", "CheckYourMath.com")]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 5, 2, '1234');", "Tech1234TheNet.com")]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 13, 4, ' is a great site!');", "TechOnTheNet is a great site!")]
+        public void Stuff_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 1, 4);", "Tech")]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 5, 2);", "On")]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 9, 1);", "e")]
+        public void SubString_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT UPPER('techonthenet.com');", "TECHONTHENET.COM")]
+        [DataRow("SELECT UPPER('TechOnTheNet.com');", "TECHONTHENET.COM")]
+        [DataRow("SELECT UPPER('Tech on the Net');", "TECH ON THE NET")]
+        public void Upper_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
     }
 }
