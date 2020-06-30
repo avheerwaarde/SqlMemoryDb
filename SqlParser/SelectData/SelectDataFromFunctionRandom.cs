@@ -13,7 +13,7 @@ namespace SqlMemoryDb.SelectData
         private readonly RawData _RawData;
 
         public SelectDataFromFunctionRandom( SqlBuiltinScalarFunctionCallExpression functionCall,
-            RawData rawData )
+            RawData rawData, SelectDataFunctionInfo info )
         {
             _FunctionCall = functionCall;
             _RawData = rawData;

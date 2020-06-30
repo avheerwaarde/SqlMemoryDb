@@ -58,10 +58,10 @@ END;";
         [TestMethod]
         public void Create_uspSelectApplications_IsCreated( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
+            using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
             database.Clear(  );
             database.StoredProcedures.Count.Should( ).Be( 0 );
-            using var connection = new MemoryDbConnection( );
             connection.Execute( _SqlCreateUspSelectApplications );
             database.StoredProcedures.Count.Should( ).Be( 1 );
         }
@@ -69,9 +69,9 @@ END;";
         [TestMethod]
         public void Create_uspSelectApplicationsExists_ThrowsException( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
+            database.Clear(  );
             connection.Execute( _SqlCreateUspSelectApplications );
             Func<int> act = ( ) => connection.Execute( _SqlCreateUspSelectApplications );
             act.Should( ).Throw<SqlObjectAlreadyExistsException>( );
@@ -80,9 +80,9 @@ END;";
         [TestMethod]
         public void Alter_uspSelectApplicationsExists_IsCreated( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
+            database.Clear(  );
             connection.Execute( _SqlCreateUspSelectApplications );
             connection.Execute( _SqlAlterUspSelectApplications );
         }
@@ -90,9 +90,9 @@ END;";
         [TestMethod]
         public void Alter_uspSelectApplications_ThrowsException( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
+            database.Clear(  );
             Func<int> act = ( ) => connection.Execute( _SqlAlterUspSelectApplications );
             act.Should( ).Throw<SqlInvalidObjectNameException>( );
         }
@@ -100,9 +100,9 @@ END;";
         [TestMethod]
         public void Drop_uspSelectApplicationsExists_IsCreated( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
+            database.Clear(  );
             connection.Execute( _SqlCreateUspSelectApplications );
             database.StoredProcedures.Count.Should( ).Be( 1 );
             connection.Execute( _SqlDropUspSelectApplications );
@@ -112,9 +112,9 @@ END;";
         [TestMethod]
         public void Drop_uspSelectApplications_ThrowsException( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             using var connection = new MemoryDbConnection( );
+            var database = connection.GetMemoryDatabase( );
+            database.Clear(  );
             Func<int> act = ( ) => connection.Execute( _SqlDropUspSelectApplications );
             act.Should( ).Throw<SqlDropProcedureException>( );
         }
@@ -122,8 +122,6 @@ END;";
         [TestMethod]
         public async Task Call_uspSelectApplications_ReturnsAllRows( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             await SqlScripts.InitDbAsync( );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( _SqlCreateUspSelectApplications );
@@ -134,8 +132,6 @@ END;";
         [TestMethod]
         public async Task Call_uspSelectApplicationById_ReturnsSingleRows( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             await SqlScripts.InitDbAsync( );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( _SqlCreateUspSelectApplicationById );
@@ -147,8 +143,6 @@ END;";
         [TestMethod]
         public async Task ExecuteLiteralParameter_uspSelectApplicationById_ReturnsSingleRows( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             await SqlScripts.InitDbAsync( );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( _SqlCreateUspSelectApplicationById );
@@ -160,8 +154,6 @@ END;";
         [TestMethod]
         public async Task ExecuteCommandParameter_uspSelectApplicationById_ReturnsSingleRows( )
         {
-            var database = MemoryDbConnection.GetMemoryDatabase( );
-            database.Clear(  );
             await SqlScripts.InitDbAsync( );
             await using var connection = new MemoryDbConnection( );
             await connection.ExecuteAsync( _SqlCreateUspSelectApplicationById );

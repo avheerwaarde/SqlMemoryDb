@@ -12,9 +12,9 @@ namespace DatabaseTests
 
         public static async Task InitDbAsync( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
 
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" 
@@ -47,8 +47,8 @@ namespace DatabaseTests
 
         public static void InitNorthWindDatabase( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear( );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             connection.Execute( SqlStatements.SqlCreateNorthWindCustom );
         }
     }

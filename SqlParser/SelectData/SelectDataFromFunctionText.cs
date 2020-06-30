@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Helpers;
 
@@ -36,7 +37,19 @@ namespace SqlMemoryDb.SelectData
 
             switch ( _FunctionCall.FunctionName.ToUpper() )
             {
-                case "ASCII": return string.IsNullOrWhiteSpace( arguments.First( ) ) ? null : (byte?)arguments[ 0 ][ 0 ];
+                case "ASCII": return string.IsNullOrWhiteSpace( arguments[0] ) ? null : (byte?)arguments[ 0 ][ 0 ];
+                case "CHAR": return string.IsNullOrWhiteSpace( arguments[0] ) ? null : (char?)int.Parse( arguments[0] );
+                case "CHARINDEX": return FunctionCharIndex( arguments );
+                case "CONCAT": return string.Join( "", arguments );
+                case "DATALENGTH": return arguments[0]?.Length;
+                case "LEFT": return arguments[ 0 ].Substring( 0, Math.Min(arguments[0].Length, int.Parse( arguments[ 1 ] )) );
+                case "LEN": return arguments[0]?.TrimEnd().Length;
+                case "LOWER": return arguments[0]?.ToLower();
+                case "LTRIM": return arguments[0]?.TrimStart(  );
+                case "NCHAR": return string.IsNullOrWhiteSpace( arguments[0] ) ? null : (char?)int.Parse( arguments[0] );
+                case "PATINDEX": return FunctionPatIndex( arguments );
+                case "REPLACE": return new Regex( arguments[1], RegexOptions.IgnoreCase ).Replace( arguments[0], arguments[2] );
+                case "RIGHT": return arguments[ 0 ].Substring( Math.Max(0, arguments[0].Length -int.Parse( arguments[ 1 ] )) );
                 default:
                     throw new NotImplementedException();
             }
@@ -54,6 +67,38 @@ namespace SqlMemoryDb.SelectData
                 }
             }
             return list;
+        }
+
+        private int FunctionCharIndex( List<string> arguments )
+        {
+            int offset = 0;
+            if ( arguments.Count == 3 )
+            {
+                offset = int.Parse( arguments[ 2 ] );
+            }
+
+            return arguments[ 1 ].IndexOf( arguments[ 0 ], offset, StringComparison.InvariantCultureIgnoreCase ) + 1;
+        }
+
+        private int FunctionPatIndex( List<string> arguments )
+        {
+            var expression = Helper.GetLikeRegEx( arguments[0] );
+            if ( expression.StartsWith( ".*" ) )
+            {
+                expression = expression.Substring( 2 );
+            }
+            if ( expression.EndsWith( ".*" ) )
+            {
+                expression = expression.Substring( 0, expression.Length-2 );
+            }
+
+            var match = Regex.Match( arguments[1], expression, RegexOptions.IgnoreCase );
+            if (match.Success)
+            {
+                return match.Index + 1;
+            }
+
+            return 0;
         }
 
         public object Select( List<List<RawData.RawDataRow>> rows )

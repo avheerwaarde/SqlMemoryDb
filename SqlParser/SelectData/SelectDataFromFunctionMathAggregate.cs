@@ -26,7 +26,7 @@ namespace SqlMemoryDb.SelectData
             "MIN", "MAX","AVG", "SUM"
         };
 
-        public SelectDataFromFunctionMathAggregate( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )
+        public SelectDataFromFunctionMathAggregate( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData, SelectDataFunctionInfo info)
         {
             _FunctionCall = functionCall;
             _RawData = rawData;

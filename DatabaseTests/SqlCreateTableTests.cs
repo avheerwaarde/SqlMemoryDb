@@ -13,8 +13,8 @@ namespace DatabaseTests
         [TestMethod]
         public async Task OpenConnection_CreateTable_Ok( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication;
@@ -51,9 +51,9 @@ namespace DatabaseTests
         [TestMethod]
         public async Task CreateJoinedTable_Constraint_JoinCreated( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
-            db.Tables.Clear( );
             await using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
+            db.Tables.Clear( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" + SqlStatements.SqlCreateTableApplicationAction;
@@ -66,9 +66,9 @@ namespace DatabaseTests
         [TestMethod]
         public async Task CreateJoinedTable_AlterTable_JoinCreated( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
-            db.Tables.Clear( );
             await using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
+            db.Tables.Clear( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" + SqlStatements.SqlCreateTableApplicationAction2;
@@ -81,9 +81,9 @@ namespace DatabaseTests
         [TestMethod]
         public void CreateTable_MultiColumnPrimaryKey_IsCreated( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
-            db.Tables.Clear( );
             using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
+            db.Tables.Clear( );
             connection.Execute( SqlStatements.SqlCreateCustomerCustomerDemo );
             var table = db.Tables[ "dbo.CustomerCustomerDemo" ];
             table.PrimaryKeyConstraints.Should( ).ContainKey( "PK_CustomerCustomerDemo" );

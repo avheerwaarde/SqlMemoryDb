@@ -34,7 +34,7 @@ namespace SqlMemoryDb.Helpers
                 }
                 else if ( child is SqlQueryExpression queryExpression )
                 {
-                    var database = MemoryDbConnection.GetMemoryDatabase( );
+                    var database = ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( );
                     var command = new MemoryDbCommand( _RawData.Command.Connection, _RawData.Command.Parameters, _RawData.Command.Variables );
                     var reader =  database.ExecuteSqlReader( queryExpression.Sql, command, CommandBehavior.SingleResult );
                     while ( reader.Read(  ) )

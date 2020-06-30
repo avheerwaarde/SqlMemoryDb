@@ -25,7 +25,7 @@ namespace SqlMemoryDb
             InternalState = ConnectionState.Closed;
         }
 
-        public static MemoryDatabase GetMemoryDatabase( )
+        public MemoryDatabase GetMemoryDatabase( )
         {
             return _MemoryDatabase;
         }

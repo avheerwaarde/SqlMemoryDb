@@ -26,6 +26,18 @@ namespace SqlMemoryDb.SelectData
             { "SCOPE_IDENTITY", new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
             { "IDENT_CURRENT" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
             { "ASCII" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(byte), ReturnDbType = "byte"}},
+            { "CHAR" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = "char"}},
+            { "CHARINDEX" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "CONCAT" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
+            { "DATALENGTH" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "LEFT" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
+            { "LEN" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "LOWER" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
+            { "LTRIM" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
+            { "NCHAR" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = "char"}},
+            { "PATINDEX" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "REPLACE" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 3 }},
+            { "RIGHT" , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
         };
 
         private readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>

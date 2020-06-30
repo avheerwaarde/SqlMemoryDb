@@ -16,9 +16,8 @@ namespace DatabaseTests
         [TestInitialize]
         public async Task InitializeDb( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
-
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" 
@@ -40,7 +39,7 @@ namespace DatabaseTests
             command.Parameters.Add( new MemoryDbParameter( ) {ParameterName = "DefName", Value = "DefName String"} );
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
-            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var rows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             rows.Count.Should( ).Be( 1, "A new row should be added" );
             var row = rows.First( );
             row[ 0 ].Should( ).Be( 1 );

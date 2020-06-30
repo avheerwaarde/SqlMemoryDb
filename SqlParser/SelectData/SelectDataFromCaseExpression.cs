@@ -34,7 +34,7 @@ namespace SqlMemoryDb.SelectData
 
         public object Select( List<RawData.RawDataRow> rows )
         {
-            var evaluator = new EvaluateBooleanExpression( _RawData, MemoryDbConnection.GetMemoryDatabase( ), _RawData.Command  );
+            var evaluator = new EvaluateBooleanExpression( _RawData, ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( ), _RawData.Command  );
             foreach ( var whenClause in _Expression.WhenClauses )
             {
                 if ( evaluator.Evaluate( rows, whenClause.WhenExpression ) )

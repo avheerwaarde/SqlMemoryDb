@@ -198,7 +198,7 @@ namespace SqlMemoryDb
                     }
                     row[ column.Order ] = column.NextIdentityValue;
                     table.LastIdentitySet = column.NextIdentityValue;
-                    MemoryDbConnection.GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
+                    ((MemoryDbConnection )_Command.Connection).GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
                     _Command.LastIdentitySet = column.NextIdentityValue;
                     column.NextIdentityValue += column.Identity.Increment;
                 }
@@ -267,7 +267,7 @@ namespace SqlMemoryDb
                     var foreignKey = row[ column.Order ];
                     if ( foreignKey != null )
                     {
-                        var referencedTable = MemoryDbConnection.GetMemoryDatabase( ).Tables[ constraint.ReferencedTableName ];
+                        var referencedTable = ((MemoryDbConnection )_Command.Connection).GetMemoryDatabase( ).Tables[ constraint.ReferencedTableName ];
                         var referencedColumn = referencedTable.Columns.Single(c => c.Name == constraint.ReferencedColumns[ index ] );
 
                         if ( referencedTable.Rows.Any( r =>((IComparable)foreignKey).CompareTo((IComparable)r[ referencedColumn.Order ]) == 0 )  == false ) 

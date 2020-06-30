@@ -24,7 +24,7 @@ namespace DatabaseTests
             await SqlScripts.InitDbAsync( );
 
             await using var connection = new MemoryDbConnection( );
-            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var rows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             var currentRowCount = rows.Count;
 
             await connection.OpenAsync( );
@@ -32,7 +32,7 @@ namespace DatabaseTests
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"}, transaction );
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"}, transaction );
             await transaction.CommitAsync( );
-            var currentRows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var currentRows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             currentRows.Count.Should( ).Be( currentRowCount + 2 );
         }
 
@@ -42,7 +42,7 @@ namespace DatabaseTests
             await SqlScripts.InitDbAsync( );
 
             await using var connection = new MemoryDbConnection( );
-            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var rows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             var currentRowCount = rows.Count;
 
             await connection.OpenAsync( );
@@ -50,7 +50,7 @@ namespace DatabaseTests
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"}, transaction );
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"}, transaction );
             await transaction.RollbackAsync( );
-            var currentRows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var currentRows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             currentRows.Count.Should( ).Be( currentRowCount );
         }
 
@@ -95,13 +95,13 @@ namespace DatabaseTests
         {
             await SqlScripts.InitDbAsync( );
 
-            var memoryDatabase = MemoryDbConnection.GetMemoryDatabase( );
+            await using var connection = new MemoryDbConnection( );
+            var memoryDatabase = connection.GetMemoryDatabase( );
             memoryDatabase.SaveSnapshot(  );
             var rows = memoryDatabase.Tables[ "dbo.application" ].Rows;
             var currentRowCount = rows.Count;
 
 
-            await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             var transaction = await connection.BeginTransactionAsync( );
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"}, transaction );
@@ -118,12 +118,12 @@ namespace DatabaseTests
         {
             await SqlScripts.InitDbAsync( );
 
-            var memoryDatabase = MemoryDbConnection.GetMemoryDatabase( );
+            await using var connection = new MemoryDbConnection( );
+            var memoryDatabase = connection.GetMemoryDatabase( );
             memoryDatabase.SaveSnapshot(  );
             var rows = memoryDatabase.Tables[ "dbo.application" ].Rows;
             var currentRowCount = rows.Count;
 
-            await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"} );
             await connection.ExecuteAsync( _SqlInsertApplication, new {Name = "Name string", User = "User string", DefName = "DefName string"} );
@@ -137,10 +137,10 @@ namespace DatabaseTests
         {
             await SqlScripts.InitDbAsync( );
 
-            var memoryDatabase = MemoryDbConnection.GetMemoryDatabase( );
+            await using var connection = new MemoryDbConnection( );
+            var memoryDatabase = connection.GetMemoryDatabase( );
             memoryDatabase.SaveSnapshot(  );
             
-            await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             await connection.ExecuteAsync( _SqlUpdateApplication );
 
@@ -157,10 +157,10 @@ namespace DatabaseTests
         {
             await SqlScripts.InitDbAsync( );
 
-            var memoryDatabase = MemoryDbConnection.GetMemoryDatabase( );
+            await using var connection = new MemoryDbConnection( );
+            var memoryDatabase = connection.GetMemoryDatabase( );
             memoryDatabase.SaveSnapshot(  );
             
-            await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             await connection.ExecuteAsync( _SqlUpdateApplication );
 
