@@ -143,7 +143,7 @@ namespace SqlMemoryDb
             var finder = new TokenFinder( tokens );
             var variableName = finder.GetIdAfterToken( "TOKEN_SET", isSingleTokenId:true );
             var variableValue = finder.GetTokenAfterToken( "TOKEN_ID", "TOKEN_ID" );
-            var options = MemoryDbConnection.GetMemoryDatabase( ).Options;
+            var options = ((MemoryDbConnection )statement._Command.Connection).GetMemoryDatabase( ).Options;
 
             if ( string.IsNullOrWhiteSpace( variableName ) == false 
                  && string.IsNullOrWhiteSpace( variableValue ) == false 

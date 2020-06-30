@@ -35,7 +35,7 @@ namespace SqlMemoryDb
         {
             Command = command;
             Parameters = command.Parameters;
-            _Database = MemoryDbConnection.GetMemoryDatabase( );
+            _Database = ((MemoryDbConnection)Command.Connection).GetMemoryDatabase( );
             Batch = batch;
         }
 

@@ -55,7 +55,7 @@ namespace SqlMemoryDb.Helpers
             using ( var reader = new MemoryDbDataReader( CommandBehavior.SingleResult ) )
             {
                 _Command.DataReader = reader;
-                var tables = MemoryDbConnection.GetMemoryDatabase( ).Tables;
+                var tables = ((MemoryDbConnection )_Command.Connection).GetMemoryDatabase( ).Tables;
 
                 var batch = new ExecuteQueryStatement( _Database, _Command, _Command.DataReader ).Execute( tables, _RawData, ( SqlQuerySpecification ) expression.QueryExpression );
                 hasRows =  batch.ResultRows.Any();

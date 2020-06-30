@@ -231,5 +231,248 @@ namespace DatabaseTests
             scalar.Should( ).BeLessThan( 1 );
         }
 
+        [DataTestMethod]
+        [DataRow("ASCII(null)", null)]
+        [DataRow("ASCII('')", null)]
+        [DataRow( "ASCII('t')", 116 )]
+        [DataRow( "ASCII('techonthenet.com')", 116 )]
+        [DataRow( "ASCII('T')", 84 )]
+        [DataRow( "ASCII('TechOnTheNet.com')", 84 )]
+        public void ASCII_Fixed_ValueIsReturned( string arguments, int? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<byte?>( $"SELECT {arguments};" );
+            scalar.Should( ).Be( (byte?)expected );
+        }
+
+        [TestMethod]
+        public void ASCII_FixedNoParameters_ThrowsException(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            Action act = () => connection.Execute( "SELECT ASCII();" );
+            act.Should( ).Throw<SqlInvalidFunctionParameterCountException>( );
+        }
+
+        [DataTestMethod]
+        [DataRow("CHAR(null)", null)]
+        [DataRow("CHAR('')", null)]
+        [DataRow( "CHAR(116)", 't' )]
+        [DataRow( "CHAR(84)", 'T' )]
+        public void Char_Fixed_ValueIsReturned( string arguments, char? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<char?>( $"SELECT {arguments};" );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("CHARINDEX('t', 'TechOnTheNet.com')", 1)]
+        [DataRow("CHARINDEX('t', 'TechOnTheNet.com', 2)", 7)]
+        [DataRow( "CHARINDEX('t', 'TechOnTheNet.com', 8)", 12 )]
+        [DataRow( "CHARINDEX('ON', 'TechOnTheNet.com')", 5 )]
+        [DataRow( "CHARINDEX('z', 'TechOnTheNet.com')", 0 )]
+        public void CharIndex_Fixed_ValueIsReturned( string arguments, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int>( $"SELECT {arguments};" );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT CONCAT('TechOnTheNet', '.com');", "TechOnTheNet.com")]
+        [DataRow("SELECT CONCAT('Tech', 'On', 'The', 'Net', '.com');", "TechOnTheNet.com")]
+        [DataRow("SELECT CONCAT('Tech ', 'On ', 'The ', 'Net');", "Tech On The Net")]
+        [DataRow("SELECT CONCAT('Orange', ' ', 'Peach');", "Orange Peach")]
+        [DataRow("SELECT CONCAT('Let', '''', 's learn SQL Server')", "Let's learn SQL Server")]
+        public void Concat_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT DATALENGTH(' ');", 1)]
+        [DataRow("SELECT DATALENGTH('');", 0)]
+        [DataRow("SELECT DATALENGTH('TechOnTheNet.com');", 16 )]
+        [DataRow("SELECT DATALENGTH('   TechOnTheNet.com   ');", 22 )]
+        [DataRow("SELECT DATALENGTH(1234);", 4)]
+        [DataRow("SELECT DATALENGTH('2004-05-01');", 10 )]
+        [DataRow("SELECT DATALENGTH(NULL);", null )]
+        public void Datalength_Fixed_LengthIsReturned( string sql, int? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int?>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow( "SELECT LEFT('TechOnTheNet.com', 12);", "TechOnTheNet" )]
+        [DataRow( "SELECT LEFT('TechOnTheNet.com', 4);", "Tech" )]
+        [DataRow( "SELECT LEFT('Tech On The Net', 8);", "Tech On " )]
+        [DataRow( "SELECT LEFT('Tech On The Net', 100);", "Tech On The Net" )]
+        public void Left_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT LEN(' ');", 0)]
+        [DataRow("SELECT LEN('');", 0)]
+        [DataRow("SELECT LEN('TechOnTheNet.com   ');", 16 )]
+        [DataRow("SELECT LEN('   TechOnTheNet.com');", 19 )]
+        [DataRow("SELECT LEN('   TechOnTheNet.com   ');", 19 )]
+        [DataRow("SELECT LEN(NULL);", null )]
+        public void Len_Fixed_ValueIsReturned( string sql, int? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int?>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT LOWER('TECHONTHENET.COM');", "techonthenet.com")]
+        [DataRow("SELECT LOWER('TechOnTheNet.com');", "techonthenet.com")]
+        [DataRow("SELECT LOWER('Tech on the Net');", "tech on the net")]
+        public void Lower_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT LTRIM('   TechOnTheNet.com');", "TechOnTheNet.com")]
+        [DataRow("SELECT LTRIM('   TechOnTheNet.com   ');", "TechOnTheNet.com   ")]
+        [DataRow("SELECT LTRIM('   Tech on the Net');", "Tech on the Net")]
+        public void Ltrim_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("NCHAR(null)", null)]
+        [DataRow("NCHAR('')", null)]
+        [DataRow("NCHAR(116)", 't' )]
+        [DataRow("NCHAR(84)", 'T' )]
+        public void NChar_Fixed_ValueIsReturned( string arguments, char? expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<char?>( $"SELECT {arguments};" );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT PATINDEX('%onthe%', 'TechOnTheNet.com');", 5)]
+        [DataRow("SELECT PATINDEX('%T_e%', 'TechOnTheNet.com');", 7)]
+        [DataRow("SELECT PATINDEX('%e%com', 'TechOnTheNet.com');", 2)]
+        [DataRow("SELECT PATINDEX('%[aeiou]%', 'TechOnTheNet.com');", 2)]
+        [DataRow("SELECT PATINDEX('%z%', 'TechOnTheNet.com');", 0)]
+        public void PatIndex_Fixed_IndexIsReturned( string sql, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT REPLACE('TechOnTheNet.com', 'T', '3');", "3echOn3heNe3.com")]
+        [DataRow("SELECT REPLACE('TechOnTheNet.com', 'Tech', '1234');", "1234OnTheNet.com")]
+        [DataRow("SELECT REPLACE('TechOnTheNet.com', 'c', '123');", "Te123hOnTheNet.123om")]
+        [DataRow("SELECT REPLACE('Tech On The Net', ' ', 'Z');", "TechZOnZTheZNet")]
+        public void Replace_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT RIGHT('TechOnTheNet.com', 12);", "OnTheNet.com")]
+        [DataRow("SELECT RIGHT('TechOnTheNet.com', 4);", ".com")]
+        [DataRow("SELECT RIGHT('Tech On The Net', 8);", " The Net")]
+        [DataRow("SELECT RIGHT('Tech On The Net', 100);", "Tech On The Net")]
+        public void Right_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT RTRIM('TechOnTheNet.com   ');", "TechOnTheNet.com")]
+        [DataRow("SELECT RTRIM('   TechOnTheNet.com   ');", "   TechOnTheNet.com")]
+        [DataRow("SELECT RTRIM('Tech on the Net   ');", "Tech on the Net")]
+        public void Rtrim_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT SPACE(3);", "   ")]
+        [DataRow("SELECT SPACE(7);", "       ")]
+        [DataRow("SELECT SPACE(1);", " ")]
+        public void Space_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT STR(123);", "123")]
+        [DataRow("SELECT STR(123.5);", "124")]
+        [DataRow("SELECT STR(123.5, 5, 1);", "123.5")]
+        [DataRow("SELECT STR(123.456, 7, 3);", "123.456")]
+        [DataRow("SELECT STR(123.456, 7, 2);", "123.46")]
+        [DataRow("SELECT STR(123.456, 7, 1);", "123.5")]
+        [DataRow("SELECT STR(123.456, 7, 0);", "123")]
+        [DataRow("SELECT STR(123.456, 7);", "123")]
+        [DataRow("SELECT STR(123.456, 5, 3);", "123.5")]
+        public void Str_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 1, 12, 'CheckYourMath');", "CheckYourMath.com")]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 5, 2, '1234');", "Tech1234TheNet.com")]
+        [DataRow("SELECT STUFF('TechOnTheNet.com', 13, 4, ' is a great site!');", "TechOnTheNet is a great site!")]
+        public void Stuff_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 1, 4);", "Tech")]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 5, 2);", "On")]
+        [DataRow("SELECT SUBSTRING('TechOnTheNet.com', 9, 1);", "e")]
+        public void SubString_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT UPPER('techonthenet.com');", "TECHONTHENET.COM")]
+        [DataRow("SELECT UPPER('TechOnTheNet.com');", "TECHONTHENET.COM")]
+        [DataRow("SELECT UPPER('Tech on the Net');", "TECH ON THE NET")]
+        public void Upper_Fixed_ValueIsReturned( string sql, string expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<string>( sql );
+            scalar.Should( ).Be( expected );
+        }
     }
 }

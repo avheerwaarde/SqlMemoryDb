@@ -42,7 +42,7 @@ WHERE Country = 'Brazil';";
         {
             using var connection = new MemoryDbConnection( );
             connection.Execute( _SqlCreateViewBrazilianCustomers );
-            var db = MemoryDbConnection.GetMemoryDatabase( );
+            var db = connection.GetMemoryDatabase( );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
             var customers = connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
             customers.Count( ).Should( ).NotBe( 0 );
@@ -51,8 +51,8 @@ WHERE Country = 'Brazil';";
         [TestMethod]
         public void View_AlterExisting_ViewAltered( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
             using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
             connection.Execute( _SqlCreateViewBrazilianCustomers );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
             connection.Execute( _SqlAlterViewBrazilianCustomers );
@@ -62,8 +62,8 @@ WHERE Country = 'Brazil';";
         [TestMethod]
         public void View_DropExisting_ViewDeleted( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
             using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
             connection.Execute( _SqlCreateViewBrazilianCustomers );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
             connection.Execute( _SqlDropViewBrazilianCustomers );
@@ -73,8 +73,8 @@ WHERE Country = 'Brazil';";
         [TestMethod]
         public void View_AlterNew_ThrowsException( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
             using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
             Func<int> act = ( ) => connection.Execute( _SqlAlterViewBrazilianCustomers );
             act.Should( ).Throw<SqlInvalidObjectNameException>( );
         }
@@ -82,8 +82,8 @@ WHERE Country = 'Brazil';";
         [TestMethod]
         public void View_DropNew_ThrowsException( )
         {
-            var db = MemoryDbConnection.GetMemoryDatabase( );
             using var connection = new MemoryDbConnection( );
+            var db = connection.GetMemoryDatabase( );
             Func<int> act = ( ) => connection.Execute( _SqlDropViewBrazilianCustomers );
             act.Should( ).Throw<SqlDropViewException>( );
         }
@@ -100,7 +100,7 @@ ORDER BY ContactName;";
 
             using var connection = new MemoryDbConnection( );
             connection.Execute( sqlCreateViewBrazilianCustomers );
-            var db = MemoryDbConnection.GetMemoryDatabase( );
+            var db = connection.GetMemoryDatabase( );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
             var customers = connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
             customers.Count( ).Should( ).BeLessOrEqualTo( 10 );
@@ -118,7 +118,7 @@ ORDER BY ContactName;";
 
             using var connection = new MemoryDbConnection( );
             connection.Execute( sqlCreateViewBrazilianCustomers );
-            var db = MemoryDbConnection.GetMemoryDatabase( );
+            var db = connection.GetMemoryDatabase( );
             db.Views.Should( ).ContainKey( "dbo.Brazil Customers" );
             Func<IEnumerable<CustomerViewDto>> act = ( ) => connection.Query<CustomerViewDto>( "SELECT CompanyName, ContactName from [Brazil Customers]" );
             act.Should( ).Throw<SqlOrderByException>( );

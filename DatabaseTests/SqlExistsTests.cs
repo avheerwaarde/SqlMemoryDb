@@ -29,9 +29,8 @@ END";
         [TestMethod]
         public void IfExists_NoEntries_RowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
-
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
             var runScripts = connection.Query<DbScriptRunDto>( SqlStatements.SqlSelectDbScriptRun ).ToList();
             runScripts.Count.Should( ).Be( 1 );
@@ -40,9 +39,8 @@ END";
         [TestMethod]
         public void IfExists_ExistingSameEntry_NoRowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
-
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
             connection.Execute( _SqlIfExists );
             var runScripts = connection.Query<DbScriptRunDto>( SqlStatements.SqlSelectDbScriptRun ).ToList();
@@ -52,9 +50,8 @@ END";
         [TestMethod]
         public void IfExists_ExistingOtherEntry_RowAdded( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
-
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             connection.Execute( SqlStatements.SqlCreateDbScriptsRun + "\n" + _SqlIfExists );
             connection.Execute( _SqlIfExists2 );
             var runScripts = connection.Query<DbScriptRunDto>( SqlStatements.SqlSelectDbScriptRun ).ToList();

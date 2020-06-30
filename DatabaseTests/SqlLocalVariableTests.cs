@@ -51,8 +51,8 @@ DECLARE @Id int
 SET @Id = @@IDENTITY
 SELECT @Id";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             var variableId = connection.ExecuteScalar<int>( SqlStatements.SqlCreateTableApplication + "\n" + sql );
             variableId.Should( ).Be( 4 );
         }
@@ -69,8 +69,8 @@ DECLARE @Id int
 SET @Id = @@UNKNOWN
 SELECT @Id";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             Func<int> act = ( ) => connection.ExecuteScalar<int>( SqlStatements.SqlCreateTableApplication + "\n" + sql );
             act.Should( ).Throw<SqlInvalidParameterNameException>( );
         }
@@ -87,8 +87,8 @@ DECLARE @Id int
 SET @Id = Scope_Identity()
 SELECT @Id";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             var variableId = connection.ExecuteScalar<int>( SqlStatements.SqlCreateTableApplication + "\n" + sql );
             variableId.Should( ).Be( 4 );
         }
@@ -105,8 +105,8 @@ DECLARE @Id int
 SET @Id = Unknown()
 SELECT @Id";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             Func<int> act = ( ) => connection.ExecuteScalar<int>( SqlStatements.SqlCreateTableApplication + "\n" + sql );
             act.Should( ).Throw<SqlFunctionNotSupportedException>( );
         }
@@ -123,8 +123,8 @@ DECLARE @Id int
 SET @Id = (SELECT MAX(Id) from application)
 SELECT @Id";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             var variableId = connection.ExecuteScalar<int>( SqlStatements.SqlCreateTableApplication + "\n" + sql );
             variableId.Should( ).Be( 4 );
         }

@@ -7,7 +7,7 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromFunctionGetDate : ISelectDataFunction
     {
-        public SelectDataFromFunctionGetDate( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )
+        public SelectDataFromFunctionGetDate( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData, SelectDataFunctionInfo info )
         {
 
         }

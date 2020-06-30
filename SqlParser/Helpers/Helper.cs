@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Generic.Math;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using MiscUtil;
@@ -116,7 +117,7 @@ namespace SqlMemoryDb.Helpers
             }
 
             source = GetStringValue( source );
-            var formatKey = MemoryDbConnection.GetMemoryDatabase( ).Options["DATEFORMAT"];
+            var formatKey = new MemoryDbConnection().GetMemoryDatabase( ).Options["DATEFORMAT"];
             var dateFormat = _DateFormats[ formatKey ];
             return ToDate(source, dateFormat ).Value;
         }
@@ -282,6 +283,10 @@ namespace SqlMemoryDb.Helpers
 
                 case SqlLiteralExpression literal:
                 {
+                    if ( literal.Type == LiteralValueType.Null )
+                    {
+                        return null;
+                    }
                     return GetValueFromString( type, literal.Value );
                 }
 
@@ -314,7 +319,7 @@ namespace SqlMemoryDb.Helpers
 
                 case SqlScalarSubQueryExpression subQuery:
                 {
-                    var database = MemoryDbConnection.GetMemoryDatabase( );
+                    var database = new MemoryDbConnection().GetMemoryDatabase( );
                     var command = new MemoryDbCommand( rawData.Command.Connection, rawData.Command.Parameters, rawData.Command.Variables );
                     return database.ExecuteSqlScalar( subQuery.QueryExpression.Sql, command );
                 }
@@ -608,5 +613,32 @@ namespace SqlMemoryDb.Helpers
             }
             throw new NotImplementedException();
         }
+
+        public static string GetLikeRegEx( string pattern )
+        {
+            var patternBuilder = new StringBuilder();
+            if ( pattern.StartsWith( "%" ) == false )
+            {
+                patternBuilder.Append( "^" );
+            }
+
+            foreach ( var character in pattern )
+            {
+                switch ( character )
+                {
+                    case '%': patternBuilder.Append( ".*" ); break;
+                    case '_': patternBuilder.Append( ".{1}" ); break;
+                    default:
+                        patternBuilder.Append( character );
+                        break;
+                }
+            }
+            if ( pattern.EndsWith( "%" ) == false )
+            {
+                patternBuilder.Append( "$" );
+            }
+            return patternBuilder.ToString();
+        }
+
     }
 }

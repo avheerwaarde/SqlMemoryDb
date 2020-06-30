@@ -23,10 +23,10 @@ namespace DatabaseTests
             string sqlInsert = $"INSERT INTO application_feature ([{fieldName}]) VALUES ({setValue})";
             string sqlSelect = $"SELECT [{fieldName}] FROM application_feature";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.ExecuteAsync( SqlStatements.SqlCreateTableApplication + "\n" 
-                                        + SqlStatements.SqlCreateTableApplicationFeature );
+                                                                                   + SqlStatements.SqlCreateTableApplicationFeature );
             await connection.ExecuteAsync( sqlInsert );
             var value = await connection.ExecuteScalarAsync( sqlSelect );
             value.Should( ).BeOfType( expectedType );
@@ -41,8 +41,8 @@ namespace DatabaseTests
             string sqlInsert = $"INSERT INTO application_feature ([int]) VALUES (99)";
             string sqlSelect = $"SELECT {identityMethod}";
 
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.ExecuteAsync( SqlStatements.SqlCreateTableApplication + "\n" 
                                                                                    + SqlStatements.SqlCreateTableApplicationFeature );
             await connection.ExecuteAsync( sqlInsert );

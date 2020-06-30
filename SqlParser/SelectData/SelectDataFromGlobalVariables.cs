@@ -19,7 +19,7 @@ namespace SqlMemoryDb.SelectData
         {
             if ( _GlobalVariableName.ToUpper() == "@@IDENTITY" )
             {
-                return MemoryDbConnection.GetMemoryDatabase( ).LastIdentitySet;
+                return ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( ).LastIdentitySet;
             }
             throw new NotImplementedException( );
         }

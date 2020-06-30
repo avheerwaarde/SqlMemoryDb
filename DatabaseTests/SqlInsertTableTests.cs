@@ -18,9 +18,8 @@ namespace DatabaseTests
         [TestInitialize]
         public async Task InitializeDb( )
         {
-            MemoryDbConnection.GetMemoryDatabase( ).Clear(  );
-
             await using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
             command.CommandText = SqlStatements.SqlCreateTableApplication + "\n" 
@@ -39,7 +38,7 @@ namespace DatabaseTests
             command.CommandText = "INSERT INTO application ([Name],[User],[DefName]) VALUES (N'Name', N'User', N'DefName')";
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
-            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var rows = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             rows.Count.Should( ).Be( 1, "A new row should be added" );
             var row = rows.First( );
             row[ 0 ].Should( ).Be( 1 );
@@ -132,9 +131,9 @@ namespace DatabaseTests
             command.CommandText = "INSERT INTO application_action ([fk_application]) VALUES (1)";
             await command.PrepareAsync( );
             await command.ExecuteNonQueryAsync( );
-            var rowsParent = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
+            var rowsParent = connection.GetMemoryDatabase( ).Tables[ "dbo.application" ].Rows;
             rowsParent.Count.Should( ).Be( 1, "A new row should be added" );
-            var rows = MemoryDbConnection.GetMemoryDatabase( ).Tables[ "dbo.application_action" ].Rows;
+            var rows = connection.GetMemoryDatabase( ).Tables[ "dbo.application_action" ].Rows;
             rows.Count.Should( ).Be( 1, "A new row should be added" );
         }
 

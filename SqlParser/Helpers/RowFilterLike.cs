@@ -18,35 +18,10 @@ namespace SqlMemoryDb.Helpers
             _RawData = rawData;
             _InvertResult = invertResult;
             _Expression = likeExpression.Expression;
-            _LikeRegEx = GetLikeRegEx( likeExpression );
-        }
-
-        private string GetLikeRegEx( SqlLikeBooleanExpression likeExpression )
-        {
-            var patternBuilder = new StringBuilder();
             var pattern = Helper.GetValue( likeExpression.LikePattern, typeof(string), _RawData, new List<RawData.RawDataRow>()).ToString(  );
-            if ( pattern.StartsWith( "%" ) == false )
-            {
-                patternBuilder.Append( "^" );
-            }
-
-            foreach ( var character in pattern )
-            {
-                switch ( character )
-                {
-                    case '%': patternBuilder.Append( ".*" ); break;
-                    case '_': patternBuilder.Append( ".{1}" ); break;
-                    default:
-                        patternBuilder.Append( character );
-                        break;
-                }
-            }
-            if ( pattern.EndsWith( "%" ) == false )
-            {
-                patternBuilder.Append( "$" );
-            }
-            return patternBuilder.ToString();
+            _LikeRegEx = Helper.GetLikeRegEx( pattern );
         }
+
 
         public bool IsValid( List<RawData.RawDataRow> rawDataRows )
         {

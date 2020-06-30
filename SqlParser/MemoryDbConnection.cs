@@ -8,7 +8,7 @@ namespace SqlMemoryDb
     {
         internal string InternalDatabaseName;
         internal ConnectionState InternalState;
-        private const string _DatabaseServerVersion = "0.10.13";
+        private const string _DatabaseServerVersion = "0.10.14";
         private static readonly MemoryDatabase _MemoryDatabase = new MemoryDatabase(  );
 
         public override string ConnectionString { get; set; }
@@ -25,7 +25,7 @@ namespace SqlMemoryDb
             InternalState = ConnectionState.Closed;
         }
 
-        public static MemoryDatabase GetMemoryDatabase( )
+        public MemoryDatabase GetMemoryDatabase( )
         {
             return _MemoryDatabase;
         }
