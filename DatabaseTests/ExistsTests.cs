@@ -12,7 +12,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlExistsTests
+    public class ExistsTests
     {
         private const string _SqlIfExists = @"
 IF NOT EXISTS (SELECT 1 FROM [DbScriptsRun] where [ScriptId] = N'69AA00A3-9C2D-4C87-81B5-3BE55CC384F6')

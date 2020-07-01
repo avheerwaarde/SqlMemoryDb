@@ -9,28 +9,12 @@ using SqlMemoryDb.Exceptions;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlFunctionTests
+    public class FunctionMathTests
     {
         [TestInitialize]
         public async Task InitializeDb( )
         {
             await SqlScripts.InitDbAsync( );
-        }
-
-        [TestMethod]
-        public async Task GetDate_Select_CurrentDateIsReturned( )
-        {
-            await using var connection = new MemoryDbConnection( );
-            await connection.OpenAsync( );
-            var command = connection.CreateCommand( );
-            command.CommandText = "SELECT Id, GetDate() as CurrentDate FROM application_feature WHERE Id = 1";
-            await command.PrepareAsync( );
-            var reader = await command.ExecuteReaderAsync();
-            while ( await reader.ReadAsync() )
-            {
-                reader[ "Id" ].Should( ).Be( 1 );
-                reader.GetDateTime(1).Should( ).BeCloseTo( DateTime.Now, TimeSpan.FromSeconds( 5 ) );
-            }
         }
 
         [TestMethod]

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
 using SqlMemoryDb.Exceptions;
+using System;
+using System.Threading.Tasks;
 
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlSelectGroupByTests
+    public class SelectGroupByTests
     {
         [TestInitialize]
         public async Task InitializeDb( )

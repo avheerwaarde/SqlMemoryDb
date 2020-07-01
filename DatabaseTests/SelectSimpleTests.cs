@@ -11,7 +11,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlSelectSimpleTests
+    public class SelectSimpleTests
     {
         public class LikeTestSet
         {

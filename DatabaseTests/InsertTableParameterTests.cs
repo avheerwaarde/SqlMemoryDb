@@ -11,7 +11,7 @@ using SqlMemoryDb.Exceptions;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlInsertTableParameterTests
+    public class InsertTableParameterTests
     {
         [TestInitialize]
         public async Task InitializeDb( )

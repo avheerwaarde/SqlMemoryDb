@@ -13,7 +13,7 @@ using SqlMemoryDb.Exceptions;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlInsertTableTests
+    public class InsertTableTests
     {
         [TestInitialize]
         public async Task InitializeDb( )

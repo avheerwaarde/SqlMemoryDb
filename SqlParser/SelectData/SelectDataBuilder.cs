@@ -11,7 +11,11 @@ namespace SqlMemoryDb.SelectData
     {
         private readonly Dictionary<string, SelectDataFunctionInfo > _Functions = new Dictionary<string, SelectDataFunctionInfo>
         {
-            { "GETDATE"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionGetDate) }},
+            { "GETDATE"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate) }},
+            { "DATEADD"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 3 }},
+            { "DATEDIFF"      , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 3, ReturnType = typeof(int), ReturnDbType = "Int32" }},
+            { "DATENAME"      , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(string), ReturnDbType = "string" }},
+            { "DATEPART"      , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32" }},
             { "COUNT"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
             { "MIN"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
             { "MAX"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
