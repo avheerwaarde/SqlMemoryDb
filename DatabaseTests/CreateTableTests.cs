@@ -8,7 +8,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlCreateTableTests
+    public class CreateTableTests
     {
         [TestMethod]
         public async Task OpenConnection_CreateTable_Ok( )

@@ -154,15 +154,16 @@ namespace SqlMemoryDb.Helpers
             }
             switch ( Type.GetTypeCode(type) )
             {
-                case TypeCode.Boolean: return source.ToUpper( ) == "TRUE" || source == "1";
-                case TypeCode.Byte   : return Convert.ToByte( source ); 
-                case TypeCode.Int16  : return Convert.ToInt16( source );
-                case TypeCode.Int32  : return Convert.ToInt32( source );
-                case TypeCode.Int64  : return Convert.ToInt64( source );
-                case TypeCode.Single : return Convert.ToSingle( source );
-                case TypeCode.Double : return double.Parse( source, CultureInfo.InvariantCulture );
-                case TypeCode.Decimal: return Convert.ToDecimal( source );
-                case TypeCode.String : return source;
+                case TypeCode.Boolean : return source.ToUpper( ) == "TRUE" || source == "1";
+                case TypeCode.Byte    : return Convert.ToByte( source ); 
+                case TypeCode.Int16   : return Convert.ToInt16( source );
+                case TypeCode.Int32   : return Convert.ToInt32( source );
+                case TypeCode.Int64   : return Convert.ToInt64( source );
+                case TypeCode.Single  : return Convert.ToSingle( source );
+                case TypeCode.Double  : return double.Parse( source, CultureInfo.InvariantCulture );
+                case TypeCode.Decimal : return Convert.ToDecimal( source );
+                case TypeCode.String  : return source;
+                case TypeCode.DateTime: return DateTime.Parse( source );
                 default:
                     throw new NotImplementedException( $"Defaults not supported for type { type }" );
             }

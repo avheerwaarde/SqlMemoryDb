@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Dapper;
+﻿using Dapper;
 using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
+using System;
+using System.Threading.Tasks;
 
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlScalarTests
+    public class ScalarTests
     {
         [DataTestMethod]
         [DataRow( "GETDATE()", "DateTime", typeof(DateTime) )]

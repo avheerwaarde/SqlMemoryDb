@@ -1,19 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dapper;
-using DatabaseTests.Dto;
+﻿using Dapper;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
 using SqlMemoryDb.Exceptions;
+using System;
 
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlLocalVariableTests
+    public class LocalVariableTests
     {
         [TestMethod]
         public void LocalVariable_SetFromLiteral_ValueIsSet( )

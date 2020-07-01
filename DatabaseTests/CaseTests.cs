@@ -7,7 +7,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlCaseTests
+    public class CaseTests
     {
         [TestInitialize]
         public void InitDb( )

@@ -6,7 +6,7 @@ using SqlMemoryDb;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlSelectJoinTests
+    public class SelectJoinTests
     {
         [TestInitialize]
         public async Task InitializeDb( )

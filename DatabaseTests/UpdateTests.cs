@@ -12,7 +12,7 @@ using DatabaseTests.Dto;
 namespace DatabaseTests
 {
     [TestClass]
-    public class SqlUpdateTests
+    public class UpdateTests
     {
         [TestInitialize]
         public async Task InitializeDb( )
