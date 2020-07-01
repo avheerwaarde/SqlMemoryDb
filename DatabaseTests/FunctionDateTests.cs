@@ -104,5 +104,59 @@ namespace DatabaseTests
         }
 
 
+        [DataTestMethod]
+        [DataRow("SELECT DAY('2014/04/28');", 28)]
+        [DataRow("SELECT DAY('2014/03/31 10:05');", 31)]
+        [DataRow("SELECT DAY('2014/04/01 10:05:18.621');", 1)]
+        public void Day_Fixed_ValueIsReturned( string sql, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int>( sql );
+            scalar.Should( ).Be( expected );
+        }
+        
+        [DataTestMethod]
+        [DataRow( "SELECT SYSDATETIME();  ", false )]
+        [DataRow( "SELECT SYSDATETIMEOFFSET();", false )]
+        [DataRow( "SELECT SYSUTCDATETIME();  ", true )]
+        [DataRow( "SELECT CURRENT_TIMESTAMP;  ", false )]
+        [DataRow( "SELECT GETDATE();  ", false )]
+        [DataRow( "SELECT GETUTCDATE();  ", true )]
+        public void GetDates_Fixed_CurrentDateIsReturned( string sql, bool isUtc )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<DateTime?>( sql );
+            if (  isUtc )
+            {
+                scalar.Should( ).BeCloseTo( DateTime.UtcNow );
+            }
+            else
+            {
+                scalar.Should( ).BeCloseTo( DateTime.Now );
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT MONTH('2014/04/28');", 4)]
+        [DataRow("SELECT MONTH('2014/03/31 10:05');", 3)]
+        [DataRow("SELECT MONTH('2014/12/01 10:05:18.621');", 12)]
+        public void Month_Fixed_ValueIsReturned( string sql, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT YEAR('2014/04/28');", 2014)]
+        [DataRow("SELECT YEAR('2013/03/31 10:05');", 2013)]
+        [DataRow("SELECT YEAR('2015/12/01 10:05:18.621');", 2015)]
+        public void Year_Fixed_ValueIsReturned( string sql, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var scalar = connection.ExecuteScalar<int>( sql );
+            scalar.Should( ).Be( expected );
+        }
+
     }
 }

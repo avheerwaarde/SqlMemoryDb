@@ -34,11 +34,27 @@ namespace SqlMemoryDb.SelectData
         {
             switch ( _FunctionCall.FunctionName.ToUpper( ) )
             {
-                case "GETDATE": return DateTime.Now;
                 case "DATEADD": return FunctionDateAdd( rows );
                 case "DATEDIFF": return FunctionDateDiff( rows );
                 case "DATENAME": return FunctionDateName( rows );
                 case "DATEPART": return FunctionDatePart( rows );
+                case "SYSDATETIMEOFFSET":
+                case "SYSDATETIME": 
+                case "GETDATE": 
+                case "CURRENT_TIMESTAMP":
+                    return DateTime.Now;
+                case "SYSUTCDATETIME": 
+                case "GETUTCDATE": 
+                    return DateTime.UtcNow;
+                case "DAY": 
+                    var dateDay = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[0], typeof( DateTime ), _RawData, rows );
+                    return dateDay?.Day;
+                case "MONTH": 
+                    var dateMonth = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[0], typeof( DateTime ), _RawData, rows );
+                    return dateMonth?.Month;
+                case "YEAR": 
+                    var dateYear = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[0], typeof( DateTime ), _RawData, rows );
+                    return dateYear?.Year;
                 default:
                     throw new NotImplementedException();
             }
