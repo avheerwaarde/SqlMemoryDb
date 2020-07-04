@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -13,10 +14,10 @@ namespace SqlMemoryDb.SelectData
     {
         public bool IsAggregate => true;
         Type ISelectDataFunction.ReturnType => _ReturnType;
-        string ISelectDataFunction.DbType => _DbType;
+        DbType ISelectDataFunction.DbType => _DbType;
         
         private readonly Type _ReturnType = typeof(int);
-        private readonly string _DbType = "int32";
+        private readonly DbType _DbType = DbType.Int32;
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
         private readonly SqlColumnRefExpression _ColumnRef;
@@ -35,7 +36,7 @@ namespace SqlMemoryDb.SelectData
                 _ColumnRef = GetSingleColumn(  );
                 var tc = Helper.GetTableColumn( _ColumnRef, _RawData );
                 _ReturnType = tc.Column.NetDataType;
-                _DbType = tc.Column.DbDataType.ToString( );
+                _DbType = tc.Column.DbDataType;
             }
         }
 

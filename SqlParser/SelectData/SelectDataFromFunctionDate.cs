@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -11,10 +12,10 @@ namespace SqlMemoryDb.SelectData
     {
         public bool IsAggregate => false;
         Type ISelectDataFunction.ReturnType => _ReturnType;
-        string ISelectDataFunction.DbType => _DbType;
+        DbType ISelectDataFunction.DbType => _DbType;
         
         private readonly Type _ReturnType = typeof(DateTime);
-        private readonly string _DbType = "datetime";
+        private readonly DbType _DbType = DbType.DateTime;
 
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
@@ -23,10 +24,10 @@ namespace SqlMemoryDb.SelectData
         {
             _FunctionCall = functionCall;
             _RawData = rawData;
-            if ( string.IsNullOrWhiteSpace( info.ReturnDbType ) == false )
+            if ( info.ReturnDbType.HasValue )
             {
                 _ReturnType = info.ReturnType;
-                _DbType = info.ReturnDbType;
+                _DbType = info.ReturnDbType.Value;
             }
         }
 

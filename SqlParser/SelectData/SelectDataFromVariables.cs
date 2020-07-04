@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Helpers;
 
@@ -21,7 +22,7 @@ namespace SqlMemoryDb.SelectData
 
         public bool IsAggregate => false;
         public Type ReturnType => _Parameter.NetDataType;
-        public string DbType => _Parameter.DbType.ToString();
+        public DbType DbType => _Parameter.DbType;
 
         public object Select( List<List<RawData.RawDataRow>> rows )
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Reflection;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -18,12 +19,12 @@ namespace SqlMemoryDb.SelectData
             { "SYSUTCDATETIME"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate) }},
             { "SYSDATETIMEOFFSET"    , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate) }},
             { "DATEADD"              , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 3 }},
-            { "DATEDIFF"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 3, ReturnType = typeof(int), ReturnDbType = "Int32" }},
-            { "DATENAME"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(string), ReturnDbType = "string" }},
-            { "DATEPART"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32" }},
-            { "DAY"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32" }},
-            { "MONTH"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32" }},
-            { "YEAR"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32" }},
+            { "DATEDIFF"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 3, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
+            { "DATENAME"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(string), ReturnDbType = DbType.String }},
+            { "DATEPART"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
+            { "DAY"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
+            { "MONTH"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
+            { "YEAR"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionDate), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
             { "COUNT"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
             { "MIN"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
             { "MAX"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionMathAggregate) }},
@@ -37,17 +38,17 @@ namespace SqlMemoryDb.SelectData
             { "RAND"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionRandom) }},
             { "SCOPE_IDENTITY"       , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
             { "IDENT_CURRENT"        , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionIdentity) }},
-            { "ASCII"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(byte), ReturnDbType = "byte"}},
-            { "CHAR"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = "char"}},
-            { "CHARINDEX"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "ASCII"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(byte), ReturnDbType = DbType.Byte }},
+            { "CHAR"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = DbType.Object }},
+            { "CHARINDEX"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = DbType.Int32}},
             { "CONCAT"               , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
-            { "DATALENGTH"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "DATALENGTH"           , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
             { "LEFT"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
-            { "LEN"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "LEN"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
             { "LOWER"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
             { "LTRIM"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
-            { "NCHAR"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = "char"}},
-            { "PATINDEX"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = "Int32"}},
+            { "NCHAR"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1, ReturnType = typeof(char), ReturnDbType = DbType.Object }},
+            { "PATINDEX"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
             { "REPLACE"              , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 3 }},
             { "RIGHT"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 2 }},
             { "RTRIM"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
@@ -56,6 +57,10 @@ namespace SqlMemoryDb.SelectData
             { "STUFF"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 4 }},
             { "SUBSTRING"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 3 }},
             { "UPPER"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionText), MinimalArgumentCount = 1 }},
+            { "CAST"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
+            { "TRY_CAST"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
+            { "CONVERT"              , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
+            { "TRY_CONVERT"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
         };
 
         private readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>

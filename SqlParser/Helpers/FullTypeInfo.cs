@@ -7,7 +7,7 @@ namespace SqlMemoryDb.Helpers
 {
     class FullTypeInfo
     {
-        public string DbDataType { get ; set ; }
+        public DbType? DbDataType { get ; set ; }
         public Type NetDataType { get ; set ; }
     }
 }

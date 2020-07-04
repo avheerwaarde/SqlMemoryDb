@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -24,7 +25,7 @@ namespace SqlMemoryDb.SelectData
                 _ScalarExpression = _Expression.ElseExpression;
             }
 
-            if ( _Expression.ElseExpression == null || _FullTypeInfo.DbDataType == "Null")
+            if ( _Expression.ElseExpression == null || _FullTypeInfo.DbDataType == null)
             {
                 var whenExpression = _Expression.WhenClauses.First( );
                 _FullTypeInfo = Helper.DetermineFullTypeInfo( whenExpression.ThenExpression, rawData );
@@ -48,7 +49,7 @@ namespace SqlMemoryDb.SelectData
 
         public bool IsAggregate => false;
         public Type ReturnType => _FullTypeInfo.NetDataType;
-        public string DbType => _FullTypeInfo.DbDataType;
+        public DbType DbType => _FullTypeInfo.DbDataType ?? DbType.Int32 ;
 
         public object Select( List<List<RawData.RawDataRow>> rows )
         {

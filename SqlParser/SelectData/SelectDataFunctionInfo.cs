@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 
 namespace SqlMemoryDb.SelectData
 {
@@ -7,6 +8,6 @@ namespace SqlMemoryDb.SelectData
         public Type SelectType;
         public int MinimalArgumentCount;
         public Type ReturnType;
-        public string ReturnDbType;
+        public DbType? ReturnDbType;
     }
 }
