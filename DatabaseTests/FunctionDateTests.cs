@@ -12,15 +12,10 @@ namespace DatabaseTests
     [TestClass]
     public class FunctionDateTests
     {
-        [TestInitialize]
-        public async Task InitializeDb( )
-        {
-            await SqlScripts.InitDbAsync( );
-        }
-
         [TestMethod]
         public async Task GetDate_Select_CurrentDateIsReturned( )
         {
+            await SqlScripts.InitDbAsync( );
             await using var connection = new MemoryDbConnection( );
             await connection.OpenAsync( );
             var command = connection.CreateCommand( );
@@ -157,6 +152,7 @@ namespace DatabaseTests
             var scalar = connection.ExecuteScalar<int>( sql );
             scalar.Should( ).Be( expected );
         }
+
 
     }
 }

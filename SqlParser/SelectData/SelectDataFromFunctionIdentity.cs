@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -46,7 +47,7 @@ namespace SqlMemoryDb.SelectData
 
         public bool IsAggregate => false;
         public Type ReturnType => typeof( decimal );
-        public string DbType => "decimal";
+        public DbType DbType => DbType.Decimal;
 
         public object Select( List<List<RawData.RawDataRow>> rows )
         {

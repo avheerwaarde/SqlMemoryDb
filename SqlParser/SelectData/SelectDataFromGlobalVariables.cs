@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace SqlMemoryDb.SelectData
@@ -26,7 +27,7 @@ namespace SqlMemoryDb.SelectData
 
         public bool IsAggregate => false;
         public Type ReturnType => typeof( int );
-        public string DbType => "int";
+        public DbType DbType => DbType.Int32;
 
         public object Select( List<List<RawData.RawDataRow>> rows )
         {

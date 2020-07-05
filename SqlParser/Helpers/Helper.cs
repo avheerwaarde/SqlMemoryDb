@@ -262,7 +262,7 @@ namespace SqlMemoryDb.Helpers
         }
 
 
-        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row )
+        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row, bool getTypeFromLiteral = false )
         {
             switch ( expression )
             {
@@ -288,7 +288,9 @@ namespace SqlMemoryDb.Helpers
                     {
                         return null;
                     }
-                    return GetValueFromString( type, literal.Value );
+
+                    var literalType = getTypeFromLiteral ? GetTypeFromLiteralType( literal.Type ) : type;
+                    return GetValueFromString( literalType, literal.Value );
                 }
 
                 case SqlScalarVariableRefExpression variableRef:
@@ -481,7 +483,7 @@ namespace SqlMemoryDb.Helpers
                 case SqlColumnRefExpression columnRef:
                 {
                     var field = Helper.GetTableColumn( columnRef, rawData );
-                    return new FullTypeInfo { DbDataType = field.Column.DbDataType.ToString(), NetDataType = field.Column.NetDataType };
+                    return new FullTypeInfo { DbDataType = field.Column.DbDataType, NetDataType = field.Column.NetDataType };
                 }
                 case SqlScalarVariableRefExpression variableRef:
                 {
@@ -491,7 +493,7 @@ namespace SqlMemoryDb.Helpers
                 case SqlScalarRefExpression scalarRef:
                 {
                     var field = Helper.GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
-                    return new FullTypeInfo { DbDataType = field.Column.DbDataType.ToString(), NetDataType = field.Column.NetDataType };
+                    return new FullTypeInfo { DbDataType = field.Column.DbDataType, NetDataType = field.Column.NetDataType };
                 }
                 case SqlAggregateFunctionCallExpression functionCall:
                 {
@@ -505,7 +507,7 @@ namespace SqlMemoryDb.Helpers
                 }
                 case SqlLiteralExpression literalExpression:
                 {
-                    return new FullTypeInfo { DbDataType = literalExpression.Type.ToString(), NetDataType = GetTypeFromLiteralType( literalExpression.Type ) };
+                    return new FullTypeInfo { DbDataType = GetDbTypeFromLiteralType( literalExpression.Type ), NetDataType = GetTypeFromLiteralType( literalExpression.Type ) };
                 }
             }
 
@@ -529,6 +531,26 @@ namespace SqlMemoryDb.Helpers
                 case LiteralValueType.UnicodeString:
                 default:
                     return typeof(string);
+            }
+        }
+
+        private static DbType? GetDbTypeFromLiteralType( LiteralValueType literalExpressionType )
+        {
+            switch ( literalExpressionType )
+            {
+                case LiteralValueType.Binary: return DbType.Binary;
+                case LiteralValueType.Identifier: return DbType.Int32;
+                case LiteralValueType.Integer: return DbType.Int32;
+                case LiteralValueType.Image: return DbType.Binary;
+                case LiteralValueType.Money: return DbType.Decimal;
+                case LiteralValueType.Null: return null;
+                case LiteralValueType.Numeric: return DbType.Decimal;
+                case LiteralValueType.Real: return DbType.Single;
+                case LiteralValueType.Default: 
+                case LiteralValueType.String:
+                case LiteralValueType.UnicodeString:
+                default:
+                    return DbType.String;
             }
         }
 

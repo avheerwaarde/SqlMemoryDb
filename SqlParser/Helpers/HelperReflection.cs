@@ -18,6 +18,15 @@ namespace SqlMemoryDb.Helpers
                                        && m.GetParameters(  ).Length == parameterCount );
         }
 
+        public static bool HasMathMethodInfo( string methodName, Type type, int parameterCount = 1 )
+        {
+            Type enumerableT = typeof(Math);
+            var methods = enumerableT.GetMethods( );
+            return methods.Any( m => m.Name == methodName 
+                                       && m.GetParameters(  ).First().ParameterType == type
+                                       && m.GetParameters(  ).Length == parameterCount );
+        }
+
         public static MethodInfo GetGenericMathMethodInfo( string methodName, Type type )
         {
             var methods = typeof(GenericMath).GetMethods( );

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
@@ -290,7 +287,7 @@ namespace SqlMemoryDb
             var readerField = new MemoryDbDataReader.ReaderFieldData
             {
                 Name = name,
-                DbType = select.DbType,
+                DbType = select.DbType.ToString(),
                 NetType = select.ReturnType,
                 FieldIndex = batch.Fields.Count,
                 SelectFieldData = select
