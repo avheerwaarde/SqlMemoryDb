@@ -194,6 +194,9 @@ namespace SqlMemoryDb
                         case SqlBuiltinScalarFunctionCallExpression functionCall:
                             AddFieldForFunctionCall( functionCall, name, batch, rawData );
                             break;
+                        case SqlNullScalarExpression nullScalarExpression:
+                            AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
+                            break;
                         case SqlSearchedCaseExpression caseExpression:
                             AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
                             break;
@@ -294,5 +297,11 @@ namespace SqlMemoryDb
             };
             batch.Fields.Add( readerField );
         }
+
+        private void AddFieldForNullScalarExpression( SqlNullScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            throw new NotImplementedException( );
+        }
+
     }
 }

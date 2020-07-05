@@ -18,7 +18,7 @@ namespace SqlMemoryDb.SelectData
         private readonly Type _ReturnType = typeof(bool);
         private readonly DbType _DbType = DbType.Boolean;
 
-        private readonly SqlCastExpression _FunctionCall;
+        private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
 
         private readonly Dictionary<int, string> _DateStyles = new Dictionary<int, string>
@@ -73,11 +73,19 @@ namespace SqlMemoryDb.SelectData
 
         public SelectDataFromFunctionConversion( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData, SelectDataFunctionInfo info )
         {
-            _FunctionCall = ( SqlCastExpression ) functionCall;
+            _FunctionCall = functionCall;
             _RawData = rawData;
-            var dataTypeInfo = new DataTypeInfo( _FunctionCall.DataType.Sql );
-            _ReturnType = dataTypeInfo.NetDataType;
-            _DbType = dataTypeInfo.DbDataType;
+            if ( info.ReturnDbType.HasValue )
+            {
+                _ReturnType = info.ReturnType;
+                _DbType = info.ReturnDbType.Value;
+            }
+            else if ( functionCall is SqlCastExpression castFunction )
+            {
+                var dataTypeInfo = new DataTypeInfo( castFunction.DataType.Sql );
+                _ReturnType = dataTypeInfo.NetDataType;
+                _DbType = dataTypeInfo.DbDataType;
+            }
         }
 
         public object Select( List<RawData.RawDataRow> rows )
@@ -90,7 +98,7 @@ namespace SqlMemoryDb.SelectData
                     {
                         return FunctionCast( rows );
                     }
-                    catch (Exception exception)
+                    catch (Exception)
                     {
                         if ( _FunctionCall.FunctionName.ToUpper( ) == "TRY_CAST" )
                         {
@@ -105,7 +113,7 @@ namespace SqlMemoryDb.SelectData
                     {
                         return FunctionConvert( rows );
                     }
-                    catch (Exception exception)
+                    catch (Exception)
                     {
                         if ( _FunctionCall.FunctionName.ToUpper( ) == "TRY_CONVERT" )
                         {
@@ -114,6 +122,10 @@ namespace SqlMemoryDb.SelectData
                         throw new SqlInvalidCastException( _DbType.ToString() );
                     }
 
+                case "ISDATE":
+                    return FunctionIsDate( rows );
+                case "ISNULL":
+                    return FunctionIsNull( rows );
                 default:
                     throw new NotImplementedException();
             }
@@ -178,6 +190,44 @@ namespace SqlMemoryDb.SelectData
                     return (string)Convert.ChangeType( value, _ReturnType, CultureInfo.InvariantCulture );
             }
         }
+
+        private int FunctionIsDate( List<RawData.RawDataRow> rows )
+        {
+            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
+            if ( value is DateTime )
+            {
+                return 1;
+            }
+
+            if ( value is string )
+            {
+                try
+                {
+                    Helper.GetValueFromString( typeof( DateTime ), (string)value );
+                    return 1;
+                }
+                catch ( Exception  )
+                {
+                    // If string is no date, we will return a 0, not an exception.
+                }
+            }
+
+            return 0;
+        }
+
+        private object FunctionIsNull( List<RawData.RawDataRow> rows )
+        {
+            foreach ( var argument in _FunctionCall.Arguments )
+            {
+                var value = Helper.GetValue( argument, _ReturnType, _RawData, rows, true );
+                if ( value != null )
+                {
+                    return value;
+                }
+            }
+            return null;
+        }
+
 
         public object Select( List<List<RawData.RawDataRow>> rows )
         {

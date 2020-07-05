@@ -18,11 +18,13 @@ namespace SqlMemoryDb.SelectData
 
         public object Select( List<RawData.RawDataRow> rows )
         {
-            if ( _GlobalVariableName.ToUpper() == "@@IDENTITY" )
+            switch ( _GlobalVariableName.ToUpper( ) )
             {
-                return ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( ).LastIdentitySet;
+                case "@@IDENTITY": return ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( ).LastIdentitySet;
+                case "@@VERSION": return ((MemoryDbConnection )_RawData.Command.Connection).ServerVersion;
+                default:
+                    throw new NotImplementedException( );
             }
-            throw new NotImplementedException( );
         }
 
         public bool IsAggregate => false;
