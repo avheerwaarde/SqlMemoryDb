@@ -89,7 +89,23 @@ namespace DatabaseTests
         {
             using var connection = new MemoryDbConnection( );
             var scalar = connection.ExecuteScalar<string>( "SELECT CONVERT(varchar, '2014-02-15', 101)" );
-            scalar.Should( ).Be( "15/02/2014" );
+            scalar.Should( ).Be( "02/15/2014" );
+        }
+
+        [TestMethod]
+        public void TryConvertInvalidStringWithFormat_Fixed_NullIsReturned(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            var date =  connection.ExecuteScalar<string>( "SELECT TRY_CONVERT(varchar, 'Invalid', 101);" );
+            date.Should( ).Be( "Invalid" );
+        }
+
+        [TestMethod]
+        public void ConvertInvalidStringWithFormat_Fixed_OriginalValueIsReturned(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            var value = connection.ExecuteScalar<string>( "SELECT CONVERT(varchar, 'Invalid', 101);" );
+            value.Should( ).Be( "Invalid" );
         }
     }
 }

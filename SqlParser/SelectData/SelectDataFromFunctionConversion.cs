@@ -121,7 +121,7 @@ namespace SqlMemoryDb.SelectData
 
         private object FunctionCast( List<RawData.RawDataRow> rows )
         {
-            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows );
+            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             value = TruncateDoubleIfReturnTypeHasNoDecimals( value );
 
             return Convert.ChangeType( value, _ReturnType, CultureInfo.InvariantCulture );
@@ -142,7 +142,7 @@ namespace SqlMemoryDb.SelectData
 
         private object FunctionConvert( List<RawData.RawDataRow> rows )
         {
-            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows );
+            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             value = TruncateDoubleIfReturnTypeHasNoDecimals( value );
 
             if ( _ReturnType == typeof(string) && _FunctionCall.Arguments.Count == 2 )
@@ -155,6 +155,18 @@ namespace SqlMemoryDb.SelectData
 
         private string FormattedAsString( object value, List<RawData.RawDataRow> rows )
         {
+            if ( value is string && _ReturnType == typeof(string) )
+            {
+                if ( DateTime.TryParse( value.ToString(  ), out var dateValue ) )
+                {
+                    value = dateValue;
+                }    
+                else if ( Decimal.TryParse( value.ToString(  ), out var decimalValue ) )
+                {
+                    value = decimalValue;
+                }
+            }
+
             var style = (int)Helper.GetValue( _FunctionCall.Arguments[1], typeof(int), _RawData, rows );
             switch ( Type.GetTypeCode( value.GetType(  ) ) )
             {

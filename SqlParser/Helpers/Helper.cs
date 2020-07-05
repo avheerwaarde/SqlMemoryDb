@@ -262,7 +262,7 @@ namespace SqlMemoryDb.Helpers
         }
 
 
-        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row )
+        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row, bool getTypeFromLiteral = false )
         {
             switch ( expression )
             {
@@ -288,7 +288,9 @@ namespace SqlMemoryDb.Helpers
                     {
                         return null;
                     }
-                    return GetValueFromString( GetTypeFromLiteralType( literal.Type ), literal.Value );
+
+                    var literalType = getTypeFromLiteral ? GetTypeFromLiteralType( literal.Type ) : type;
+                    return GetValueFromString( literalType, literal.Value );
                 }
 
                 case SqlScalarVariableRefExpression variableRef:
