@@ -126,6 +126,8 @@ namespace SqlMemoryDb.SelectData
                     return FunctionIsDate( rows );
                 case "ISNULL":
                     return FunctionIsNull( rows );
+                case "ISNUMERIC":
+                    return FunctionIsNumeric( rows );
                 default:
                     throw new NotImplementedException();
             }
@@ -226,6 +228,25 @@ namespace SqlMemoryDb.SelectData
                 }
             }
             return null;
+        }
+
+        private int FunctionIsNumeric( List<RawData.RawDataRow> rows )
+        {
+            var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
+            if ( value is byte || value is Int16 || value is Int32 || value is Int64 || value is float || value is double || value is decimal )
+            {
+                return 1;
+            }
+
+            if ( value is string stringValue )
+            {
+                if ( decimal.TryParse( stringValue, NumberStyles.Any, CultureInfo.InvariantCulture, out var decimalValue ) )
+                {
+                    return 1;
+                }
+            }
+
+            return 0;
         }
 
 

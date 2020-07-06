@@ -377,12 +377,24 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
+        public static MemoryDbDataReader.ReaderFieldData BuildFieldFromNullValue( string name, int fieldsCount )
+        {
+            return new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = name,
+                DbType = DbType.Object.ToString(),
+                NetType = typeof(object),
+                FieldIndex = fieldsCount,
+                SelectFieldData = new SelectDataFromObject( null )
+            };
+        }
+
         public static MemoryDbDataReader.ReaderFieldData BuildFieldFromStringValue( string literal, string name, int fieldsCount )
         {
             var readerField = new MemoryDbDataReader.ReaderFieldData
             {
                 Name = name,
-                DbType = "nvarchar",
+                DbType = DbType.String.ToString(),
                 NetType = typeof(string),
                 FieldIndex = fieldsCount
             };

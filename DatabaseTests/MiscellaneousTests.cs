@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Dapper;
+using DatabaseTests.Dto;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
@@ -78,6 +79,30 @@ namespace DatabaseTests
             using var connection = new MemoryDbConnection( );
             var value = connection.ExecuteScalar<int>( sql );
             value.Should( ).Be( expected );
+        }
+
+        [DataTestMethod]
+        [DataRow("SELECT ISNUMERIC(1234);", 1)]
+        [DataRow("SELECT ISNUMERIC('1234');", 1)]
+        [DataRow("SELECT ISNUMERIC('techonthenet.com');", 0)]
+        [DataRow("SELECT ISNUMERIC('2014-05-01');", 0)]
+        public void IsNumeric_Fixed_IsReturned( string sql, int expected )
+        {
+            using var connection = new MemoryDbConnection( );
+            var value = connection.ExecuteScalar<int>( sql );
+            value.Should( ).Be( expected );
+        }
+
+        [TestMethod]
+        public void Lead_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LEAD (salary,1) OVER (ORDER BY salary) AS next_highest_salary
+FROM employees;";
+
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql );
         }
     }
 }
