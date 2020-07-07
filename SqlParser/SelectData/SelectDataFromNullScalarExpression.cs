@@ -33,11 +33,10 @@ namespace SqlMemoryDb.SelectData
             var querySpecification = (SqlQuerySpecification)selectExpression.SelectSpecification.QueryExpression;
 
             var db = (( MemoryDbConnection ) _RawData.Command.Connection ).GetMemoryDatabase( );
-            var reader = new MemoryDbDataReader( CommandBehavior.SingleResult );
             var batch = new MemoryDbDataReader.ResultBatch(  );
             var rawData = new RawData( _RawData.Command, batch  );
             rawData.RawRowList.Add( rows );
-            var statement = new ExecuteQueryStatement( db, _RawData.Command, reader );
+            var statement = new ExecuteQueryStatement( db, _RawData.Command );
             statement.InitializeFields( batch, querySpecification.SelectClause.Children.ToList(  ), rawData );
             new QueryResultBuilder( rawData, false ).AddData( batch );
 

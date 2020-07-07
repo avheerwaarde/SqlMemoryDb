@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Dapper;
 using DatabaseTests.Dto;
@@ -25,6 +26,30 @@ namespace DatabaseTests
         {
             using var connection = new MemoryDbConnection( );
             var value = connection.ExecuteScalar<string>( "SELECT CURRENT_USER" );
+            value.Should( ).Be( "dbo" );
+        }
+
+        [TestMethod]
+        public void SessionUser_Fixed_IsReturned(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            var value = connection.ExecuteScalar<string>( "SELECT SESSION_USER" );
+            value.Should( ).Be( "dbo" );
+        }
+
+        [TestMethod]
+        public void SystemUser_Fixed_IsReturned(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            var value = connection.ExecuteScalar<string>( "SELECT SYSTEM_USER" );
+            value.Should( ).NotBeEmpty( );
+        }
+
+        [TestMethod]
+        public void UserName_Fixed_IsReturned(  )
+        {
+            using var connection = new MemoryDbConnection( );
+            var value = connection.ExecuteScalar<string>( "SELECT USER_NAME()" );
             value.Should( ).Be( "dbo" );
         }
 
@@ -99,10 +124,107 @@ namespace DatabaseTests
             const string sql = @"SELECT dept_id, last_name, salary,
 LEAD (salary,1) OVER (ORDER BY salary) AS next_highest_salary
 FROM employees;";
+            var expectedNext = new List<int?> { 54000, 57500, 65000, 80000, null };
 
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
             connection.Execute( SqlStatements.SqlLeadExamples );
-            var employees = connection.Query<EmployeeLeadDto>( sql );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.salary).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
         }
+
+        [TestMethod]
+        public void LeadWithDefault_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LEAD (salary,1, 0) OVER (ORDER BY salary) AS next_highest_salary
+FROM employees;";
+            var expectedNext = new List<int?> { 54000, 57500, 65000, 80000, 0 };
+
+            using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.salary).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
+        }
+
+        [TestMethod]
+        public void LeadWithPartition_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LEAD (salary,1) OVER (PARTITION BY dept_id ORDER BY salary) AS next_highest_salary
+FROM employees;";
+            var expectedNext = new List<int?> { 65000, null, 54000, 80000, null };
+
+            using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.dept_id).ThenBy( e => e.salary ).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
+        }
+
+        [TestMethod]
+        public void Lag_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LAG (salary,1) OVER (ORDER BY salary) AS next_highest_salary
+FROM employees;";
+            var expectedNext = new List<int?> { null, 42000, 54000, 57500, 65000 };
+
+            using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.salary).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
+        }
+
+        [TestMethod]
+        public void LagWithDefault_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LAG (salary,1, 0) OVER (ORDER BY salary) AS next_highest_salary
+FROM employees;";
+            var expectedNext = new List<int?> { 0, 42000, 54000, 57500, 65000 };
+
+            using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.salary).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
+        }
+
+        [TestMethod]
+        public void LagWithPartition_Fixed_ResultIsReturned( )
+        {
+            const string sql = @"SELECT dept_id, last_name, salary,
+LAG (salary,1) OVER (PARTITION BY dept_id ORDER BY salary) AS next_highest_salary
+FROM employees;";
+            var expectedNext = new List<int?> { null, 57500, null, 42000, 54000 };
+
+            using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( SqlStatements.SqlLeadExamples );
+            var employees = connection.Query<EmployeeLeadDto>( sql ).OrderBy(e => e.dept_id).ThenBy( e => e.salary ).ToList(  );
+            for ( int index = 0; index < expectedNext.Count; index++ )
+            {
+                employees[ index ].next_highest_salary.Should( ).Be( expectedNext[ index ] );
+            }
+        }
+
     }
 }

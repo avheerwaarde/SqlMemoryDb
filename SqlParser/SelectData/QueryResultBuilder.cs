@@ -141,6 +141,16 @@ namespace SqlMemoryDb.SelectData
                     var value = field.SelectFieldData.Select( row );
                     resultRow.Add( value );
                 }
+
+                if ( _RawData.WhereClause != null )
+                {
+                    var filter = HelperConditional.GetRowFilter( _RawData.WhereClause, _RawData );
+                    if ( filter.IsValid( row ) == false )
+                    {
+                        continue;
+                    }
+                    
+                }
                 var internalResult = new InternalResultRow{ ResultRow = resultRow, RawRowList = row };
                 AddRowToList( internalList, internalResult );
             }

@@ -142,5 +142,18 @@ namespace SqlMemoryDb.Helpers
             CurrentIndex = index;
             return builder.ToString( ).Trim();
         }
+
+        public int FindToken( string tokenType )
+        {
+            var index = 0;
+            while ( _Tokens[ index ].Type != tokenType && ++index < _Tokens.Count  ){ }
+
+            if ( index == _Tokens.Count )
+            {
+                return -1;
+            }
+            CurrentIndex = index;
+            return index;
+        }
     }
 }

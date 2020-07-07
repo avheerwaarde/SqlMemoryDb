@@ -13,23 +13,17 @@ namespace SqlMemoryDb
     {
 
         private readonly MemoryDbCommand _Command;
-        private readonly MemoryDbDataReader _Reader;
-        private readonly MemoryDatabase _Database;
 
-
-        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command,
-            MemoryDbDataReader reader )
+        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
         {
-            _Database = memoryDatabase;
             _Command = command;
-            _Reader = reader;
         }
 
-        public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
+        public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement, MemoryDbDataReader reader )
         {
             var rawData = new RawData( _Command );
             var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
-            _Reader.AddResultBatch( batch );
+            reader.AddResultBatch( batch );
         }
 
         private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,

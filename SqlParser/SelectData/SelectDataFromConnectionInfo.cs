@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace SqlMemoryDb.SelectData
@@ -33,7 +32,12 @@ namespace SqlMemoryDb.SelectData
         {
             switch ( _FunctionCall.FunctionName.ToUpper( ) )
             {
-                case "CURRENT_USER": return "dbo";
+                case "CURRENT_USER": 
+                case "SESSION_USER": 
+                case "USER_NAME": 
+                    return "dbo";
+                case "SYSTEM_USER":
+                    return Environment.UserName ?? "Unknown";
                 default:
                     throw new NotImplementedException();
             }

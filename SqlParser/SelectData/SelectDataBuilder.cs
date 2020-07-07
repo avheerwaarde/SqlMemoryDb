@@ -64,7 +64,11 @@ namespace SqlMemoryDb.SelectData
             { "ISDATE"               , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
             { "ISNULL"               , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 2 }},
             { "ISNUMERIC"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
-            { "LEAD"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionLead), MinimalArgumentCount = 1 }},
+            { "LEAD"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionLeadLag), MinimalArgumentCount = 2 }},
+            { "LAG"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionLeadLag), MinimalArgumentCount = 2 }},
+            { "SESSION_USER"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "SYSTEM_USER"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "USER_NAME"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
         };
 
         private readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>

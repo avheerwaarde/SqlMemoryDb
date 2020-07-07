@@ -23,6 +23,7 @@ namespace SqlMemoryDb
         public List<List<RawDataRow>> RawRowList = new List<List<RawDataRow>>();
         public DbParameterCollection Parameters { get; set; }
         public SqlBooleanExpression HavingClause { get; set; }
+        public SqlBooleanExpression WhereClause { get; set; }
         public SqlOrderByItemCollection SortOrder { get; set; }
         public MemoryDbDataReader.ResultBatch Batch { get; set; }
         public Dictionary<string, Table> TableAliasList = new Dictionary<string, Table>();
@@ -107,8 +108,7 @@ namespace SqlMemoryDb
         {
             var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
             var rawData = new RawData( command );
-            var reader = new MemoryDbDataReader( CommandBehavior.SingleResult );
-            var batch = new ExecuteQueryStatement( _Database, command, reader ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
+            var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
             var identifier = view.Definition.Name;
             var rowList = ResultBatch2RowList( name, identifier, batch );
             RawRowList.AddRange( rowList );

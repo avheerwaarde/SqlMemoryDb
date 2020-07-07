@@ -11,6 +11,6 @@ namespace DatabaseTests.Dto
         public int dept_id { get; set; }
         public string last_name { get; set; }
         public int salary { get; set; }  
-        public int next_highest_salary { get; set; }  
+        public int? next_highest_salary { get; set; }  
     }
 }
