@@ -79,7 +79,7 @@ namespace SqlMemoryDb
                     new ExecuteNonQueryStatement( this, command ).Execute( Tables, deleteStatement );
                     break;
                 case SqlSelectStatement selectStatement:
-                    new ExecuteQueryStatement( this, command, command.DataReader ).Execute( Tables, selectStatement );
+                    new ExecuteQueryStatement( this, command ).Execute( Tables, selectStatement, command.DataReader );
                     break;
                 case SqlCompoundStatement compoundStatement:
                     foreach ( var compoundChild in compoundStatement.Children )

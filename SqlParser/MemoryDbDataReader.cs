@@ -31,6 +31,12 @@ namespace SqlMemoryDb
             public int? MaxRowsCount;
         }
 
+        internal class ResultBatchWithRawRows : ResultBatch
+        {
+            public List<List<RawData.RawDataRow>> RawRows = new List<List<RawData.RawDataRow>>();
+        }
+
+
         private readonly CommandBehavior _CommandBehavior;
         private readonly List<ResultBatch> _ResultBatches = new List<ResultBatch>();
         private int _CurrentBatchIndex = -1;

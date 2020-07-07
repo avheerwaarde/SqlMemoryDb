@@ -8,7 +8,7 @@ namespace SqlMemoryDb
     {
         internal string InternalDatabaseName;
         internal ConnectionState InternalState;
-        private const string _DatabaseServerVersion = "0.10.16";
+        private const string _DatabaseServerVersion = "SQL Memory Database V0.10.17";
         private static readonly MemoryDatabase _MemoryDatabase = new MemoryDatabase(  );
 
         public override string ConnectionString { get; set; }

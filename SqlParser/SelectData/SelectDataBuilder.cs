@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using System.Text;
-using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using SqlMemoryDb.Exceptions;
 
 namespace SqlMemoryDb.SelectData
 {
@@ -61,11 +60,22 @@ namespace SqlMemoryDb.SelectData
             { "TRY_CAST"             , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
             { "CONVERT"              , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
             { "TRY_CONVERT"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
+            { "CURRENT_USER"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "ISDATE"               , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1, ReturnType = typeof(int), ReturnDbType = DbType.Int32 }},
+            { "ISNULL"               , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 2 }},
+            { "ISNUMERIC"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionConversion), MinimalArgumentCount = 1 }},
+            { "LEAD"                 , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionLeadLag), MinimalArgumentCount = 2 }},
+            { "LAG"                  , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionLeadLag), MinimalArgumentCount = 2 }},
+            { "SESSION_USER"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "SYSTEM_USER"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "USER_NAME"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
         };
 
         private readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>
         {
-            { "@@IDENTITY", typeof(SelectDataFromGlobalVariables) }
+            { "@@IDENTITY", typeof(SelectDataFromGlobalVariables) },
+            { "@@VERSION", typeof(SelectDataFromGlobalVariables) }
+
         };
 
         public ISelectDataFunction Build( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )

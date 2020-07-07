@@ -42,7 +42,7 @@ namespace SqlMemoryDb.SelectData
                 AddRowData( internalList, fields );
             }
 
-            batch.ResultRows = OrderResultRows( fields, internalList, _RawData.SortOrder );
+            batch.ResultRows = AddOrderedResultRows( batch, fields, internalList, _RawData.SortOrder );
             if ( batch.MaxRowsCount.HasValue )
             {
                 batch.ResultRows = batch.ResultRows.Take( batch.MaxRowsCount.Value ).ToList(  );
@@ -141,6 +141,16 @@ namespace SqlMemoryDb.SelectData
                     var value = field.SelectFieldData.Select( row );
                     resultRow.Add( value );
                 }
+
+                if ( _RawData.WhereClause != null )
+                {
+                    var filter = HelperConditional.GetRowFilter( _RawData.WhereClause, _RawData );
+                    if ( filter.IsValid( row ) == false )
+                    {
+                        continue;
+                    }
+                    
+                }
                 var internalResult = new InternalResultRow{ ResultRow = resultRow, RawRowList = row };
                 AddRowToList( internalList, internalResult );
             }
@@ -155,20 +165,26 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public List<ArrayList> OrderResultRows( MemoryDbDataReader.ResultBatch batch, SqlOrderByItemCollection sortOrderList )
+        public List<ArrayList> AddOrderedResultRows( MemoryDbDataReader.ResultBatch batch, SqlOrderByItemCollection sortOrderList )
         {
             var fields = batch.Fields.Cast<MemoryDbDataReader.ReaderFieldData>(  ).ToList();
             var internalList = batch.ResultRows.Select( r => new InternalResultRow { ResultRow = r } ).ToList( );
-            return OrderResultRows( fields, internalList, sortOrderList );
+            return AddOrderedResultRows( batch, fields, internalList, sortOrderList );
         }
 
-        private List<ArrayList> OrderResultRows( List<MemoryDbDataReader.ReaderFieldData> fields, List<InternalResultRow> internalList,
-                                                SqlOrderByItemCollection sortOrderList )
+        private List<ArrayList> AddOrderedResultRows( MemoryDbDataReader.ResultBatch batch,
+            List<MemoryDbDataReader.ReaderFieldData> fields, List<InternalResultRow> internalList,
+            SqlOrderByItemCollection sortOrderList )
         {
             if ( sortOrderList == null )
             {
                 var rows = internalList.Select( i => i.ResultRow );
-                return rows.ToList(  );
+                batch.ResultRows = rows.ToList(  );
+                if ( batch is MemoryDbDataReader.ResultBatchWithRawRows rawBatch1 )
+                {
+                    rawBatch1.RawRows = internalList.Select( i => i.RawRowList ).ToList();
+                }
+                return batch.ResultRows;
             }
 
             var isAggregateRowList = internalList.Any( i => i.RawAggregateRowList.Any(  ) );
@@ -185,7 +201,12 @@ namespace SqlMemoryDb.SelectData
                 }
 
             }
-            return orderedRows.Select( i => i.ResultRow ).ToList();
+            batch.ResultRows = orderedRows.Select( i => i.ResultRow ).ToList();
+            if ( batch is MemoryDbDataReader.ResultBatchWithRawRows rawBatch )
+            {
+                rawBatch.RawRows = orderedRows.Select( i => i.RawRowList ).ToList();
+            }
+            return batch.ResultRows;
         }
 
         private IOrderedEnumerable<InternalResultRow> OrderRows( List<InternalResultRow> internalList, SqlOrderByItem sortOrder, bool isAggregateRowList )

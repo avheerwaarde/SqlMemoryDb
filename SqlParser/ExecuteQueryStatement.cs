@@ -13,23 +13,17 @@ namespace SqlMemoryDb
     {
 
         private readonly MemoryDbCommand _Command;
-        private readonly MemoryDbDataReader _Reader;
-        private readonly MemoryDatabase _Database;
 
-
-        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command,
-            MemoryDbDataReader reader )
+        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
         {
-            _Database = memoryDatabase;
             _Command = command;
-            _Reader = reader;
         }
 
-        public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement )
+        public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement, MemoryDbDataReader reader )
         {
             var rawData = new RawData( _Command );
             var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
-            _Reader.AddResultBatch( batch );
+            reader.AddResultBatch( batch );
         }
 
         private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
@@ -50,7 +44,7 @@ namespace SqlMemoryDb
                     if ( orderByClause != null )
                     {
                         var resultRawData = new RawData( _Command, batch );
-                        batch.ResultRows = new QueryResultBuilder( resultRawData ).OrderResultRows( batch, orderByClause.Items );
+                        new QueryResultBuilder( resultRawData ).AddOrderedResultRows( batch, orderByClause.Items );
                     }
                     return batch;
                 }
@@ -169,7 +163,7 @@ namespace SqlMemoryDb
                    && select.Children.Any( c => c is SqlOffsetFetchClause ) == false;
         }
 
-        private void InitializeFields( MemoryDbDataReader.ResultBatch batch, List<SqlCodeObject> columns, RawData rawData )
+        public void InitializeFields( MemoryDbDataReader.ResultBatch batch, List<SqlCodeObject> columns, RawData rawData )
         {
             foreach ( var column in columns )
             {
@@ -193,6 +187,9 @@ namespace SqlMemoryDb
                             break;
                         case SqlBuiltinScalarFunctionCallExpression functionCall:
                             AddFieldForFunctionCall( functionCall, name, batch, rawData );
+                            break;
+                        case SqlNullScalarExpression nullScalarExpression:
+                            AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
                             break;
                         case SqlSearchedCaseExpression caseExpression:
                             AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
@@ -263,6 +260,12 @@ namespace SqlMemoryDb
 
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
+            if ( literalExpression.Type == LiteralValueType.Null )
+            {
+                var nullField = Helper.BuildFieldFromNullValue( name, batch.Fields.Count );
+                batch.Fields.Add( nullField );
+                return;
+            }
             var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
             var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
             readerField.SelectFieldData = new SelectDataFromObject( value );
@@ -294,5 +297,12 @@ namespace SqlMemoryDb
             };
             batch.Fields.Add( readerField );
         }
+
+        private void AddFieldForNullScalarExpression( SqlNullScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataFromNullScalarExpression( expression, rawData );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
     }
 }

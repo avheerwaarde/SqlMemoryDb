@@ -129,5 +129,31 @@ namespace SqlMemoryDb.Helpers
             return "";
         }
 
+        public string GetTokensBetween( string afterToken, string untilToken, int startIndex = 0 )
+        {
+            var builder = new StringBuilder();
+            var index = startIndex;
+            while ( _Tokens[ index ].Type != afterToken && ++index < _Tokens.Count  ){ }
+            while ( ++index < _Tokens.Count && _Tokens[ index ].Type != untilToken )
+            {
+                builder.Append(_Tokens[ index ].Text.Trim( new[] {'[', ']'} ));
+            } 
+
+            CurrentIndex = index;
+            return builder.ToString( ).Trim();
+        }
+
+        public int FindToken( string tokenType )
+        {
+            var index = 0;
+            while ( _Tokens[ index ].Type != tokenType && ++index < _Tokens.Count  ){ }
+
+            if ( index == _Tokens.Count )
+            {
+                return -1;
+            }
+            CurrentIndex = index;
+            return index;
+        }
     }
 }

@@ -70,53 +70,63 @@ namespace SqlMemoryDb.Helpers
             foreach ( var columnDefinition in tableDefinition.ColumnDefinitions )
             {
                 var column = new Column( table, columnDefinition.Name.Value, columnDefinition.DataType.Sql, table.Columns.Count );
-                foreach ( var constraint in columnDefinition.Constraints )
-                {
-                    switch ( constraint.Type )
-                    {
-                        case SqlConstraintType.Identity:
-                            var identity = constraint as SqlColumnIdentity;
-                            column.Identity = new Column.ColumnIdentity { Increment = identity.Increment ?? 1, Seed = identity.Seed ?? 1 };
-                            column.NextIdentityValue = column.Identity.Seed;
-                            break;
-
-                        case SqlConstraintType.NotNull:
-                            column.IsNullable = false;
-                            break;
-
-                        case SqlConstraintType.Null:
-                            column.IsNullable = true;
-                            break;
-
-                        case SqlConstraintType.Default:
-                            var @default = constraint as SqlDefaultConstraint;
-                            if ( @default.Expression is SqlLiteralExpression expression )
-                            {
-                                column.DefaultValue = expression.Value;
-                            }
-                            break;
-
-                        case SqlConstraintType.PrimaryKey:
-                            column.IsPrimaryKey = true;
-                            column.IsUnique = true;
-                            table.PrimaryKeys.Add( column );
-                            break;
-
-                        case SqlConstraintType.ForeignKey:
-                            break;
-
-                        case SqlConstraintType.Unique:
-                            column.IsUnique = true;
-                            break;
-
-                            //case SqlConstraintType.RowGuidCol:
-                            //case SqlConstraintType.Check:
-
-                    }
-                }
+                AddColumnConstrains( table, columnDefinition, column );
                 table.Columns.Add( column );
             }
         }
 
+        private static void AddColumnConstrains( Table table, SqlColumnDefinition columnDefinition, Column column )
+        {
+            if ( columnDefinition.Constraints == null )
+            {
+                return;
+            }
+
+            foreach ( var constraint in columnDefinition.Constraints )
+            {
+                switch ( constraint.Type )
+                {
+                    case SqlConstraintType.Identity:
+                        var identity = constraint as SqlColumnIdentity;
+                        column.Identity = new Column.ColumnIdentity
+                            {Increment = identity.Increment ?? 1, Seed = identity.Seed ?? 1};
+                        column.NextIdentityValue = column.Identity.Seed;
+                        break;
+
+                    case SqlConstraintType.NotNull:
+                        column.IsNullable = false;
+                        break;
+
+                    case SqlConstraintType.Null:
+                        column.IsNullable = true;
+                        break;
+
+                    case SqlConstraintType.Default:
+                        var @default = constraint as SqlDefaultConstraint;
+                        if ( @default.Expression is SqlLiteralExpression expression )
+                        {
+                            column.DefaultValue = expression.Value;
+                        }
+
+                        break;
+
+                    case SqlConstraintType.PrimaryKey:
+                        column.IsPrimaryKey = true;
+                        column.IsUnique = true;
+                        table.PrimaryKeys.Add( column );
+                        break;
+
+                    case SqlConstraintType.ForeignKey:
+                        break;
+
+                    case SqlConstraintType.Unique:
+                        column.IsUnique = true;
+                        break;
+
+                    //case SqlConstraintType.RowGuidCol:
+                    //case SqlConstraintType.Check:
+                }
+            }
+        }
     }
 }
