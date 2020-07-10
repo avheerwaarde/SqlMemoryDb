@@ -370,7 +370,7 @@ namespace SqlMemoryDb.Helpers
             switch ( expression )
             {
                 case SqlAggregateFunctionCallExpression functionCall:
-                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData ) as ISelectDataAggregate;
                     return selectFunction.Select( rows );
                 default:
                     return GetValue( expression, type, rawData, rows.First( ) );
@@ -385,7 +385,7 @@ namespace SqlMemoryDb.Helpers
                 DbType = DbType.Object.ToString(),
                 NetType = typeof(object),
                 FieldIndex = fieldsCount,
-                SelectFieldData = new SelectDataFromObject( null )
+                SelectFieldData = new SelectDataFromObject( null, DbType.Object.ToString() )
             };
         }
 

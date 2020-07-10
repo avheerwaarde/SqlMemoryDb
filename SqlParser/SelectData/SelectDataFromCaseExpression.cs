@@ -8,7 +8,7 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromCaseExpression : ISelectDataFunction
+    class SelectDataFromCaseExpression : ISelectData
     {
         private readonly SqlSearchedCaseExpression _Expression;
         private readonly RawData _RawData;
@@ -47,13 +47,7 @@ namespace SqlMemoryDb.SelectData
             return Helper.GetValue( _Expression.ElseExpression, ReturnType, _RawData, rows );
         }
 
-        public bool IsAggregate => false;
         public Type ReturnType => _FullTypeInfo.NetDataType;
         public DbType DbType => _FullTypeInfo.DbDataType ?? DbType.Int32 ;
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
     }
 }

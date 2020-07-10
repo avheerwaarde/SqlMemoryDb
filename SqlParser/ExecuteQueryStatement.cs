@@ -194,6 +194,11 @@ namespace SqlMemoryDb
                         case SqlSearchedCaseExpression caseExpression:
                             AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
                             break;
+                        case SqlBinaryScalarExpression binaryExpression:
+                            AddFieldFromBinaryExpression( binaryExpression, name, batch, rawData);
+                            break;
+                        default:
+                            throw new NotImplementedException($"Currently expression of type {scalarExpression.GetType(  )} is not implemented");
                     }
                 }
                 else if ( column is SqlTopSpecification topSpecification )
@@ -268,7 +273,7 @@ namespace SqlMemoryDb
             }
             var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
             var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
-            readerField.SelectFieldData = new SelectDataFromObject( value );
+            readerField.SelectFieldData = new SelectDataFromObject( value, readerField.DbType );
             batch.Fields.Add( readerField );
         }
 
@@ -285,7 +290,7 @@ namespace SqlMemoryDb
         }
 
 
-        private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectDataFunction select )
+        private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectData select )
         {
             var readerField = new MemoryDbDataReader.ReaderFieldData
             {
@@ -301,6 +306,12 @@ namespace SqlMemoryDb
         private void AddFieldForNullScalarExpression( SqlNullScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var select = new SelectDataFromNullScalarExpression( expression, rawData );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
+        private void AddFieldFromBinaryExpression( SqlBinaryScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataFromBinaryScalarExpression( expression, rawData );
             AddFieldFromSelectData( name, batch, select );
         }
 

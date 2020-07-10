@@ -4,11 +4,8 @@ using System.Data;
 
 namespace SqlMemoryDb.SelectData
 {
-    interface ISelectDataFunction : ISelectData
+    interface ISelectDataAggregate : ISelectData
     {
-        bool IsAggregate { get; }
-        Type ReturnType { get; }
-        DbType DbType { get; }
         object Select( List<List<RawData.RawDataRow>> rows );
     }
 }

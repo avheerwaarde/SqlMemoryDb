@@ -30,8 +30,7 @@ namespace SqlMemoryDb.SelectData
 
             var fields = batch.Fields.Cast<MemoryDbDataReader.ReaderFieldData>(  ).ToList();
             var isAggregate = fields
-                .Where( s => s.SelectFieldData is ISelectDataFunction )
-                .Any( s => ( ( ISelectDataFunction ) s.SelectFieldData ).IsAggregate );
+                .Any( s => s.SelectFieldData is ISelectDataAggregate );
 
             if ( _RawData.GroupByFields.Any( ) || isAggregate )
             {
@@ -98,8 +97,8 @@ namespace SqlMemoryDb.SelectData
             foreach ( var field in fields )
             {
                 object value;
-                var selectFunction = field.SelectFieldData as ISelectDataFunction;
-                if ( selectFunction == null || selectFunction.IsAggregate == false )
+                var selectFunction = field.SelectFieldData as ISelectDataAggregate;
+                if ( selectFunction == null )
                 {
                     if ( field.SelectFieldData is SelectDataFromColumn selectColumn
                          && groupByFields.Any( g => g.TableName == selectColumn.TableColumn.TableName 

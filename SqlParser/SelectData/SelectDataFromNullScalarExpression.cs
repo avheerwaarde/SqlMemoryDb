@@ -9,11 +9,10 @@ using SqlMemoryDb.Exceptions;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromNullScalarExpression : ISelectDataFunction
+    class SelectDataFromNullScalarExpression : ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
         
         private Type _ReturnType = typeof(bool);
         private DbType _DbType = DbType.Boolean;
@@ -89,12 +88,5 @@ namespace SqlMemoryDb.SelectData
 
             return sql;
         }
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
-
-
     }
 }

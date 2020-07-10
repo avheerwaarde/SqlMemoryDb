@@ -8,7 +8,7 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionRandom : ISelectDataFunction
+    class SelectDataFromFunctionRandom : ISelectData
     {
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
@@ -30,13 +30,7 @@ namespace SqlMemoryDb.SelectData
             return new Random().NextDouble(  );
         }
 
-        public bool IsAggregate => false;
         public Type ReturnType => typeof( double );
         public DbType DbType => DbType.Double;
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
     }
 }

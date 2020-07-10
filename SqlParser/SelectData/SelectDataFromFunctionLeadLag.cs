@@ -9,11 +9,10 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionLeadLag: ISelectDataFunction
+    class SelectDataFromFunctionLeadLag: ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
         
         private readonly Type _ReturnType;
         private readonly DbType _DbType;
@@ -115,12 +114,6 @@ namespace SqlMemoryDb.SelectData
             }
 
             return (SqlSelectStatement)result.Script.Batches.First( ).Children.First( );
-        }
-
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
         }
     }
 }

@@ -10,11 +10,10 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionText : ISelectDataFunction
+    class SelectDataFromFunctionText : ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
         
         private readonly Type _ReturnType = typeof(string);
         private readonly DbType _DbType = DbType.String;
@@ -142,11 +141,6 @@ namespace SqlMemoryDb.SelectData
             int offset = int.Parse( arguments[ 1 ] ) - 1;
             int deleteCount = int.Parse( arguments[ 2 ] );
             return arguments[ 0 ].Remove( offset, deleteCount ).Insert( offset, arguments[ 3 ] );
-        }
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
         }
     }
 }

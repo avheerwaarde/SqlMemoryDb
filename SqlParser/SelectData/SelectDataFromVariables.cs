@@ -6,7 +6,7 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    internal class SelectDataFromVariables : ISelectDataFunction
+    internal class SelectDataFromVariables : ISelectData
     {
         private readonly MemoryDbParameter _Parameter;
 
@@ -20,7 +20,6 @@ namespace SqlMemoryDb.SelectData
             return _Parameter.Value;
         }
 
-        public bool IsAggregate => false;
         public Type ReturnType => _Parameter.NetDataType;
         public DbType DbType => _Parameter.DbType;
 
