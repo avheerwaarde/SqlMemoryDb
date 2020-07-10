@@ -170,36 +170,7 @@ namespace SqlMemoryDb
                 if ( column is SqlSelectScalarExpression scalarExpression )
                 {
                     var name = Helper.GetColumnAlias( scalarExpression );
-                    switch ( scalarExpression.Expression )
-                    {
-                        case SqlGlobalScalarVariableRefExpression globalRef:
-                            AddFieldFromGlobalVariable( globalRef, name, batch, rawData );
-                            break;
-                        case SqlScalarVariableRefExpression variableRef:
-                            AddFieldFromVariable( variableRef, name, batch, rawData );
-                            break;
-                        case SqlScalarRefExpression scalarRef:
-                            AddFieldFromColumn( ( SqlObjectIdentifier ) scalarRef.MultipartIdentifier, name, batch,
-                                rawData );
-                            break;
-                        case SqlLiteralExpression literalExpression:
-                            AddFieldFromLiteral( literalExpression, name, batch, rawData );
-                            break;
-                        case SqlBuiltinScalarFunctionCallExpression functionCall:
-                            AddFieldForFunctionCall( functionCall, name, batch, rawData );
-                            break;
-                        case SqlNullScalarExpression nullScalarExpression:
-                            AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
-                            break;
-                        case SqlSearchedCaseExpression caseExpression:
-                            AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
-                            break;
-                        case SqlBinaryScalarExpression binaryExpression:
-                            AddFieldFromBinaryExpression( binaryExpression, name, batch, rawData);
-                            break;
-                        default:
-                            throw new NotImplementedException($"Currently expression of type {scalarExpression.GetType(  )} is not implemented");
-                    }
+                    InitializeField( batch, rawData, scalarExpression.Expression, name );
                 }
                 else if ( column is SqlTopSpecification topSpecification )
                 {
@@ -219,6 +190,43 @@ namespace SqlMemoryDb
                 {
                     throw new NotImplementedException( $"Not implemented column specification {column}" );
                 }
+            }
+        }
+
+        private void InitializeField( MemoryDbDataReader.ResultBatch batch, RawData rawData, SqlScalarExpression scalarExpression, string name )
+        {
+            switch ( scalarExpression )
+            {
+                case SqlGlobalScalarVariableRefExpression globalRef:
+                    AddFieldFromGlobalVariable( globalRef, name, batch, rawData );
+                    break;
+                case SqlScalarVariableRefExpression variableRef:
+                    AddFieldFromVariable( variableRef, name, batch, rawData );
+                    break;
+                case SqlScalarRefExpression scalarRef:
+                    AddFieldFromColumn( ( SqlObjectIdentifier ) scalarRef.MultipartIdentifier, name, batch, rawData );
+                    break;
+                case SqlLiteralExpression literalExpression:
+                    AddFieldFromLiteral( literalExpression, name, batch, rawData );
+                    break;
+                case SqlBuiltinScalarFunctionCallExpression functionCall:
+                    AddFieldForFunctionCall( functionCall, name, batch, rawData );
+                    break;
+                case SqlNullScalarExpression nullScalarExpression:
+                    AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
+                    break;
+                case SqlSearchedCaseExpression caseExpression:
+                    AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
+                    break;
+                case SqlBinaryScalarExpression binaryExpression:
+                    AddFieldFromBinaryExpression( binaryExpression, name, batch, rawData );
+                    break;
+                case SqlUnaryScalarExpression unaryScalarExpression:
+                    InitializeField( batch, rawData, unaryScalarExpression.Expression, name );
+                    break;
+                default:
+                    throw new NotImplementedException(
+                        $"Currently expression of type {scalarExpression.GetType( )} is not implemented" );
             }
         }
 

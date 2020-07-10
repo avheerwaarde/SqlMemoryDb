@@ -119,7 +119,7 @@ namespace SqlMemoryDb.SelectData
                 throw new SqlFunctionNotSupportedException( globalVariableName );
             }
 
-            return Activator.CreateInstance( _GlobalVariables[ globalVariableName.ToUpper() ], args:new object[]{ globalVariableName, rawData }) as ISelectDataAggregate;
+            return Activator.CreateInstance( _GlobalVariables[ globalVariableName.ToUpper() ], args:new object[]{ globalVariableName, rawData }) as ISelectData;
         }
     }
 }

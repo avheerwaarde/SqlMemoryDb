@@ -159,11 +159,11 @@ namespace SqlMemoryDb.Helpers
                 case TypeCode.Int16   : return Convert.ToInt16( source );
                 case TypeCode.Int32   : return Convert.ToInt32( source );
                 case TypeCode.Int64   : return Convert.ToInt64( source );
-                case TypeCode.Single  : return Convert.ToSingle( source );
+                case TypeCode.Single  : return float.Parse( source, CultureInfo.InvariantCulture  );
                 case TypeCode.Double  : return double.Parse( source, CultureInfo.InvariantCulture );
-                case TypeCode.Decimal : return Convert.ToDecimal( source );
+                case TypeCode.Decimal : return decimal.Parse( source , CultureInfo.InvariantCulture);
                 case TypeCode.String  : return source;
-                case TypeCode.DateTime: return DateTime.Parse( source );
+                case TypeCode.DateTime: return DateTime.Parse( source, CultureInfo.InvariantCulture  );
                 default:
                     throw new NotImplementedException( $"Defaults not supported for type { type }" );
             }
@@ -327,6 +327,11 @@ namespace SqlMemoryDb.Helpers
                     return database.ExecuteSqlScalar( subQuery.QueryExpression.Sql, command );
                 }
 
+                case SqlBinaryScalarExpression binaryScalarExpression:
+                {
+                    var select = new SelectDataFromBinaryScalarExpression( binaryScalarExpression, rawData );
+                    return select.Select( row );
+                }
                 default:
                     throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
             }
@@ -481,6 +486,10 @@ namespace SqlMemoryDb.Helpers
                 {
                     var selectFunction =  new SelectDataFromCaseExpression( caseExpression, rawData );
                     return selectFunction.ReturnType;
+                }
+                case SqlLiteralExpression literalExpression:
+                {
+                    return GetTypeFromLiteralType( literalExpression.Type );
                 }
             }
 
