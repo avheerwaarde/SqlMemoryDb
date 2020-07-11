@@ -10,6 +10,10 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromCaseExpression : ISelectData
     {
+        public Type ReturnType => _FullTypeInfo.NetDataType;
+        public DbType DbType => _FullTypeInfo.DbDataType ?? DbType.Int32 ;
+        public SqlScalarExpression Expression => _Expression;
+
         private readonly SqlSearchedCaseExpression _Expression;
         private readonly RawData _RawData;
         private readonly SqlScalarExpression _ScalarExpression;
@@ -47,7 +51,5 @@ namespace SqlMemoryDb.SelectData
             return Helper.GetValue( _Expression.ElseExpression, ReturnType, _RawData, rows );
         }
 
-        public Type ReturnType => _FullTypeInfo.NetDataType;
-        public DbType DbType => _FullTypeInfo.DbDataType ?? DbType.Int32 ;
     }
 }

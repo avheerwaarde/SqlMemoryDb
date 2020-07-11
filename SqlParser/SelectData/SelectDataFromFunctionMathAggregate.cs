@@ -15,6 +15,7 @@ namespace SqlMemoryDb.SelectData
         public bool IsAggregate => true;
         Type ISelectData.ReturnType => _ReturnType;
         DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => _FunctionCall;
         
         private readonly Type _ReturnType = typeof(int);
         private readonly DbType _DbType = DbType.Int32;

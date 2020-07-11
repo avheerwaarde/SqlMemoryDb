@@ -138,6 +138,10 @@ namespace SqlMemoryDb.SelectData
                 foreach ( var field in fields )
                 {
                     var value = field.SelectFieldData.Select( row );
+                    if ( Helper.IsParentUnaryNegate( field.SelectFieldData.Expression ) )
+                    {
+                        value = HelperReflection.Negate( value );
+                    }
                     resultRow.Add( value );
                 }
 

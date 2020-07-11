@@ -10,6 +10,10 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromFunctionRandom : ISelectData
     {
+        public Type ReturnType => typeof( double );
+        public DbType DbType => DbType.Double;
+        public SqlScalarExpression Expression => _FunctionCall;
+
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
 
@@ -29,8 +33,5 @@ namespace SqlMemoryDb.SelectData
             }
             return new Random().NextDouble(  );
         }
-
-        public Type ReturnType => typeof( double );
-        public DbType DbType => DbType.Double;
     }
 }

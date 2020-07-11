@@ -11,6 +11,10 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromFunctionIdentity: ISelectData
     {
+        public Type ReturnType => typeof( decimal );
+        public DbType DbType => DbType.Decimal;
+        public SqlScalarExpression Expression => _FunctionCall;
+
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
 
@@ -45,7 +49,5 @@ namespace SqlMemoryDb.SelectData
             throw new NotImplementedException( );
         }
 
-        public Type ReturnType => typeof( decimal );
-        public DbType DbType => DbType.Decimal;
     }
 }

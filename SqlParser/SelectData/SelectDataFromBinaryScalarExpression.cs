@@ -9,10 +9,10 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromBinaryScalarExpression : ISelectData
     {
-        Type ISelectData.ReturnType => _ReturnType;
         DbType ISelectData.DbType => _DbType;
-        
-        private readonly Type _ReturnType = typeof(decimal);
+        public Type ReturnType { get; } = typeof(decimal);
+        public SqlScalarExpression Expression => _Expression;
+
         private readonly DbType _DbType = DbType.Decimal;
         private readonly SqlBinaryScalarExpression _Expression;
         private readonly RawData _RawData;
@@ -25,12 +25,12 @@ namespace SqlMemoryDb.SelectData
             var typeRight = Helper.DetermineType( expression.Right, _RawData );
             if ( typeLeft == typeof(string) || typeRight == typeof(string) )
             {
-                _ReturnType = typeof( string );
+                ReturnType = typeof( string );
                 _DbType = DbType.String;
             }
-            if ( typeLeft == typeof(Int32) && typeRight == typeof(Int32) )
+            else if ( HelperReflection.IsInteger(typeLeft) && HelperReflection.IsInteger(typeRight) )
             {
-                _ReturnType = typeof( long );
+                ReturnType = typeof( long );
                 _DbType = DbType.Int64;
             }
         }

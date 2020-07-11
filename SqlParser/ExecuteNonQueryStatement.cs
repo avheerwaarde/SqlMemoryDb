@@ -106,7 +106,7 @@ namespace SqlMemoryDb
         {
             if ( value.StartsWith( "@" ) )
             {
-                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters );
+                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters, _Command.Variables );
             }
             else
             {

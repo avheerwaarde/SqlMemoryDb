@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace SqlMemoryDb.SelectData
 {
@@ -9,6 +10,7 @@ namespace SqlMemoryDb.SelectData
         private readonly object _Value;
         Type ISelectData.ReturnType => _ReturnType;
         DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => null;
         
         private readonly Type _ReturnType;
         private readonly DbType _DbType;
