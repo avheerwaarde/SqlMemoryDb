@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System;using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,6 +8,22 @@ namespace SqlMemoryDb.Helpers
 {
     static class HelperReflection
     {
+        private static readonly HashSet<Type> _NumericTypes = new HashSet<Type>
+        {
+            typeof(int),  typeof(double),  typeof(decimal),
+            typeof(long), typeof(short),   typeof(sbyte),
+            typeof(byte), typeof(ulong),   typeof(ushort),  
+            typeof(uint), typeof(float)
+        };
+
+        private static readonly HashSet<Type> _IntegerTypes = new HashSet<Type>
+        {
+            typeof(int), typeof(long), typeof(sbyte),
+            typeof(byte), typeof(ulong),   typeof(ushort),  
+            typeof(uint)
+        };
+
+        
         public static MethodInfo GetMathMethodInfo( string methodName, Type type, int parameterCount = 1 )
         {
             Type enumerableT = typeof(Math);
@@ -37,8 +52,23 @@ namespace SqlMemoryDb.Helpers
 
         public static object Negate( object value )
         {
-            MethodInfo generic = GetGenericMathMethodInfo( "Subtract", value.GetType( ) );
+            var type = value.GetType( );
+            MethodInfo generic = GetGenericMathMethodInfo( "Subtract", type );
+            if ( type == typeof(decimal)) 
+            {
+                return generic.Invoke( null, new object[] { new decimal( 0 ), value} );
+            }
             return generic.Invoke( null, new object[] {0, value} );
+        }
+
+        public static bool IsNumeric(Type myType)
+        {
+            return _NumericTypes.Contains(Nullable.GetUnderlyingType(myType) ?? myType);
+        }
+
+        public static bool IsInteger(Type myType)
+        {
+            return _IntegerTypes.Contains(Nullable.GetUnderlyingType(myType) ?? myType);
         }
     }
 }

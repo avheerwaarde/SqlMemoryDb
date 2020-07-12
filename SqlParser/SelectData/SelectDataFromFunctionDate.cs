@@ -8,11 +8,11 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionDate : ISelectDataFunction
+    class SelectDataFromFunctionDate : ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => _FunctionCall;
         
         private readonly Type _ReturnType = typeof(DateTime);
         private readonly DbType _DbType = DbType.DateTime;
@@ -319,10 +319,5 @@ namespace SqlMemoryDb.SelectData
             // Return the week of our adjusted day
             return CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(time, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
         } 
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
     }
 }

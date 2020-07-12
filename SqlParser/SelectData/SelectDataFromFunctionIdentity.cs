@@ -9,8 +9,12 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionIdentity: ISelectDataFunction
+    class SelectDataFromFunctionIdentity: ISelectData
     {
+        public Type ReturnType => typeof( decimal );
+        public DbType DbType => DbType.Decimal;
+        public SqlScalarExpression Expression => _FunctionCall;
+
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;
         private readonly RawData _RawData;
 
@@ -45,13 +49,5 @@ namespace SqlMemoryDb.SelectData
             throw new NotImplementedException( );
         }
 
-        public bool IsAggregate => false;
-        public Type ReturnType => typeof( decimal );
-        public DbType DbType => DbType.Decimal;
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
     }
 }

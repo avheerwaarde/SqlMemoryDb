@@ -2,11 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace SqlMemoryDb.SelectData
 {
-    internal class SelectDataFromGlobalVariables : ISelectDataFunction
+    internal class SelectDataFromGlobalVariables : ISelectData
     {
+        public Type ReturnType => typeof( int );
+        public DbType DbType => DbType.Int32;
+        public SqlScalarExpression Expression => null;
+
         private readonly string _GlobalVariableName;
         private readonly RawData _RawData;
 
@@ -27,13 +32,5 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public bool IsAggregate => false;
-        public Type ReturnType => typeof( int );
-        public DbType DbType => DbType.Int32;
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
-        }
     }
 }

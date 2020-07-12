@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace SqlMemoryDb.SelectData
 {
@@ -7,9 +10,19 @@ namespace SqlMemoryDb.SelectData
     {
         public readonly TableColumn TableColumn;
 
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => null;
+        
+        private readonly Type _ReturnType;
+        private readonly DbType _DbType;
+
+
         internal SelectDataFromColumn( TableColumn tableColumn )
         {
             TableColumn = tableColumn;
+            _ReturnType = tableColumn.Column.NetDataType;
+            _DbType = tableColumn.Column.DbDataType;
         }
 
         public object Select( List<RawData.RawDataRow> rows )

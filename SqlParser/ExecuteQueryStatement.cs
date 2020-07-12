@@ -13,10 +13,12 @@ namespace SqlMemoryDb
     {
 
         private readonly MemoryDbCommand _Command;
+        private readonly List<Column> _InsertColumns;
 
-        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command )
+        public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command, List<Column> insertColumns = null )
         {
             _Command = command;
+            _InsertColumns = insertColumns;
         }
 
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement, MemoryDbDataReader reader )
@@ -26,7 +28,7 @@ namespace SqlMemoryDb
             reader.AddResultBatch( batch );
         }
 
-        private MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
+        public MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
             SqlQueryExpression expression,
             SqlOrderByClause orderByClause = null )
         {
@@ -116,8 +118,7 @@ namespace SqlMemoryDb
                 rawData.RawRowList.Add( new List<RawData.RawDataRow>() );
             }
 
-            var batch = new MemoryDbDataReader.ResultBatch(  );
-            InitializeFields( batch, sqlQuery.SelectClause.Children.ToList(  ), rawData );
+            var batch = InitializeBatch( rawData, sqlQuery );
             if ( sqlQuery.GroupByClause != null )
             {
                 rawData.AddGroupByClause( sqlQuery.GroupByClause );
@@ -127,6 +128,28 @@ namespace SqlMemoryDb
             rawData.SortOrder =  GetSortOrder( orderByClause, sqlQuery );
 
             new QueryResultBuilder( rawData, sqlQuery.SelectClause.IsDistinct ).AddData( batch );
+            return batch;
+        }
+
+        private MemoryDbDataReader.ResultBatch InitializeBatch( RawData rawData, SqlQuerySpecification sqlQuery )
+        {
+            var batch = new MemoryDbDataReader.ResultBatch( );
+            var fields = sqlQuery.SelectClause.Children.ToList( );
+            if ( _InsertColumns != null )
+            {
+                var fieldCount = fields.Count;
+                if ( _InsertColumns.Count > fieldCount )
+                {
+                    throw new SqlInsertTooManyColumnsException( );
+                }
+
+                if ( _InsertColumns.Count < fieldCount )
+                {
+                    throw new SqlInsertTooManyValuesException( );
+                }
+            }
+            InitializeFields( batch, fields, rawData );
+
             return batch;
         }
 
@@ -143,6 +166,7 @@ namespace SqlMemoryDb
             }
             return orderByClause?.Items;
         }
+
 
         private static bool IsPartialQuery( SqlCodeObject sqlQuery )
         {
@@ -170,31 +194,7 @@ namespace SqlMemoryDb
                 if ( column is SqlSelectScalarExpression scalarExpression )
                 {
                     var name = Helper.GetColumnAlias( scalarExpression );
-                    switch ( scalarExpression.Expression )
-                    {
-                        case SqlGlobalScalarVariableRefExpression globalRef:
-                            AddFieldFromGlobalVariable( globalRef, name, batch, rawData );
-                            break;
-                        case SqlScalarVariableRefExpression variableRef:
-                            AddFieldFromVariable( variableRef, name, batch, rawData );
-                            break;
-                        case SqlScalarRefExpression scalarRef:
-                            AddFieldFromColumn( ( SqlObjectIdentifier ) scalarRef.MultipartIdentifier, name, batch,
-                                rawData );
-                            break;
-                        case SqlLiteralExpression literalExpression:
-                            AddFieldFromLiteral( literalExpression, name, batch, rawData );
-                            break;
-                        case SqlBuiltinScalarFunctionCallExpression functionCall:
-                            AddFieldForFunctionCall( functionCall, name, batch, rawData );
-                            break;
-                        case SqlNullScalarExpression nullScalarExpression:
-                            AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
-                            break;
-                        case SqlSearchedCaseExpression caseExpression:
-                            AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
-                            break;
-                    }
+                    InitializeField( batch, rawData, scalarExpression.Expression, name );
                 }
                 else if ( column is SqlTopSpecification topSpecification )
                 {
@@ -214,6 +214,43 @@ namespace SqlMemoryDb
                 {
                     throw new NotImplementedException( $"Not implemented column specification {column}" );
                 }
+            }
+        }
+
+        private void InitializeField( MemoryDbDataReader.ResultBatch batch, RawData rawData, SqlScalarExpression scalarExpression, string name )
+        {
+            switch ( scalarExpression )
+            {
+                case SqlGlobalScalarVariableRefExpression globalRef:
+                    AddFieldFromGlobalVariable( globalRef, name, batch, rawData );
+                    break;
+                case SqlScalarVariableRefExpression variableRef:
+                    AddFieldFromVariable( variableRef, name, batch, rawData );
+                    break;
+                case SqlScalarRefExpression scalarRef:
+                    AddFieldFromColumn( ( SqlObjectIdentifier ) scalarRef.MultipartIdentifier, name, batch, rawData );
+                    break;
+                case SqlLiteralExpression literalExpression:
+                    AddFieldFromLiteral( literalExpression, name, batch, rawData );
+                    break;
+                case SqlBuiltinScalarFunctionCallExpression functionCall:
+                    AddFieldForFunctionCall( functionCall, name, batch, rawData );
+                    break;
+                case SqlNullScalarExpression nullScalarExpression:
+                    AddFieldForNullScalarExpression( nullScalarExpression, name, batch, rawData );
+                    break;
+                case SqlSearchedCaseExpression caseExpression:
+                    AddFieldFromCaseExpression( caseExpression, name, batch, rawData );
+                    break;
+                case SqlBinaryScalarExpression binaryExpression:
+                    AddFieldFromBinaryExpression( binaryExpression, name, batch, rawData );
+                    break;
+                case SqlUnaryScalarExpression unaryScalarExpression:
+                    InitializeField( batch, rawData, unaryScalarExpression.Expression, name );
+                    break;
+                default:
+                    throw new NotImplementedException(
+                        $"Currently expression of type {scalarExpression.GetType( )} is not implemented" );
             }
         }
 
@@ -260,16 +297,33 @@ namespace SqlMemoryDb
 
         private void AddFieldFromLiteral( SqlLiteralExpression literalExpression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
-            if ( literalExpression.Type == LiteralValueType.Null )
+            if ( _InsertColumns != null )
             {
-                var nullField = Helper.BuildFieldFromNullValue( name, batch.Fields.Count );
-                batch.Fields.Add( nullField );
-                return;
+                var column = _InsertColumns[ batch.Fields.Count ];
+                var value = Helper.GetValueFromString( column.NetDataType, literalExpression.Value );
+                var readerField = new MemoryDbDataReader.ReaderFieldData
+                {
+                    Name = column.Name,
+                    DbType = column.DbDataType.ToString(),
+                    NetType = column.NetDataType,
+                    FieldIndex = batch.Fields.Count
+                };                
+                readerField.SelectFieldData = new SelectDataFromObject( value, readerField.DbType );
+                batch.Fields.Add( readerField );
             }
-            var readerField = Helper.BuildFieldFromStringValue( literalExpression.Value, name, batch.Fields.Count );
-            var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
-            readerField.SelectFieldData = new SelectDataFromObject( value );
-            batch.Fields.Add( readerField );
+            else
+            {
+                if ( literalExpression.Type == LiteralValueType.Null )
+                {
+                    var nullField = Helper.BuildFieldFromNullValue( name, batch.Fields.Count );
+                    batch.Fields.Add( nullField );
+                    return;
+                }
+                var readerField = Helper.BuildFieldFromLiteral( literalExpression.Type, name, batch.Fields.Count );
+                var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
+                readerField.SelectFieldData = new SelectDataFromObject( value, readerField.DbType );
+                batch.Fields.Add( readerField );
+            }
         }
 
         private void AddFieldForFunctionCall( SqlBuiltinScalarFunctionCallExpression functionCall, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
@@ -285,7 +339,7 @@ namespace SqlMemoryDb
         }
 
 
-        private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectDataFunction select )
+        private static void AddFieldFromSelectData( string name, MemoryDbDataReader.ResultBatch batch, ISelectData select )
         {
             var readerField = new MemoryDbDataReader.ReaderFieldData
             {
@@ -301,6 +355,12 @@ namespace SqlMemoryDb
         private void AddFieldForNullScalarExpression( SqlNullScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
         {
             var select = new SelectDataFromNullScalarExpression( expression, rawData );
+            AddFieldFromSelectData( name, batch, select );
+        }
+
+        private void AddFieldFromBinaryExpression( SqlBinaryScalarExpression expression, string name, MemoryDbDataReader.ResultBatch batch, RawData rawData )
+        {
+            var select = new SelectDataFromBinaryScalarExpression( expression, rawData );
             AddFieldFromSelectData( name, batch, select );
         }
 

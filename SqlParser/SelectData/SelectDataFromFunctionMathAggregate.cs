@@ -10,11 +10,12 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionMathAggregate: ISelectDataFunction
+    class SelectDataFromFunctionMathAggregate: ISelectDataAggregate
     {
         public bool IsAggregate => true;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => _FunctionCall;
         
         private readonly Type _ReturnType = typeof(int);
         private readonly DbType _DbType = DbType.Int32;

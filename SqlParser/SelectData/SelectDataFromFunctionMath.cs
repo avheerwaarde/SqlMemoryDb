@@ -9,11 +9,11 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionMath: ISelectDataFunction
+    class SelectDataFromFunctionMath: ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => _FunctionCall;
         
         private readonly Type _ReturnType = typeof(int?);
         private readonly DbType _DbType = DbType.Int32;
@@ -116,11 +116,6 @@ namespace SqlMemoryDb.SelectData
             float step = (float)Math.Pow(10, precision);
             float tmp = (float)Math.Truncate(step * value);
             return tmp / step;
-        }
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
         }
     }
 }

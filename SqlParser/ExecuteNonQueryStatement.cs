@@ -69,17 +69,8 @@ namespace SqlMemoryDb
             var command = new MemoryDbCommand( _Command );
             var rawData = new RawData( command );
             var select = selectSource.SelectSpecification;
-            var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)select.QueryExpression, select.OrderByClause );
+            var batch = new ExecuteQueryStatement( _Database, command, columns ).Execute( rawData, _Database.Tables, select.QueryExpression, select.OrderByClause );
 
-            if ( columns.Count > batch.Fields.Count )
-            {
-                throw new SqlInsertTooManyColumnsException(  );
-            }
-            if ( columns.Count < batch.Fields.Count )
-            {
-                throw new SqlInsertTooManyValuesException(  );
-            }
-            
             foreach ( var resultRow in batch.ResultRows )
             {
                 var row = InitializeNewRow( table, columns );
@@ -106,7 +97,7 @@ namespace SqlMemoryDb
         {
             if ( value.StartsWith( "@" ) )
             {
-                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters );
+                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters, _Command.Variables );
             }
             else
             {

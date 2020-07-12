@@ -159,11 +159,11 @@ namespace SqlMemoryDb.Helpers
                 case TypeCode.Int16   : return Convert.ToInt16( source );
                 case TypeCode.Int32   : return Convert.ToInt32( source );
                 case TypeCode.Int64   : return Convert.ToInt64( source );
-                case TypeCode.Single  : return Convert.ToSingle( source );
+                case TypeCode.Single  : return float.Parse( source, CultureInfo.InvariantCulture  );
                 case TypeCode.Double  : return double.Parse( source, CultureInfo.InvariantCulture );
-                case TypeCode.Decimal : return Convert.ToDecimal( source );
+                case TypeCode.Decimal : return decimal.Parse( source , CultureInfo.InvariantCulture);
                 case TypeCode.String  : return source;
-                case TypeCode.DateTime: return DateTime.Parse( source );
+                case TypeCode.DateTime: return DateTime.Parse( source, CultureInfo.InvariantCulture  );
                 default:
                     throw new NotImplementedException( $"Defaults not supported for type { type }" );
             }
@@ -202,16 +202,31 @@ namespace SqlMemoryDb.Helpers
             return part;
         }
 
-        public static object GetValueFromParameter( string value, DbParameterCollection parameters )
+        public static object GetValueFromParameter( string value, DbParameterCollection parameters, DbParameterCollection variables )
         {
             var name = value.TrimStart( new []{'@'} );
-            if ( parameters.Contains( name ) == false )
+            if ( parameters.Contains( name ) )
             {
-                throw new SqlInvalidParameterNameException( value );
+                var parameter = parameters[ name ];
+                return parameter.Value;
+            }
+            else if ( variables.Contains( value ) )
+            {
+                var variable = variables[ value ];
+                return variable.Value;
             }
 
-            var parameter = parameters[ name ];
-            return parameter.Value;
+            throw new SqlInvalidParameterNameException( value );
+        }
+
+        public static MemoryDbParameter GetParameter( string name, DbParameterCollection parameters )
+        {
+            if ( parameters.Contains( name ) == false )
+            {
+                throw new SqlInvalidParameterNameException( name );
+            }
+
+            return (MemoryDbParameter)parameters[ name ];
         }
 
         public static TableColumn GetTableColumn( SqlColumnRefExpression expression, RawData rawData )
@@ -269,7 +284,8 @@ namespace SqlMemoryDb.Helpers
                 case SqlColumnRefExpression columnRef:
                 {
                     var field = GetTableColumn( columnRef, rawData );
-                    return new SelectDataFromColumn( field ).Select( row );
+                    var select = new SelectDataFromColumn( field );
+                    return GetReturnValue( select, row );
                 }
 
                 case SqlUnaryScalarExpression unaryScalarExpression:
@@ -295,29 +311,31 @@ namespace SqlMemoryDb.Helpers
 
                 case SqlScalarVariableRefExpression variableRef:
                 {
-                    return GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
+                    return GetValueFromParameter( variableRef.VariableName, rawData.Parameters, rawData.Command.Variables );
                 }
 
                 case SqlScalarRefExpression scalarRef:
                 {
                     var field = GetTableColumn( (SqlObjectIdentifier)scalarRef.MultipartIdentifier, rawData );
-                    return new SelectDataFromColumn( field ).Select( row );
+                    var select = new SelectDataFromColumn( field );
+                    return GetReturnValue( select, row );
                 }
                 case SqlGlobalScalarVariableRefExpression globalRef:
                 {
-                    return new SelectDataFromGlobalVariables( globalRef.VariableName, rawData ).Select( row );
+                    var select = new SelectDataFromGlobalVariables( globalRef.VariableName, rawData );
+                    return GetReturnValue( select, row );
                 }
 
                 case SqlBuiltinScalarFunctionCallExpression functionCall:
                 {
                     var select = new SelectDataBuilder(  ).Build( functionCall, rawData );
-                    return select.Select( row );
+                    return GetReturnValue( select, row );
                 }
 
                 case SqlSearchedCaseExpression caseExpression:
                 {
                     var select = new SelectDataFromCaseExpression( caseExpression, rawData );
-                    return select.Select( row );
+                    return GetReturnValue( select, row );
                 }
 
                 case SqlScalarSubQueryExpression subQuery:
@@ -327,9 +345,26 @@ namespace SqlMemoryDb.Helpers
                     return database.ExecuteSqlScalar( subQuery.QueryExpression.Sql, command );
                 }
 
+                case SqlBinaryScalarExpression binaryScalarExpression:
+                {
+                    var select = new SelectDataFromBinaryScalarExpression( binaryScalarExpression, rawData );
+                    return GetReturnValue( select, row );
+                }
                 default:
                     throw new NotImplementedException( $"Unsupported scalarExpression : '{ expression.GetType(  ) }'" );
             }
+        }
+
+        private static object GetReturnValue( ISelectData select, List<RawData.RawDataRow> row )
+        {
+            var value = select.Select( row );
+            return IsParentUnaryNegate( select.Expression ) ? HelperReflection.Negate( value ) : value;
+        }
+
+        public static bool IsParentUnaryNegate( SqlScalarExpression expression )
+        {
+            return expression?.Parent is SqlUnaryScalarExpression unaryScalarExpression &&
+                   unaryScalarExpression.Operator == SqlUnaryScalarOperatorType.Negative;
         }
 
         public static object GetValue( SqlScalarExpression expression, MemoryDbDataReader.ResultBatch batch, ArrayList row )
@@ -370,7 +405,7 @@ namespace SqlMemoryDb.Helpers
             switch ( expression )
             {
                 case SqlAggregateFunctionCallExpression functionCall:
-                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData );
+                    var selectFunction = new SelectDataBuilder(  ).Build( functionCall, rawData ) as ISelectDataAggregate;
                     return selectFunction.Select( rows );
                 default:
                     return GetValue( expression, type, rawData, rows.First( ) );
@@ -385,8 +420,20 @@ namespace SqlMemoryDb.Helpers
                 DbType = DbType.Object.ToString(),
                 NetType = typeof(object),
                 FieldIndex = fieldsCount,
-                SelectFieldData = new SelectDataFromObject( null )
+                SelectFieldData = new SelectDataFromObject( null, DbType.Object.ToString() )
             };
+        }
+
+        public static MemoryDbDataReader.ReaderFieldData BuildFieldFromLiteral( LiteralValueType literalType, string name, int fieldsCount )
+        {
+            var readerField = new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = name,
+                DbType = GetDbTypeFromLiteralType( literalType ).Value.ToString(),
+                NetType = GetTypeFromLiteralType( literalType ),
+                FieldIndex = fieldsCount
+            };
+            return readerField;
         }
 
         public static MemoryDbDataReader.ReaderFieldData BuildFieldFromStringValue( string literal, string name, int fieldsCount )
@@ -455,6 +502,10 @@ namespace SqlMemoryDb.Helpers
 
         public static Type DetermineType( SqlScalarExpression expression, RawData rawData )
         {
+            if (  expression is SqlUnaryScalarExpression unaryScalarExpression )
+            {
+                expression = unaryScalarExpression.Expression;
+            }
             switch ( expression )
             {
                 case SqlColumnRefExpression columnRef:
@@ -464,8 +515,8 @@ namespace SqlMemoryDb.Helpers
                 }
                 case SqlScalarVariableRefExpression variableRef:
                 {
-//                    Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters );
-                    return null;
+                    var parameter = GetParameter( variableRef.VariableName, rawData.Command.Variables );
+                    return parameter.NetDataType;
                 }
                 case SqlScalarRefExpression scalarRef:
                 {
@@ -480,6 +531,15 @@ namespace SqlMemoryDb.Helpers
                 case SqlSearchedCaseExpression caseExpression:
                 {
                     var selectFunction =  new SelectDataFromCaseExpression( caseExpression, rawData );
+                    return selectFunction.ReturnType;
+                }
+                case SqlLiteralExpression literalExpression:
+                {
+                    return GetTypeFromLiteralType( literalExpression.Type );
+                }
+                case SqlBinaryScalarExpression binaryScalarExpression:
+                {
+                    var selectFunction = new SelectDataFromBinaryScalarExpression( binaryScalarExpression, rawData );
                     return selectFunction.ReturnType;
                 }
             }
@@ -535,7 +595,7 @@ namespace SqlMemoryDb.Helpers
                 case LiteralValueType.Integer: return typeof(int);
                 case LiteralValueType.Image: return typeof(byte[]);
                 case LiteralValueType.Money: return typeof(decimal);
-                case LiteralValueType.Null: return typeof(string);
+                case LiteralValueType.Null: return typeof(Object);
                 case LiteralValueType.Numeric: return typeof(double);
                 case LiteralValueType.Real: return typeof(float);
                 case LiteralValueType.Default: 
@@ -555,7 +615,7 @@ namespace SqlMemoryDb.Helpers
                 case LiteralValueType.Integer: return DbType.Int32;
                 case LiteralValueType.Image: return DbType.Binary;
                 case LiteralValueType.Money: return DbType.Decimal;
-                case LiteralValueType.Null: return null;
+                case LiteralValueType.Null: return DbType.Object;
                 case LiteralValueType.Numeric: return DbType.Decimal;
                 case LiteralValueType.Real: return DbType.Single;
                 case LiteralValueType.Default: 

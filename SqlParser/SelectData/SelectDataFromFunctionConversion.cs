@@ -9,12 +9,12 @@ using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb.SelectData
 {
-    class SelectDataFromFunctionConversion : ISelectDataFunction
+    class SelectDataFromFunctionConversion : ISelectData
     {
-        public bool IsAggregate => false;
-        Type ISelectDataFunction.ReturnType => _ReturnType;
-        DbType ISelectDataFunction.DbType => _DbType;
-        
+        Type ISelectData.ReturnType => _ReturnType;
+        DbType ISelectData.DbType => _DbType;
+        public SqlScalarExpression Expression => _FunctionCall;
+ 
         private readonly Type _ReturnType = typeof(bool);
         private readonly DbType _DbType = DbType.Boolean;
 
@@ -247,12 +247,6 @@ namespace SqlMemoryDb.SelectData
             }
 
             return 0;
-        }
-
-
-        public object Select( List<List<RawData.RawDataRow>> rows )
-        {
-            throw new NotImplementedException( );
         }
     }
 }

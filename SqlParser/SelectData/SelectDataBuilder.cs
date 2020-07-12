@@ -78,7 +78,7 @@ namespace SqlMemoryDb.SelectData
 
         };
 
-        public ISelectDataFunction Build( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )
+        public ISelectData Build( SqlBuiltinScalarFunctionCallExpression functionCall, RawData rawData )
         {
             var functionName =  functionCall.FunctionName.ToUpper();
 
@@ -94,10 +94,10 @@ namespace SqlMemoryDb.SelectData
                 throw new SqlInvalidFunctionParameterCountException( functionCall.FunctionName, info.MinimalArgumentCount );
             }
 
-            return Activator.CreateInstance( info.SelectType, args:new object[]{ functionCall, rawData, info }) as ISelectDataFunction;
+            return Activator.CreateInstance( info.SelectType, args:new object[]{ functionCall, rawData, info }) as ISelectData;
         }
 
-        internal ISelectDataFunction Build( string fullMethod, RawData rawData )
+        internal ISelectData Build( string fullMethod, RawData rawData )
         {
             // This is a bit of a hack to create an instance of this type.
             // There are no public constructors, so we hack it a little bit.
@@ -112,14 +112,14 @@ namespace SqlMemoryDb.SelectData
 
         }
 
-        public ISelectDataFunction BuildGlobalVariable( string globalVariableName, RawData rawData )
+        public ISelectData BuildGlobalVariable( string globalVariableName, RawData rawData )
         {
             if ( _GlobalVariables.ContainsKey( globalVariableName.ToUpper() ) == false )
             {
                 throw new SqlFunctionNotSupportedException( globalVariableName );
             }
 
-            return Activator.CreateInstance( _GlobalVariables[ globalVariableName.ToUpper() ], args:new object[]{ globalVariableName, rawData }) as ISelectDataFunction;
+            return Activator.CreateInstance( _GlobalVariables[ globalVariableName.ToUpper() ], args:new object[]{ globalVariableName, rawData }) as ISelectData;
         }
     }
 }
