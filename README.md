@@ -1,22 +1,30 @@
 # SqlMemoryDb
-Library that can be used as a memory based replacement for SqlDbConnection for testing purposes. All data is kept in memory, so all is lost when the application is closed. The SQL dialect used is compatible with SQL server.
+Welcome to the SqlMemoryDb project.
+
+This library can be used as a memory based replacement for SqlDbConnection for testing purposes. 
 
 In many project I work on use SqlDbConnection + Dapper. I tried to find a memory database with a SQL language that is compatible with Microsoft SQL server. But I could not find anything, so I thought why not build it myself (How hard can it be (famous last word ;-) )).
 
-When I get to it, I will start a project wiki. Until this one is up and running, here are some implementation details:
+**Implementation:**
 * The SQL is parsed with a parser from Microsoft `Microsoft.SqlServer.Management.SqlParser`. This will ensure that the SQL dialect is fully SQL server compliant. 
-* The public classes are all derived from the Db classes in `System.Data` with a Memory prefix. This means `MemoryDbConnection` is inherited from `DbConnection`. As long as it is compatible with the data access layer from `System.Data`, it will probably work (I hope, I hope, I hope).
-* The internal data structures for tables, columns and rows can be accessed from the class MemoryDatabase. The singleton instance can be accessed via `var db = MemoryDbConnection.GetMemoryDatabase( )`.
+* The public classes are all derived from the Db classes in `System.Data` with a Memory prefix. E.g. `MemoryDbConnection` is inherited from `DbConnection`.
+* The internal data structures for tables, columns and rows can be accessed from the class MemoryDatabase. The singleton instance can be accessed via `var db = new MemoryDbConnection().GetMemoryDatabase( )`.
 
+
+## Limitations
+It is still in it's alpha fase and this is a hobby project. So the tests are not production/release worthy and not everything is fully implemented. To keep everything simple and manageable there are some things to keep in mind
+* There is only a single database (no connection string needed)
+* No user/access rights 
+* Not all possible SQL permutations are tested
+* No implicit type conversions. You get the same data back as you put in.
+* Not everything will be fully implemented
+* Multi-threading is not supported yet.
+ 
 ## Supported Framework
 * .net standard 2.0
 
-## Limitations
-It is still in it's alpha fase and this is a hobby project. So the tests are not production/release worthy and not everything is fully implemented. For instance there is no explicit type conversion, methods, Common Table Expressions (CTE), views, etc. Non supported functionality will throw a NotImplementedException exception. Please feel free to add features yourself if you need anything right now. Please look in the test project to see what is currently supported.
-The usage of keywords like: SELECT, UPDATE, INSERT, GROUP BY, HAVING are supported as is an alias.
-
 ## Installation
-Currently there is no installer or precompiles package. Just copy the sourcecode and compile it as part of your own project.
+Currently there is no installer or precompiles package. Just copy the source code of the SqlMemoryDb project and compile it as part of your own project.
 
 ## Usage
 The library is a replacement of the SqlDbConnection package, so replacing SqlDbConnection with MemoryDbConnection should work.
