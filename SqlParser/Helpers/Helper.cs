@@ -424,6 +424,18 @@ namespace SqlMemoryDb.Helpers
             };
         }
 
+        public static MemoryDbDataReader.ReaderFieldData BuildFieldFromLiteral( LiteralValueType literalType, string name, int fieldsCount )
+        {
+            var readerField = new MemoryDbDataReader.ReaderFieldData
+            {
+                Name = name,
+                DbType = GetDbTypeFromLiteralType( literalType ).Value.ToString(),
+                NetType = GetTypeFromLiteralType( literalType ),
+                FieldIndex = fieldsCount
+            };
+            return readerField;
+        }
+
         public static MemoryDbDataReader.ReaderFieldData BuildFieldFromStringValue( string literal, string name, int fieldsCount )
         {
             var readerField = new MemoryDbDataReader.ReaderFieldData
@@ -583,7 +595,7 @@ namespace SqlMemoryDb.Helpers
                 case LiteralValueType.Integer: return typeof(int);
                 case LiteralValueType.Image: return typeof(byte[]);
                 case LiteralValueType.Money: return typeof(decimal);
-                case LiteralValueType.Null: return typeof(string);
+                case LiteralValueType.Null: return typeof(Object);
                 case LiteralValueType.Numeric: return typeof(double);
                 case LiteralValueType.Real: return typeof(float);
                 case LiteralValueType.Default: 
@@ -603,7 +615,7 @@ namespace SqlMemoryDb.Helpers
                 case LiteralValueType.Integer: return DbType.Int32;
                 case LiteralValueType.Image: return DbType.Binary;
                 case LiteralValueType.Money: return DbType.Decimal;
-                case LiteralValueType.Null: return null;
+                case LiteralValueType.Null: return DbType.Object;
                 case LiteralValueType.Numeric: return DbType.Decimal;
                 case LiteralValueType.Real: return DbType.Single;
                 case LiteralValueType.Default: 

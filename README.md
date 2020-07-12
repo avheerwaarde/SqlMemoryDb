@@ -80,4 +80,6 @@ Version | Description
 0.10.13| Math Functions: Avg(), Sum(), FLOOR(), CEILING(), ROUND(), Abs(), Sign(), Rand()
 0.10.14| Text Functions: ASCII(), CHAR(), CHARINDEX(), CONCAT(), DATALENGTH(), LEFT(), LEN(), LOWER(), LTRIM(), NCHAR(), PATINDEX(), REPLACE(), RIGHT(), RTRIM(), SPACE(), STR(), STUFF(), SUBSTRING(), UPPER()
 0.10.15| Date functions: DATEADD(), DATEDIFF(), DATENAME(), DATEPART(), SYSDATETIMEOFFSET(), SYSDATETIME(), GETDATE(), CURRENT_TIMESTAMP SYSUTCDATETIME(), GETUTCDATE(), DAY(), MONTH(), YEAR()
-0.10.16| Conversion Functions: Cast(), Try_cast(), Convert(), Try_convert
+0.10.16| Conversion Functions: Cast(), Try_cast(), Convert(), Try_Convert()
+0.10.17| Miscelaneous Functions: @@VERSION, Coalesce(), CURRENT_USER, IsDate(), IsNull(), IsNumeric(), Lag(), Lead(), SESSION_USER, SYSTEM_USER, USER_NAME
+0.10.18| Calculations: support for +, -, *, /
