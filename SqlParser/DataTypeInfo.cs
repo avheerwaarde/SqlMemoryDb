@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Helpers;
 
 namespace SqlMemoryDb
 {
@@ -49,6 +51,21 @@ namespace SqlMemoryDb
             { "XML"             , InitXml }
         };
 
+        public DataTypeInfo( )
+        {
+
+        }
+
+        public DataTypeInfo( DataTypeInfo info )
+        {
+            DbDataType  = info.DbDataType;
+            NetDataType = info.NetDataType;
+            Precision   = info.Precision;
+            Scale       = info.Scale;
+            Size        = info.Size;
+            IsFixedSize = info.IsFixedSize;
+        }
+
         public DataTypeInfo( string sqlType )
         {
             if ( sqlType.StartsWith( "\"" ) && sqlType.EndsWith( "\"" )  )
@@ -66,6 +83,12 @@ namespace SqlMemoryDb
                 }
                 _DataTypes[dataTypeString].Invoke( this, sizeOrPrecision );
             }
+        }
+
+        public DataTypeInfo( SqlLiteralExpression literal )
+        {
+            NetDataType = Helper.GetTypeFromLiteralType( literal.Type );
+            DbDataType = Helper.GetDbTypeFromLiteralType( literal.Type ).Value;
         }
 
         private static void InitBigInt( DataTypeInfo info, string sizeOrPrecision )

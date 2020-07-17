@@ -84,7 +84,7 @@ namespace SqlMemoryDb.SelectData
             var keys = new List<string>( );
             foreach ( var field in groupByFields )
             {
-                keys.Add( new SelectDataFromColumn( field ).Select( row )?.ToString(  ) ?? "<NULL>");
+                keys.Add( new SelectDataFromColumn( field, _RawData ).Select( row )?.ToString(  ) ?? "<NULL>");
             }
 
             return string.Join( "|", keys );

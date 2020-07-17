@@ -18,7 +18,7 @@ namespace SqlMemoryDb
         public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
         public Dictionary<string,SqlCreateAlterViewStatementBase> Views = new Dictionary<string, SqlCreateAlterViewStatementBase>();
 
-        public Decimal? LastIdentitySet;
+        public long? LastIdentitySet;
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
         public readonly Dictionary<string, string> Options = new Dictionary<string, string>
@@ -61,7 +61,7 @@ namespace SqlMemoryDb
             switch ( child )
             {
                 case SqlCreateTableStatement createTable:
-                    new TableInfo( this ).Add( createTable );
+                    new CreateTable( createTable ).AddToDatabase( this );
                     break;
                 case SqlInsertStatement insertStatement:
                     new ExecuteNonQueryStatement( this, command ).Execute( Tables, insertStatement );

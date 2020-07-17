@@ -16,13 +16,14 @@ namespace SqlMemoryDb.SelectData
         
         private readonly Type _ReturnType;
         private readonly DbType _DbType;
+        private readonly RawData _RawData;
 
-
-        internal SelectDataFromColumn( TableColumn tableColumn )
+        internal SelectDataFromColumn( TableColumn tableColumn, RawData rawData )
         {
             TableColumn = tableColumn;
             _ReturnType = tableColumn.Column.NetDataType;
             _DbType = tableColumn.Column.DbDataType;
+            _RawData = rawData;
         }
 
         public object Select( List<RawData.RawDataRow> rows )
@@ -33,7 +34,26 @@ namespace SqlMemoryDb.SelectData
             }
 
             var tableRow = rows.Single( r => r.Name == TableColumn.TableName );
-            return tableRow.Row[ TableColumn.Column.Order ];
+            object value;
+            if ( TableColumn.Column.ComputedExpression != null )
+            {
+                var select = new SelectDataBuilder(  ).Build( TableColumn.Column.ComputedExpression, _RawData );
+                value = select.Select( rows );
+                if ( value.GetType(  ) != TableColumn.Column.NetDataType )
+                {
+                    value = Convert.ChangeType( value, TableColumn.Column.NetDataType );
+                }
+            }
+            else
+            {
+                value = tableRow.Row[ TableColumn.Column.Order ];
+            }
+            // pad string if we have a string of a fixed length
+            if ( TableColumn.Column.NetDataType == typeof(string) && TableColumn.Column.IsFixedSize )
+            {
+                value = value.ToString( ).PadRight( TableColumn.Column.Size );
+            }
+            return value;
         }
     }
 }

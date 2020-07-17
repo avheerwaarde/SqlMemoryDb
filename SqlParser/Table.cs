@@ -24,7 +24,7 @@ namespace SqlParser
         public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
         public readonly List<ArrayList> Rows;
         public readonly Dictionary<OptionEnum, string> Options;
-        public Decimal? LastIdentitySet;
+        public long? LastIdentitySet;
 
         public Table( SqlObjectIdentifier name )
         {

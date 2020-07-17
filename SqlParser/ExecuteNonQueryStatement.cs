@@ -46,20 +46,20 @@ namespace SqlMemoryDb
         private void AddRowFromTableConstructor( Table table, List<Column> columns, SqlTableConstructorInsertSource source )
         {
             var row = InitializeNewRow( table, columns );
-            var values = GetValuesFromSql( source.Tokens );
+            var valueList = source.TableConstructorExpression.Rows[ 0 ].Children.ToList(  );
 
-            if ( columns.Count > values.Count )
+            if ( columns.Count > valueList.Count )
             {
                 throw new SqlInsertTooManyColumnsException(  );
             }
-            if ( columns.Count < values.Count )
+            if ( columns.Count < valueList.Count )
             {
                 throw new SqlInsertTooManyValuesException(  );
             }
 
             for ( int index = 0; index < columns.Count; index++ )
             {
-                AddRowValue( row, columns[ index ], values[ index ] );
+                AddRowValue( row, columns[ index ], valueList[ index ] );
             }
             AddRowToTable( table, row );
         }
@@ -93,25 +93,30 @@ namespace SqlMemoryDb
 
 
 
-        private void AddRowValue( ArrayList row, Column column, string value )
+        private void AddRowValue( ArrayList row, Column column, SqlCodeObject value )
         {
-            if ( value.StartsWith( "@" ) )
+            switch ( value )
             {
-                row[ column.Order ] = Helper.GetValueFromParameter( value, _Command.Parameters, _Command.Variables );
-            }
-            else
-            {
-                if ( Regex.IsMatch( value, "\\b[^()]+\\((.*)\\)$" ) || value.StartsWith( "@@" ))
+                case SqlLiteralExpression literal:
                 {
-                    var select = new SelectDataBuilder(  ).Build( value, new RawData( _Command ) );
+                    row[ column.Order ] = Helper.GetValueFromString( column, literal.Value );
+                    break;
+                }
+                case SqlBuiltinScalarFunctionCallExpression function:
+                {
+                    var select = new SelectDataBuilder(  ).Build( function, new RawData( _Command ) );
                     row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
+                    break;
                 }
-                else
+                case SqlScalarVariableRefExpression variableRef:
                 {
-                    row[ column.Order ] = Helper.GetValueFromString( column, value );
+                    var select = new SelectDataFromVariables( variableRef, _Command );
+                    row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
+                    break;
                 }
+                default:
+                    throw new NotImplementedException( $"Value of type {value.GetType(  )} is not supported");
             }
-
             ValidateDataSize( column, row[ column.Order ] );
         }
 
@@ -132,42 +137,6 @@ namespace SqlMemoryDb
                     throw new SqlDataTruncatedException( column.Size, ((byte[])source).Length );
                 }
             }
-        }
-
-        private List<string> GetValuesFromSql( IEnumerable<Token> tokens )
-        {
-            var values = new List<string>( );
-            var parenthesisCount = 0;
-            var id = "";
-            foreach ( var token in tokens )
-            {
-                if ( parenthesisCount == 1 
-                     && (token.Type == ")" || token.Type == ",") 
-                     && string.IsNullOrWhiteSpace( id ) == false )
-                {
-                    values.Add( id );
-                    id = "";
-                }
-
-                if ( token.Type == ")" )
-                {
-                    parenthesisCount--;
-                    if ( parenthesisCount == 0 )
-                    {
-                        break;
-                    }
-                }
-
-                if ( parenthesisCount > 0 && token.Type != "," && token.Type != "LEX_WHITE" )
-                {
-                    id += token.Text;
-                }
-                if ( token.Type == "(" )
-                {
-                    parenthesisCount++;
-                }
-            }
-            return values;
         }
 
         private ArrayList InitializeNewRow( Table table, List<Column> columns )

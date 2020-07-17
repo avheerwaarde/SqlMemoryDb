@@ -11,8 +11,8 @@ namespace SqlMemoryDb.SelectData
 {
     class SelectDataFromFunctionIdentity: ISelectData
     {
-        public Type ReturnType => typeof( decimal );
-        public DbType DbType => DbType.Decimal;
+        public Type ReturnType => typeof( long );
+        public DbType DbType => DbType.Int64;
         public SqlScalarExpression Expression => _FunctionCall;
 
         private readonly SqlBuiltinScalarFunctionCallExpression _FunctionCall;

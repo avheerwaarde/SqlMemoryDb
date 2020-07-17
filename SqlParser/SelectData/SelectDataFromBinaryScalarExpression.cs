@@ -52,13 +52,17 @@ namespace SqlMemoryDb.SelectData
 
         private string SelectString( List<RawData.RawDataRow> rows )
         {
-            var left = Helper.GetValue( _Expression.Left, typeof( string ), _RawData, rows ).ToString(  );
-            var right = Helper.GetValue( _Expression.Right, typeof( string ), _RawData, rows ).ToString(  );
+            var left = Helper.GetValue( _Expression.Left, typeof( string ), _RawData, rows )?.ToString(  );
+            var right = Helper.GetValue( _Expression.Right, typeof( string ), _RawData, rows )?.ToString(  );
             if ( _Expression.Operator != SqlBinaryScalarOperatorType.Add )
             {
                 throw new NotImplementedException( $"Operator {_Expression.Operator.GetType(  )} is not implemented for strings.");
             }
 
+            if ( left == null || right == null )
+            {
+                return null;
+            }
             return left + right;
         }
 

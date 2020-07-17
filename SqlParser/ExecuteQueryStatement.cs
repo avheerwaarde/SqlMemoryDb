@@ -275,7 +275,7 @@ namespace SqlMemoryDb
                 DbType = tableColumn.Column.DbDataType.ToString(),
                 NetType = tableColumn.Column.NetDataType,
                 FieldIndex = batch.Fields.Count,
-                SelectFieldData = new SelectDataFromColumn( tableColumn )
+                SelectFieldData = new SelectDataFromColumn( tableColumn, rawData )
             };
             batch.Fields.Add( readerField );
         }
@@ -289,7 +289,7 @@ namespace SqlMemoryDb
                 DbType = column.DbDataType.ToString(),
                 NetType = column.NetDataType,
                 FieldIndex = batch.Fields.Count,
-                SelectFieldData = new SelectDataFromColumn( new TableColumn{ Column = column, TableName = tableName } )
+                SelectFieldData = new SelectDataFromColumn( new TableColumn{ Column = column, TableName = tableName }, rawData )
             };
             batch.Fields.Add( readerField );
         }
