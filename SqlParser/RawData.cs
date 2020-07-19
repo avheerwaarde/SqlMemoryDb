@@ -31,6 +31,7 @@ namespace SqlMemoryDb
 
         public readonly MemoryDbCommand Command;
         private readonly MemoryDatabase _Database;
+        private readonly List<Table> _CommonTableList = new List<Table>();
 
         public RawData( MemoryDbCommand command, MemoryDbDataReader.ResultBatch batch = null )
         {
@@ -65,6 +66,11 @@ namespace SqlMemoryDb
                     {
                         var view = _Database.Views[ qualifiedName ];
                         AddAllViewRows( view, name );
+                    }
+                    else if ( _CommonTableList.Any( t => t.FullName == qualifiedName ) )
+                    {
+                        var table = _CommonTableList.Single( t => t.FullName == qualifiedName );
+                        AddAllTableRows( table, name );
                     }
                     else
                     {
@@ -110,34 +116,26 @@ namespace SqlMemoryDb
             var rawData = new RawData( command );
             var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
             var identifier = view.Definition.Name;
-            var rowList = ResultBatch2RowList( name, identifier, batch );
+            if ( TableAliasList.ContainsKey( name ) == false )
+            {
+                var table = CreateTable( name, identifier, batch, null );
+                TableAliasList.Add( name, table );
+            }
+
+            var rowList = ResultBatch2RowList( TableAliasList[ name ], batch );
             RawRowList.AddRange( rowList );
         }
 
-        private List<List<RawDataRow>> ResultBatch2RowList( string name, SqlObjectIdentifier identifier, MemoryDbDataReader.ResultBatch batch )
+        private List<List<RawDataRow>> ResultBatch2RowList( Table table,
+            MemoryDbDataReader.ResultBatch batch, SqlIdentifierCollection columnList = null )
         {
             var rowList = new List<List<RawDataRow>>( );
-            var table = new Table( identifier );
-            foreach ( var field in batch.Fields )
-            {
-                var dataType = field.DbType;
-                if ( dataType.ToUpper() == "STRING" )
-                {
-                    dataType = "NVARCHAR(MAX)";
-                }
-                var column = new Column( table, field.Name, dataType, table.Columns.Count );
-                table.Columns.Add( column );
-            }
-            if ( TableAliasList.ContainsKey( name ) == false )
-            {
-                TableAliasList.Add( name, table );
-            }
 
             foreach ( var row in batch.ResultRows )
             {
                 var tableRow = new RawData.RawDataRow
                 {
-                    Name = name,
+                    Name = table.Name,
                     Table = table,
                     Row = row
                 };
@@ -146,6 +144,43 @@ namespace SqlMemoryDb
             }
 
             return rowList;
+        }
+
+        private Table CreateTable( string name, SqlObjectIdentifier identifier, MemoryDbDataReader.ResultBatch batch,
+            SqlIdentifierCollection columnList )
+        {
+            if ( columnList != null )
+            {
+                if ( columnList.Count > batch.Fields.Count )
+                {
+                    throw new SqlInsertTooManyColumnsException( );
+                }
+
+                if ( columnList.Count < batch.Fields.Count )
+                {
+                    throw new SqlInsertTooManyValuesException( );
+                }                
+            }
+            var table = ( identifier != null ) ? new Table( identifier ) : new Table( name );
+            for ( int fieldIndex = 0; fieldIndex < batch.Fields.Count; fieldIndex++ )
+            {
+                var field = batch.Fields[ fieldIndex ];
+                var dataType = field.DbType;
+                if ( dataType.ToUpper( ) == "STRING" )
+                {
+                    dataType = "NVARCHAR(MAX)";
+                }
+
+                var columnName = columnList != null ? columnList[ fieldIndex ].Value : field.Name;
+                var select = ( field as MemoryDbDataReader.ReaderFieldData )?.SelectFieldData;
+                var tc = ( select as SelectDataFromColumn )?.TableColumn;
+                var column = tc !=  null 
+                    ? new Column( tc.Column, columnName, table.Columns.Count ) 
+                    : new Column( table, columnName, dataType, table.Columns.Count );
+                table.Columns.Add( column );
+            }
+
+            return table;
         }
 
         public void AddAllTableJoinRows(Table table, string name, SqlConditionClause onClause )
@@ -213,6 +248,20 @@ namespace SqlMemoryDb
             }
 
             return isEqual;
+        }
+
+        public void AddTablesFromCommonTableExpressions( SqlCommonTableExpressionCollection commonTableExpressions, Dictionary<string, Table> tables )
+        {
+            foreach ( var commonTableExpression in commonTableExpressions )
+            {
+                var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
+                var rawData = new RawData( command );
+                var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)commonTableExpression.QueryExpression );
+                var name = commonTableExpression.Name.Value;
+                var table = CreateTable( name, null, batch, commonTableExpression.ColumnList );
+                table.Rows.AddRange( batch.ResultRows );
+                _CommonTableList.Add( table );
+            }           
         }
     }
 }

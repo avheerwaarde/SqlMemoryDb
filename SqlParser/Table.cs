@@ -41,5 +41,21 @@ namespace SqlParser
                 [ OptionEnum.IdentityInsert ] = "off"
             };
         }
+
+        public Table( string name )
+        {
+            Name = name;
+            SchemaName = Helper.DefaultSchemaName;
+            FullName = SchemaName + "." + name;
+            Columns = new List<Column>();
+            PrimaryKeys = new List<Column>();
+            PrimaryKeyConstraints = new Dictionary<string, List<Column>>();
+            ForeignKeyConstraints = new List<ForeignKeyConstraint>();
+            Rows = new List<ArrayList>();
+            Options = new Dictionary<OptionEnum, string>
+            {
+                [ OptionEnum.IdentityInsert ] = "off"
+            };
+        }
     }
 }

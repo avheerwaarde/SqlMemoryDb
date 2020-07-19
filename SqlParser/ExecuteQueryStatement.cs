@@ -14,6 +14,7 @@ namespace SqlMemoryDb
 
         private readonly MemoryDbCommand _Command;
         private readonly List<Column> _InsertColumns;
+        private SqlSelectStatement _SelectStatement = null;
 
         public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command, List<Column> insertColumns = null )
         {
@@ -23,7 +24,12 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement, MemoryDbDataReader reader )
         {
+            _SelectStatement = selectStatement;
             var rawData = new RawData( _Command );
+            if ( _SelectStatement?.QueryWithClause != null )
+            {
+                rawData.AddTablesFromCommonTableExpressions( _SelectStatement.QueryWithClause.CommonTableExpressions, tables );
+            }
             var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
             reader.AddResultBatch( batch );
         }

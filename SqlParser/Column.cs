@@ -46,5 +46,13 @@ namespace SqlMemoryDb
             Order = order;
             IsNullable = true;
         }
+
+        public Column( Column sourceColumn, string name, int order ) : base( sourceColumn )
+        {
+            ParentTable = sourceColumn.ParentTable;
+            Name = name;
+            Order = order;
+            IsNullable = true;
+        }
     }
 }
