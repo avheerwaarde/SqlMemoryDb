@@ -55,44 +55,51 @@ namespace SqlMemoryDb
             {
                 case SqlTableRefExpression tableRef:
                 {
-                    var name = Helper.GetAliasName(tableRef);
-                    var qualifiedName = Helper.GetQualifiedName(tableRef.ObjectIdentifier);
-                    if ( tables.ContainsKey( qualifiedName ) )
-                    {
-                        var table = tables[ qualifiedName ];
-                        AddAllTableRows( table, name );
-                    }
-                    else if ( _Database.Views.ContainsKey( qualifiedName ) )
-                    {
-                        var view = _Database.Views[ qualifiedName ];
-                        AddAllViewRows( view, name );
-                    }
-                    else if ( _CommonTableList.Any( t => t.FullName == qualifiedName ) )
-                    {
-                        var table = _CommonTableList.Single( t => t.FullName == qualifiedName );
-                        AddAllTableRows( table, name );
-                    }
-                    else
-                    {
-                        throw new SqlInvalidObjectNameException( name );
-                    }
+                    RawRowList = GetTableOrViewRows( tables, tableRef );
                     break;
                 }
                 case SqlQualifiedJoinTableExpression joinExpression:
                 {
-                    var name = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Left);
-                    var table = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Left).ObjectIdentifier)];
-                    AddAllTableRows( table, name );
+                    RawRowList = GetTableOrViewRows( tables, (SqlTableRefExpression)joinExpression.Left );
+                    var joinRowList = GetTableOrViewRows( tables, (SqlTableRefExpression)joinExpression.Right );
                     var nameJoin = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Right);
-                    var tableJoin = tables[Helper.GetQualifiedName(((SqlTableRefExpression)joinExpression.Right).ObjectIdentifier)];
-                    AddAllTableJoinRows( tableJoin, nameJoin, joinExpression.OnClause );
+                    AddAllTableJoinRows( joinRowList, nameJoin, joinExpression.OnClause );
                     break;
                 }
             }
         }
 
-        public void AddAllTableRows( Table table, string name )
+        private List<List<RawDataRow>> GetTableOrViewRows( Dictionary<string, Table> tables, SqlTableRefExpression tableRef )
         {
+            List<List<RawDataRow>> rowList;
+            var name = Helper.GetAliasName( tableRef );
+            var qualifiedName = Helper.GetQualifiedName( tableRef.ObjectIdentifier );
+            if ( tables.ContainsKey( qualifiedName ) )
+            {
+                var table = tables[ qualifiedName ];
+                rowList = GetAllTableRows( table, name );
+            }
+            else if ( _Database.Views.ContainsKey( qualifiedName ) )
+            {
+                var view = _Database.Views[ qualifiedName ];
+                rowList = GetAllViewRows( view, name );
+            }
+            else if ( _CommonTableList.Any( t => t.FullName == qualifiedName ) )
+            {
+                var table = _CommonTableList.Single( t => t.FullName == qualifiedName );
+                rowList = GetAllTableRows( table, name );
+            }
+            else
+            {
+                throw new SqlInvalidObjectNameException( name );
+            }
+
+            return rowList;
+        }
+
+        public List<List<RawDataRow>> GetAllTableRows( Table table, string name )
+        {
+            var rawRowList = new List<List<RawDataRow>>( ); 
             if ( TableAliasList.ContainsKey( name ) == false )
             {
                 TableAliasList.Add( name, table );
@@ -106,11 +113,13 @@ namespace SqlMemoryDb
                     Row = row
                 };
                 var rows = new List<RawDataRow>( ) {tableRow};
-                RawRowList.Add( rows );
+                rawRowList.Add( rows );
             }
+
+            return rawRowList;
         }
 
-        private void AddAllViewRows( SqlCreateAlterViewStatementBase view, string name )
+        private List<List<RawDataRow>> GetAllViewRows( SqlCreateAlterViewStatementBase view, string name )
         {
             var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
             var rawData = new RawData( command );
@@ -122,8 +131,7 @@ namespace SqlMemoryDb
                 TableAliasList.Add( name, table );
             }
 
-            var rowList = ResultBatch2RowList( TableAliasList[ name ], batch );
-            RawRowList.AddRange( rowList );
+            return ResultBatch2RowList( TableAliasList[ name ], batch );
         }
 
         private List<List<RawDataRow>> ResultBatch2RowList( Table table,
@@ -135,7 +143,7 @@ namespace SqlMemoryDb
             {
                 var tableRow = new RawData.RawDataRow
                 {
-                    Name = table.Name,
+                    Name = table.FullName,
                     Table = table,
                     Row = row
                 };
@@ -165,45 +173,29 @@ namespace SqlMemoryDb
             for ( int fieldIndex = 0; fieldIndex < batch.Fields.Count; fieldIndex++ )
             {
                 var field = batch.Fields[ fieldIndex ];
-                var dataType = field.DbType;
-                if ( dataType.ToUpper( ) == "STRING" )
-                {
-                    dataType = "NVARCHAR(MAX)";
-                }
+                var sqlType = Helper.DbType2SqlType(field.DbType);
 
                 var columnName = columnList != null ? columnList[ fieldIndex ].Value : field.Name;
                 var select = ( field as MemoryDbDataReader.ReaderFieldData )?.SelectFieldData;
                 var tc = ( select as SelectDataFromColumn )?.TableColumn;
                 var column = tc !=  null 
                     ? new Column( tc.Column, columnName, table.Columns.Count ) 
-                    : new Column( table, columnName, dataType, table.Columns.Count );
+                    : new Column( table, columnName, sqlType, table.Columns.Count );
                 table.Columns.Add( column );
             }
 
             return table;
         }
 
-        public void AddAllTableJoinRows(Table table, string name, SqlConditionClause onClause )
+        public void AddAllTableJoinRows(List<List<RawDataRow>> joinRowList, string name, SqlConditionClause onClause )
         {
-            if ( TableAliasList.ContainsKey( name ) == false )
-            {
-                TableAliasList.Add( name, table );
-            }
-
             var newTableRows = new List<List<RawDataRow>>( );
             var filter = HelperConditional.GetRowFilter( onClause.Expression, this );
             foreach ( var currentRawRows in RawRowList )
             {
-                foreach ( var row in table.Rows )
+                foreach ( var row in joinRowList )
                 {
-                    var newRows = new List<RawDataRow>( currentRawRows );
-                    var tableRow = new RawData.RawDataRow
-                    {
-                        Name = name,
-                        Table = table,
-                        Row = row
-                    };
-                    newRows.Add( tableRow );
+                    var newRows = new List<RawDataRow>( currentRawRows ) { row.First() };
                     if ( filter.IsValid( newRows ) )
                     {
                         newTableRows.Add( newRows );

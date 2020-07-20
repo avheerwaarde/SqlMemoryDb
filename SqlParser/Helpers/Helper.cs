@@ -28,6 +28,37 @@ namespace SqlMemoryDb.Helpers
             {"dym", new []{ "d/yyyy/M h:mm:ss tt", "d-yyyy-M h:mm:ss tt", "d/yyyy/M h:mm:ss", "d-yyyy-M h:mm:ss", "d/yyyy/M", "d-yyyy-M" } }
         };
 
+        private static Dictionary< string, string> _DbType2SqlType = new Dictionary<string, string>
+        {
+            [DbType.AnsiString.ToString()           ] = "VARCHAR(MAX)",
+            [DbType.Binary.ToString()               ] = "VARBINARY(MAX)",
+            [DbType.Byte.ToString()                 ] = "BYTE",
+            [DbType.Boolean.ToString()              ] = "BIT",
+            [DbType.Currency.ToString()             ] = "MONEY",
+            [DbType.Date.ToString()                 ] = "DATE",
+            [DbType.DateTime.ToString()             ] = "DATETIME",
+            [DbType.Decimal.ToString()              ] = "NUMERIC",
+            [DbType.Double.ToString()               ] = "FLOAT",
+            [DbType.Guid.ToString()                 ] = "GUID",
+            [DbType.Int16.ToString()                ] = "SMALLINT",
+            [DbType.Int32.ToString()                ] = "INT",
+            [DbType.Int64.ToString()                ] = "BIGINT",
+            [DbType.Object.ToString()               ] = "",
+            [DbType.SByte.ToString()                ] = "CHAR",
+            [DbType.Single.ToString()               ] = "REAL",
+            [DbType.String.ToString()               ] = "NVARCHAR(MAX)",
+            [DbType.Time.ToString()                 ] = "TIME",
+            [DbType.UInt16.ToString()               ] = "SMALLINT",
+            [DbType.UInt32.ToString()               ] = "INT",
+            [DbType.UInt64.ToString()               ] = "BIGINT",
+            [DbType.VarNumeric.ToString()           ] = "NUMERIC",
+            [DbType.AnsiStringFixedLength.ToString()] = "CHAR(MAX)",
+            [DbType.StringFixedLength.ToString()    ] = "VARCHAR(MAX)",
+            [DbType.Xml.ToString()                  ] = "XML",
+            [DbType.DateTime2.ToString()            ] = "DATETIME2",
+            [DbType.DateTimeOffset.ToString()       ] = "DATETIMEOFFSETT"
+        };
+
         public static string GetAliasName( SqlTableRefExpression tableRef )
         {
             return tableRef.Alias == null ? GetQualifiedName(tableRef.ObjectIdentifier) : tableRef.Alias.Value;
@@ -736,5 +767,9 @@ namespace SqlMemoryDb.Helpers
             return patternBuilder.ToString();
         }
 
+        public static string DbType2SqlType( string dbType )
+        {
+            return _DbType2SqlType[ dbType ];
+        }
     }
 }
