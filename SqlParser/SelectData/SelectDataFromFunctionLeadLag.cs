@@ -88,7 +88,7 @@ namespace SqlMemoryDb.SelectData
             List<RawData.RawDataRow> rows, SqlWhereClause whereClause )
         {
             var tableColumn = Helper.FindTableAndColumn( null, _PartitionField, rawData.TableAliasList );
-            var value = new SelectDataFromColumn( tableColumn ).Select( rows );
+            var value = new SelectDataFromColumn( tableColumn, _RawData ).Select( rows );
             rawData.Parameters.Add( new MemoryDbParameter { ParameterName = _PartitionField, Value = value } );
             rawData.WhereClause = whereClause.Expression;
         }

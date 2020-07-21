@@ -119,7 +119,7 @@ namespace DatabaseTests
             command.Parameters.Add( new MemoryDbParameter( ) {ParameterName = "DefName", Value = "DefName String"} );
             await command.PrepareAsync( );
             Func<Task> act = async () => { await command.ExecuteNonQueryAsync( ); };
-            await act.Should( ).ThrowAsync<SqlInvalidParameterNameException>( );
+            await act.Should( ).ThrowAsync<SqlInvalidVariableException>( );
         }
 
     }

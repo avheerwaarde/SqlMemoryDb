@@ -1,4 +1,6 @@
-﻿using SqlParser;
+﻿using System.Data;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlParser;
 
 namespace SqlMemoryDb
 {
@@ -24,12 +26,30 @@ namespace SqlMemoryDb
         public bool IsPrimaryKey { get ; set ; }
         public int NextIdentityValue { get; set; }
         public Table ParentTable { get; set; }
+        public SqlBuiltinScalarFunctionCallExpression ComputedExpression;
 
+        public Column( Table table, string name, int order, 
+            SqlBuiltinScalarFunctionCallExpression expression, DataTypeInfo type ) : base( type )
+        {
+            ParentTable = table;
+            Name = name;
+            Order = order;
+            IsNullable = true;
+            ComputedExpression = expression;
+        }
 
 
         public Column( Table table, string name, string sqlType, int order ) : base( sqlType )
         {
             ParentTable = table;
+            Name = name;
+            Order = order;
+            IsNullable = true;
+        }
+
+        public Column( Column sourceColumn, string name, int order ) : base( sourceColumn )
+        {
+            ParentTable = sourceColumn.ParentTable;
             Name = name;
             Order = order;
             IsNullable = true;

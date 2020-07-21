@@ -14,6 +14,7 @@ namespace SqlMemoryDb
 
         private readonly MemoryDbCommand _Command;
         private readonly List<Column> _InsertColumns;
+        private SqlSelectStatement _SelectStatement = null;
 
         public ExecuteQueryStatement( MemoryDatabase memoryDatabase, MemoryDbCommand command, List<Column> insertColumns = null )
         {
@@ -23,7 +24,12 @@ namespace SqlMemoryDb
 
         public void Execute( Dictionary<string, Table> tables, SqlSelectStatement selectStatement, MemoryDbDataReader reader )
         {
+            _SelectStatement = selectStatement;
             var rawData = new RawData( _Command );
+            if ( _SelectStatement?.QueryWithClause != null )
+            {
+                rawData.AddTablesFromCommonTableExpressions( _SelectStatement.QueryWithClause.CommonTableExpressions, tables );
+            }
             var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
             reader.AddResultBatch( batch );
         }
@@ -275,7 +281,7 @@ namespace SqlMemoryDb
                 DbType = tableColumn.Column.DbDataType.ToString(),
                 NetType = tableColumn.Column.NetDataType,
                 FieldIndex = batch.Fields.Count,
-                SelectFieldData = new SelectDataFromColumn( tableColumn )
+                SelectFieldData = new SelectDataFromColumn( tableColumn, rawData )
             };
             batch.Fields.Add( readerField );
         }
@@ -289,7 +295,7 @@ namespace SqlMemoryDb
                 DbType = column.DbDataType.ToString(),
                 NetType = column.NetDataType,
                 FieldIndex = batch.Fields.Count,
-                SelectFieldData = new SelectDataFromColumn( new TableColumn{ Column = column, TableName = tableName } )
+                SelectFieldData = new SelectDataFromColumn( new TableColumn{ Column = column, TableName = tableName }, rawData )
             };
             batch.Fields.Add( readerField );
         }

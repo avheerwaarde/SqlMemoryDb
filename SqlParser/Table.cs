@@ -24,13 +24,29 @@ namespace SqlParser
         public readonly List<ForeignKeyConstraint> ForeignKeyConstraints;
         public readonly List<ArrayList> Rows;
         public readonly Dictionary<OptionEnum, string> Options;
-        public Decimal? LastIdentitySet;
+        public long? LastIdentitySet;
 
         public Table( SqlObjectIdentifier name )
         {
             Name = name.ObjectName.Value;
             SchemaName = name.SchemaName?.Value ?? Helper.DefaultSchemaName;
             FullName = Helper.GetQualifiedName( name );
+            Columns = new List<Column>();
+            PrimaryKeys = new List<Column>();
+            PrimaryKeyConstraints = new Dictionary<string, List<Column>>();
+            ForeignKeyConstraints = new List<ForeignKeyConstraint>();
+            Rows = new List<ArrayList>();
+            Options = new Dictionary<OptionEnum, string>
+            {
+                [ OptionEnum.IdentityInsert ] = "off"
+            };
+        }
+
+        public Table( string name )
+        {
+            Name = name;
+            SchemaName = Helper.DefaultSchemaName;
+            FullName = SchemaName + "." + name;
             Columns = new List<Column>();
             PrimaryKeys = new List<Column>();
             PrimaryKeyConstraints = new Dictionary<string, List<Column>>();

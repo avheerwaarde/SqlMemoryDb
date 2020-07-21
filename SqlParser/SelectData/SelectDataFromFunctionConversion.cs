@@ -143,6 +143,11 @@ namespace SqlMemoryDb.SelectData
 
         private object TruncateDoubleIfReturnTypeHasNoDecimals( object value )
         {
+            if ( value == null )
+            {
+                return value;
+            }
+
             var hasTruncateSource = HelperReflection.HasMathMethodInfo( "Truncate", value.GetType( ) );
             var hasTruncateDestination = HelperReflection.HasMathMethodInfo( "Truncate", _ReturnType );
             if ( hasTruncateSource && hasTruncateDestination == false && _ReturnType != typeof( string ) )
