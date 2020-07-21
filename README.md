@@ -91,3 +91,4 @@ Version | Description
 0.10.16| Conversion Functions: Cast(), Try_cast(), Convert(), Try_Convert()
 0.10.17| Miscelaneous Functions: @@VERSION, Coalesce(), CURRENT_USER, IsDate(), IsNull(), IsNumeric(), Lag(), Lead(), SESSION_USER, SYSTEM_USER, USER_NAME
 0.10.18| Calculations: support for +, -, *, /
+0.10.19| Calculated fields, Common Table Expressions
