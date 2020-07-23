@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using SqlParser;
 
 namespace SqlMemoryDb
 {
@@ -8,7 +10,7 @@ namespace SqlMemoryDb
     {
         internal string InternalDatabaseName;
         internal ConnectionState InternalState;
-        private const string _DatabaseServerVersion = "SQL Memory Database V0.10.19";
+        private const string _DatabaseServerVersion = "SQL Memory Database V0.10.20";
         private static readonly MemoryDatabase _MemoryDatabase = new MemoryDatabase(  );
 
         public override string ConnectionString { get; set; }
@@ -17,6 +19,7 @@ namespace SqlMemoryDb
         public override string DataSource => InternalDatabaseName;
         public override string ServerVersion => _DatabaseServerVersion;
         public override ConnectionState State => InternalState;
+        public Dictionary<string, Table> TempTables = new Dictionary<string, Table>();
 
         internal MemoryDatabase MemoryDatabase => _MemoryDatabase;
 

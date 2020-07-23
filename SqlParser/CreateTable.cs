@@ -19,11 +19,23 @@ namespace SqlMemoryDb
             _Table = new Table( createTable.Name );
         }
 
-        internal void AddToDatabase( MemoryDatabase info )
+        internal void AddToDatabase( MemoryDatabase info, MemoryDbConnection connection )
         {
-            info.Tables.Add( _Table.FullName, _Table );
+            if ( IsTempTable( _Table.Name ) )
+            {
+                connection.TempTables.Add( _Table.FullName, _Table );
+            }
+            else
+            {
+                info.Tables.Add( _Table.FullName, _Table );
+            }
             AddColumns( _CreateTable.Definition );
             AddConstraints( _CreateTable.Definition );
+        }
+
+        private bool IsTempTable( string tableName )
+        {
+            return tableName.Length >= 2 && tableName[0] == '#' && tableName[1] != '#';
         }
 
         private void AddConstraints( SqlTableDefinition createTableDefinition )

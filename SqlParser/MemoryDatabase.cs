@@ -61,7 +61,7 @@ namespace SqlMemoryDb
             switch ( child )
             {
                 case SqlCreateTableStatement createTable:
-                    new CreateTable( createTable ).AddToDatabase( this );
+                    new CreateTable( createTable ).AddToDatabase( this, (MemoryDbConnection)(command.Connection) );
                     break;
                 case SqlInsertStatement insertStatement:
                     new ExecuteNonQueryStatement( this, command ).Execute( Tables, insertStatement );

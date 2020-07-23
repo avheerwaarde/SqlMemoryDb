@@ -79,6 +79,11 @@ namespace SqlMemoryDb
                 var table = tables[ qualifiedName ];
                 rowList = GetAllTableRows( table, name );
             }
+            else if ( ((MemoryDbConnection)Command.Connection).TempTables.ContainsKey( qualifiedName ) )
+            {
+                var table = ((MemoryDbConnection)Command.Connection).TempTables[ qualifiedName ];
+                rowList = GetAllTableRows( table, name );
+            }
             else if ( _Database.Views.ContainsKey( qualifiedName ) )
             {
                 var view = _Database.Views[ qualifiedName ];

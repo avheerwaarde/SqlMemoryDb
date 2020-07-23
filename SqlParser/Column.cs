@@ -54,5 +54,6 @@ namespace SqlMemoryDb
             Order = order;
             IsNullable = true;
         }
+
     }
 }
