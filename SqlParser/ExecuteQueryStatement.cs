@@ -31,7 +31,11 @@ namespace SqlMemoryDb
                 rawData.AddTablesFromCommonTableExpressions( _SelectStatement.QueryWithClause.CommonTableExpressions, tables );
             }
             var batch = Execute( rawData, tables, selectStatement.SelectSpecification.QueryExpression, selectStatement.SelectSpecification.OrderByClause );
-            reader.AddResultBatch( batch );
+            if ( (_SelectStatement.SelectSpecification.QueryExpression as SqlQuerySpecification)?.IntoClause != null )
+            {
+                return;
+            }
+            reader?.AddResultBatch( batch );
         }
 
         public MemoryDbDataReader.ResultBatch Execute( RawData rawData, Dictionary<string, Table> tables,
@@ -134,8 +138,25 @@ namespace SqlMemoryDb
             rawData.SortOrder =  GetSortOrder( orderByClause, sqlQuery );
 
             new QueryResultBuilder( rawData, sqlQuery.SelectClause.IsDistinct ).AddData( batch );
+            if ( sqlQuery.IntoClause != null )
+            {
+                InsertIntoTable( sqlQuery.IntoClause, tables, batch );
+            }
             return batch;
         }
+
+        private void InsertIntoTable( SqlSelectIntoClause sqlQueryIntoClause, Dictionary<string, Table> tables,
+            MemoryDbDataReader.ResultBatch batch )
+        {
+            var connection = ( ( MemoryDbConnection ) _Command.Connection );
+            bool throwExceptionIfNotFound = Helper.IsTempTable( sqlQueryIntoClause.IntoTarget ) == false;
+            Table table = Helper.GetTableFromObjectId( sqlQueryIntoClause.IntoTarget, tables, connection.TempTables, throwExceptionIfNotFound ) 
+                          ?? new CreateTableFromBatch(  ).ToDatabase( sqlQueryIntoClause.IntoTarget, connection, batch );
+            table.Rows.AddRange( batch.ResultRows );
+            _Command.RowsAffected += batch.ResultRows.Count;
+        }
+
+
 
         private MemoryDbDataReader.ResultBatch InitializeBatch( RawData rawData, SqlQuerySpecification sqlQuery )
         {

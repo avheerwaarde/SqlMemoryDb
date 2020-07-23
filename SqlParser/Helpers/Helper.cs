@@ -657,6 +657,61 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
+        public static bool IsTempTable( SqlObjectIdentifier intoTarget )
+        {
+            return IsTempTable( intoTarget.ObjectName.Value );
+        }
+
+        public static bool IsTempTable( string tableName )
+        {
+            return tableName[ 0 ] == '#';
+        }
+
+        public static  bool IsLocalTempTable( SqlObjectIdentifier intoTarget )
+        {
+            return IsLocalTempTable( intoTarget.ObjectName.Value );
+        }
+
+        public static  bool IsLocalTempTable( string tableName )
+        {
+            return tableName.Length > 1 && tableName[ 0 ] == '#' && tableName[ 1 ] != '#';
+        }
+
+        public static  bool IsGlobalTempTable( SqlObjectIdentifier intoTarget )
+        {
+            return IsGlobalTempTable( intoTarget.ObjectName.Value );
+        }
+
+        public static  bool IsGlobalTempTable( string tableName )
+        {
+            return tableName.Length > 2 && tableName[ 0 ] == '#' && tableName[ 1 ] == '#';
+        }
+
+        public static Table GetTableFromObjectId( SqlObjectIdentifier identifier, Dictionary<string, Table> tables, Dictionary<string, Table> tempTables, bool throwException = true )
+        {
+            var tableName = Helper.GetQualifiedName( identifier );
+            if ( tempTables.ContainsKey( tableName ) )
+            {
+                return tempTables[ tableName ];
+            }
+            
+            if ( tables.ContainsKey( tableName ) )
+            {
+                return tables[ tableName ];
+            }
+
+            var foundTables = tables.Where( t => t.Value.Name == identifier.ObjectName.Value ).ToList( );
+            if ( foundTables.Count( ) != 1 )
+            {
+                if ( foundTables.Count == 0 && throwException == false )
+                {
+                    return null;
+                }
+                throw new SqlInvalidTableNameException( tableName );
+            }
+
+            return foundTables.First( ).Value;
+        }
 
         public static TableAndColumn FindTableAndColumn( string tableName, string columnName,
             Dictionary<string, Table> tables )

@@ -170,17 +170,10 @@ namespace SqlMemoryDb
             return row;
         }
 
-        private static Table GetInsertTable( Dictionary<string, Table> tables, SqlInsertSpecification spec )
+        private Table GetInsertTable( Dictionary<string, Table> tables, SqlInsertSpecification spec )
         {
             var target = spec.Target as SqlTableRefExpression;
-            var tableName = Helper.GetQualifiedName( target.ObjectIdentifier );
-            if ( tables.ContainsKey( tableName ) == false )
-            {
-                throw new SqlInvalidTableNameException( tableName );
-            }
-
-            var table = tables[ tableName ];
-            return table;
+            return Helper.GetTableFromObjectId( target.ObjectIdentifier, tables, ((MemoryDbConnection)_Command.Connection).TempTables );
         }
 
         private static List<Column> GetInsertColumns( SqlInsertSpecification spec, Table table )
