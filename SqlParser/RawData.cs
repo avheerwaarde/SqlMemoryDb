@@ -30,14 +30,14 @@ namespace SqlMemoryDb
         public List<TableColumn> GroupByFields = new List<TableColumn>();
 
         public readonly MemoryDbCommand Command;
-        private readonly MemoryDatabase _Database;
+        public readonly MemoryDatabase Database;
         private readonly List<Table> _CommonTableList = new List<Table>();
 
         public RawData( MemoryDbCommand command, MemoryDbDataReader.ResultBatch batch = null )
         {
             Command = command;
             Parameters = command.Parameters;
-            _Database = ((MemoryDbConnection)Command.Connection).GetMemoryDatabase( );
+            Database = ((MemoryDbConnection)Command.Connection).GetMemoryDatabase( );
             Batch = batch;
         }
 
@@ -84,9 +84,9 @@ namespace SqlMemoryDb
                 var table = ((MemoryDbConnection)Command.Connection).TempTables[ qualifiedName ];
                 rowList = GetAllTableRows( table, name );
             }
-            else if ( _Database.Views.ContainsKey( qualifiedName ) )
+            else if ( Database.Views.ContainsKey( qualifiedName ) )
             {
-                var view = _Database.Views[ qualifiedName ];
+                var view = Database.Views[ qualifiedName ];
                 rowList = GetAllViewRows( view, name );
             }
             else if ( _CommonTableList.Any( t => t.FullName == qualifiedName ) )
@@ -128,7 +128,7 @@ namespace SqlMemoryDb
         {
             var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
             var rawData = new RawData( command );
-            var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
+            var batch = new ExecuteQueryStatement( Database, command ).Execute( Database.Tables, rawData, (SqlQuerySpecification)view.Definition.QueryExpression );
             var identifier = view.Definition.Name;
             if ( TableAliasList.ContainsKey( name ) == false )
             {
@@ -185,7 +185,7 @@ namespace SqlMemoryDb
                 var tc = ( select as SelectDataFromColumn )?.TableColumn;
                 var column = tc !=  null 
                     ? new Column( tc.Column, columnName, table.Columns.Count ) 
-                    : new Column( table, columnName, sqlType, table.Columns.Count );
+                    : new Column( table, columnName, sqlType, Database.UserDataTypes, table.Columns.Count );
                 table.Columns.Add( column );
             }
 
@@ -253,7 +253,7 @@ namespace SqlMemoryDb
             {
                 var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
                 var rawData = new RawData( command );
-                var batch = new ExecuteQueryStatement( _Database, command ).Execute( _Database.Tables, rawData, (SqlQuerySpecification)commonTableExpression.QueryExpression );
+                var batch = new ExecuteQueryStatement( Database, command ).Execute( Database.Tables, rawData, (SqlQuerySpecification)commonTableExpression.QueryExpression );
                 var name = commonTableExpression.Name.Value;
                 var table = CreateTable( name, null, batch, commonTableExpression.ColumnList );
                 table.Rows.AddRange( batch.ResultRows );

@@ -25,6 +25,7 @@ namespace SqlMemoryDb
         {
             {"DATEFORMAT", "mdy"}
         };
+        public Dictionary<string,SqlCreateUserDefinedDataTypeStatement> UserDataTypes = new Dictionary<string, SqlCreateUserDefinedDataTypeStatement>();
 
         public void Clear( )
         {
@@ -33,6 +34,7 @@ namespace SqlMemoryDb
             TablesTransactionStack.Clear( );
             StoredProcedures.Clear(  );
             Views.Clear(  );
+            ClearUserDefinedDataType(  );
         }
 
 
@@ -134,6 +136,11 @@ namespace SqlMemoryDb
                     new ExecuteView( this, command ).Execute( alterView );
                     break;
                 }
+                case SqlCreateUserDefinedDataTypeStatement createUserDefinedDataType:
+                {
+                    AddUserDefinedDataType( createUserDefinedDataType );
+                    break;
+                }
                 default:
                     throw new NotImplementedException($"Statements of type {child.GetType(  )} are not implemented yet");
             }
@@ -195,7 +202,7 @@ namespace SqlMemoryDb
             {
                 foreach ( var parameterDeclaration in parameterDeclarations )
                 {
-                    var column = new Column( null, parameterDeclaration.Name, parameterDeclaration.Type.Sql, 1 );
+                    var column = new Column( null, parameterDeclaration.Name, parameterDeclaration.Type, UserDataTypes, 1 );
                     var parameter = new MemoryDbParameter
                     {
                         ParameterName = column.Name.TrimStart( new []{'@'} ),
@@ -215,7 +222,7 @@ namespace SqlMemoryDb
         {
             foreach ( var declaration in variableDeclaration.Declarations )
             {
-                var column = new Column( null, declaration.Name, declaration.Type.Sql, 1 );
+                var column = new Column( null, declaration.Name, declaration.Type, UserDataTypes, 1 );
                 var variable = new MemoryDbParameter
                 {
                     ParameterName = column.Name,
@@ -268,6 +275,17 @@ namespace SqlMemoryDb
         public void RemoveSnapshotForTransaction( )
         {
             TablesTransactionStack.Pop( );
+        }
+
+        public void ClearUserDefinedDataType(  )
+        {
+            UserDataTypes.Clear(  );
+        }
+
+        public void AddUserDefinedDataType( SqlCreateUserDefinedDataTypeStatement createUserDefinedDataType )
+        {
+            var name = Helper.GetQualifiedName( createUserDefinedDataType.Name );
+            UserDataTypes.Add( name, createUserDefinedDataType );
         }
 
     }

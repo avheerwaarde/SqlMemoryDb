@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System.Collections.Generic;
+using System.Data;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlParser;
 
@@ -29,7 +30,8 @@ namespace SqlMemoryDb
         public SqlBuiltinScalarFunctionCallExpression ComputedExpression;
 
         public Column( Table table, string name, int order, 
-            SqlBuiltinScalarFunctionCallExpression expression, DataTypeInfo type ) : base( type )
+            SqlBuiltinScalarFunctionCallExpression expression, DataTypeInfo type ) 
+            : base( type )
         {
             ParentTable = table;
             Name = name;
@@ -39,7 +41,8 @@ namespace SqlMemoryDb
         }
 
 
-        public Column( Table table, string name, string sqlType, int order ) : base( sqlType )
+        public Column( Table table, string name, string sqlType, Dictionary<string,SqlCreateUserDefinedDataTypeStatement> userDataTypes, int order ) 
+            : base( sqlType, userDataTypes )
         {
             ParentTable = table;
             Name = name;
@@ -47,13 +50,22 @@ namespace SqlMemoryDb
             IsNullable = true;
         }
 
-        public Column( Column sourceColumn, string name, int order ) : base( sourceColumn )
+        public Column( Column sourceColumn, string name, int order ) 
+            : base( sourceColumn )
         {
             ParentTable = sourceColumn.ParentTable;
             Name = name;
             Order = order;
-            IsNullable = true;
+            IsNullable = sourceColumn.IsNullable;
         }
 
+        public Column( Table table, string name, SqlDataTypeSpecification sqlDataType, Dictionary<string, SqlCreateUserDefinedDataTypeStatement> userDataTypes, int order ) 
+            : base( sqlDataType, userDataTypes)
+        {
+            ParentTable = table;
+            Name = name;
+            Order = order;
+            IsNullable = true;
+        }
     }
 }

@@ -51,6 +51,7 @@ namespace SqlMemoryDb
             { "XML"             , InitXml }
         };
 
+
         public DataTypeInfo( )
         {
 
@@ -66,8 +67,12 @@ namespace SqlMemoryDb
             IsFixedSize = info.IsFixedSize;
         }
 
-        public DataTypeInfo( string sqlType )
+        public DataTypeInfo( string sqlType, Dictionary<string,SqlCreateUserDefinedDataTypeStatement> userDataTypes )
         {
+            if ( userDataTypes.ContainsKey( sqlType ) )
+            {
+                sqlType = userDataTypes[ sqlType ].DataType.Sql;
+            }
             if ( sqlType.StartsWith( "\"" ) && sqlType.EndsWith( "\"" )  )
             {
                 sqlType = sqlType.Substring( 1, sqlType.Length - 2 );
@@ -89,6 +94,34 @@ namespace SqlMemoryDb
         {
             NetDataType = Helper.GetTypeFromLiteralType( literal.Type );
             DbDataType = Helper.GetDbTypeFromLiteralType( literal.Type ).Value;
+        }
+
+        protected DataTypeInfo( SqlDataTypeSpecification sqlDataType, Dictionary<string, SqlCreateUserDefinedDataTypeStatement> userDataTypes )
+        {
+            var userType = Helper.GetQualifiedName( sqlDataType.DataType.ObjectIdentifier );
+            if ( userDataTypes.ContainsKey( userType ) )
+            {
+                sqlDataType = userDataTypes[ userType ].DataType;
+            }
+            var type = sqlDataType.DataType.ObjectIdentifier.ObjectName.Value.ToUpper( );
+            if ( _DataTypes.ContainsKey( type ) )
+            {
+                _DataTypes[type].Invoke( this, "" );
+                if ( sqlDataType.Argument1.HasValue )
+                {
+                    Size = sqlDataType.Argument1.Value;
+                }
+
+                if ( sqlDataType.Argument2.HasValue )
+                {
+                    Precision = sqlDataType.Argument2.Value;
+                }
+            }
+            else
+            {
+                throw new NotImplementedException( $"DataType [{type}] is not implemented");
+
+            }
         }
 
         private static void InitBigInt( DataTypeInfo info, string sizeOrPrecision )
