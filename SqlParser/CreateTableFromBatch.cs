@@ -27,7 +27,7 @@ namespace SqlMemoryDb
                 else
                 {
                     var sqlType = Helper.DbType2SqlType( field.DbType );
-                    column = new Column( table, field.Name, sqlType, table.Columns.Count );
+                    column = new Column( table, field.Name, sqlType, connection.GetMemoryDatabase(  ).UserDataTypes, table.Columns.Count );
                 }
                 table.Columns.Add( column );
             }

@@ -82,7 +82,7 @@ namespace SqlMemoryDb.SelectData
             }
             else if ( functionCall is SqlCastExpression castFunction )
             {
-                var dataTypeInfo = new DataTypeInfo( castFunction.DataType.Sql );
+                var dataTypeInfo = new DataTypeInfo( castFunction.DataType.Sql, rawData.Database.UserDataTypes );
                 _ReturnType = dataTypeInfo.NetDataType;
                 _DbType = dataTypeInfo.DbDataType;
             }

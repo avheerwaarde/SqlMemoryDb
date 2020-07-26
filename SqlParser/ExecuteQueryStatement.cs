@@ -327,7 +327,7 @@ namespace SqlMemoryDb
             if ( _InsertColumns != null )
             {
                 var column = _InsertColumns[ batch.Fields.Count ];
-                var value = Helper.GetValueFromString( column.NetDataType, literalExpression.Value );
+                var value = Helper.GetValueFromString( column.NetDataType, literalExpression );
                 var readerField = new MemoryDbDataReader.ReaderFieldData
                 {
                     Name = column.Name,
@@ -347,7 +347,7 @@ namespace SqlMemoryDb
                     return;
                 }
                 var readerField = Helper.BuildFieldFromLiteral( literalExpression.Type, name, batch.Fields.Count );
-                var value = Helper.GetValueFromString( readerField.NetType, literalExpression.Value );
+                var value = Helper.GetValueFromString( readerField.NetType, literalExpression );
                 readerField.SelectFieldData = new SelectDataFromObject( value, readerField.DbType );
                 batch.Fields.Add( readerField );
             }

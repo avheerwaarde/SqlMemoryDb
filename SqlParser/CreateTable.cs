@@ -19,7 +19,7 @@ namespace SqlMemoryDb
             _Table = new Table( createTable.Name );
         }
 
-        internal void AddToDatabase( MemoryDatabase info, MemoryDbConnection connection )
+        internal void AddToDatabase( MemoryDatabase database, MemoryDbConnection connection )
         {
             if ( IsTempTable( _Table.Name ) )
             {
@@ -27,9 +27,9 @@ namespace SqlMemoryDb
             }
             else
             {
-                info.Tables.Add( _Table.FullName, _Table );
+                database.Tables.Add( _Table.FullName, _Table );
             }
-            AddColumns( _CreateTable.Definition );
+            AddColumns( _CreateTable.Definition, database );
             AddConstraints( _CreateTable.Definition );
         }
 
@@ -81,7 +81,7 @@ namespace SqlMemoryDb
             _Table.ForeignKeyConstraints.Add( fk );
         }
 
-        private void AddColumns(  SqlTableDefinition tableDefinition )
+        private void AddColumns( SqlTableDefinition tableDefinition, MemoryDatabase database )
         {
             foreach ( var columnDefinition in tableDefinition.ColumnDefinitions )
             {
@@ -89,12 +89,12 @@ namespace SqlMemoryDb
                 if ( columnDefinition is SqlComputedColumnDefinition computedColumn )
                 {
                     var expression = computedColumn.Expression as SqlBuiltinScalarFunctionCallExpression;
-                    var dataType = GuessDataType( expression, null );
+                    var dataType = GuessDataType( expression, null, database );
                     column = new Column( _Table, columnDefinition.Name.Value, _Table.Columns.Count, expression, dataType );
                 }
                 else
                 {
-                    column = new Column( _Table, columnDefinition.Name.Value, columnDefinition.DataType.Sql, _Table.Columns.Count );
+                    column = new Column( _Table, columnDefinition.Name.Value, columnDefinition.DataType, database.UserDataTypes, _Table.Columns.Count );
                 }
                 AddColumnConstrains( columnDefinition, column );
                 _Table.Columns.Add( column );
@@ -103,7 +103,8 @@ namespace SqlMemoryDb
 
 
 
-        private DataTypeInfo GuessDataType( SqlScalarExpression expression, DataTypeInfo currentDataType )
+        private DataTypeInfo GuessDataType( SqlScalarExpression expression, DataTypeInfo currentDataType,
+            MemoryDatabase database )
         {
             if ( expression is SqlUnaryScalarExpression unaryExpression )
             {
@@ -113,13 +114,13 @@ namespace SqlMemoryDb
             {
                 case SqlBuiltinScalarFunctionCallExpression function:
                 {
-                    currentDataType = GetTypeFromFunction( currentDataType, function );
+                    currentDataType = GetTypeFromFunction( currentDataType, function, database );
                     break;
                 }
                 case SqlBinaryScalarExpression binary:
                 {
-                    var newDataTypeLeft = GuessDataType( binary.Left, currentDataType );
-                    var newDataTypeRight = GuessDataType( binary.Right, currentDataType );
+                    var newDataTypeLeft = GuessDataType( binary.Left, currentDataType, database );
+                    var newDataTypeRight = GuessDataType( binary.Right, currentDataType, database );
                     currentDataType = UpdateDataType( binary, newDataTypeLeft, newDataTypeRight, currentDataType );
                     break;
                 }
@@ -143,7 +144,8 @@ namespace SqlMemoryDb
             return currentDataType;
         }
 
-        private DataTypeInfo GetTypeFromFunction( DataTypeInfo currentDataType, SqlBuiltinScalarFunctionCallExpression function )
+        private DataTypeInfo GetTypeFromFunction( DataTypeInfo currentDataType,
+            SqlBuiltinScalarFunctionCallExpression function, MemoryDatabase database )
         {
             DataTypeInfo dataType = SelectDataBuilder.GetDataTypeFromFunction( function.FunctionName );
             if ( dataType != null )
@@ -153,13 +155,13 @@ namespace SqlMemoryDb
 
             if ( function is SqlConvertExpression convert )
             {
-                return new DataTypeInfo( convert.DataType.Sql );
+                return new DataTypeInfo( convert.DataType.Sql, database.UserDataTypes );
             }
 
             var dataTypes = new List<DataTypeInfo>( );
             foreach ( var argument in function.Arguments )
             {
-                var newDataType = GuessDataType( argument, null );
+                var newDataType = GuessDataType( argument, null, database );
                 if ( newDataType != null )
                 {
                     dataTypes.Add( newDataType );
