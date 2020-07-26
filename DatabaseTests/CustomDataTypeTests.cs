@@ -1,4 +1,6 @@
-﻿using Dapper;
+﻿using System;
+using Dapper;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
 
@@ -7,6 +9,22 @@ namespace DatabaseTests
     [TestClass]
     public class CustomDataTypeTests
     {
+
+        public class Person
+        {
+            public int BusinessEntityID { get; set; }
+            public string PersonType { get; set; }
+            public bool NameStyle { get; set; }
+            public string Title { get; set; }
+            public string FirstName { get; set; }
+            public string MiddleName { get; set; }
+            public string LastName { get; set; }
+            public string Suffix { get; set; }
+            public int EmailPromotion { get; set; }
+            public Guid rowguid { get; set; }
+            public DateTime ModifiedDate { get; set; }
+        }
+
         private const string _SqlCreateTable = @"
 CREATE TYPE [dbo].[Name] FROM [nvarchar](50) NULL
 GO
@@ -32,9 +50,9 @@ CREATE TABLE [Person].[Person](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
 
-INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate]) VALUES (1, N'EM', 0, NULL, N'Ken', N'J', N'Sánchez', NULL, 0, N'92c4279f-1207-48a3-8448-4636514eb7e2', CAST(N'2009-01-07T00:00:00.000' AS DateTime))
+INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate]) VALUES (2, N'EM', 1, NULL, N'Terri', N'Lee', N'Duffy', NULL, 1, N'd8763459-8aa8-47cc-aff7-c9079af79033', CAST(N'2008-01-24T00:00:00.000' AS DateTime))
 GO
-INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate]) VALUES (2, N'EM', 0, NULL, N'Terri', N'Lee', N'Duffy', NULL, 1, N'd8763459-8aa8-47cc-aff7-c9079af79033', CAST(N'2008-01-24T00:00:00.000' AS DateTime))
+INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate]) VALUES (1, N'EM', 0, NULL, N'Ken', N'J', N'Sánchez', NULL, 0, N'92c4279f-1207-48a3-8448-4636514eb7e2', CAST(N'2009-01-07T00:00:00.000' AS DateTime))
 GO
 INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate]) VALUES (3, N'EM', 0, NULL, N'Roberto', NULL, N'Tamburello', NULL, 0, N'e1a2555e-0828-434b-a33b-6f38136a37de', CAST(N'2007-11-04T00:00:00.000' AS DateTime))
 GO
@@ -42,12 +60,24 @@ INSERT [Person].[Person] ([BusinessEntityID], [PersonType], [NameStyle], [Title]
 GO
 ";
 
+        private const string _SqlSelectTable = @"SELECT [BusinessEntityID], [PersonType], [NameStyle], [Title], [FirstName], [MiddleName], [LastName], [Suffix], [EmailPromotion], [rowguid], [ModifiedDate] FROM [Person].[Person]";
+
         [TestMethod]
         public void Person_CreateTable_Succeeds( )
         {
             using var connection = new MemoryDbConnection( );
 			connection.GetMemoryDatabase(  ).Clear(  );
             connection.Execute( _SqlCreateTable );
+            var persons = connection.Query<Person>( _SqlSelectTable );
+            persons.Should( ).HaveCount( 4 );
+            foreach ( var person in persons )
+            {
+                person.NameStyle.Should( ).Be( person.BusinessEntityID == 2 );
+                person.PersonType.Should( ).Be( "EM" );
+                person.Title.Should( ).BeNull( );
+                person.FirstName.Should( ).NotBeEmpty( );
+            }
+
         }
 
     }

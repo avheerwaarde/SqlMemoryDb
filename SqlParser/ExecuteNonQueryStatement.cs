@@ -99,7 +99,7 @@ namespace SqlMemoryDb
             {
                 case SqlLiteralExpression literal:
                 {
-                    row[ column.Order ] = Helper.GetValueFromString( column, literal.Value );
+                    row[ column.Order ] = Helper.GetValueFromString( column, literal );
                     break;
                 }
                 case SqlBuiltinScalarFunctionCallExpression function:
@@ -122,6 +122,11 @@ namespace SqlMemoryDb
 
         private void ValidateDataSize( Column column, object source )
         {
+            if ( source == null && column.IsNullable )
+            {
+                return;
+            }
+
             if ( column.NetDataType == typeof(string) )
             {
                 if ( column.Size > 0 && column.Size < ((string)source).Length )

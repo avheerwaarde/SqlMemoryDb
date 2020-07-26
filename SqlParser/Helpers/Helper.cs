@@ -81,6 +81,16 @@ namespace SqlMemoryDb.Helpers
                 : scalarExpression.Expression is SqlScalarRefExpression expression ? GetColumnName( expression ) : "";
         }
 
+        public static object GetValueFromString( Column column, SqlLiteralExpression literal )
+        {
+            if ( literal.Type == LiteralValueType.Null )
+            {
+                return null;
+            }
+
+            return GetValueFromString( column, literal.Value );
+        }
+
         public static object GetValueFromString( Column column, string source )
         {
             if ( column.NetDataType == typeof(string) )
@@ -175,6 +185,16 @@ namespace SqlMemoryDb.Helpers
             var result = DateTime.TryParseExact(dateTimeStr, dateFmt, CultureInfo.InvariantCulture,
                 style, out var dt) ? dt : null as DateTime?;
             return result;
+        }
+
+        public static object GetValueFromString( Type type, SqlLiteralExpression literal )
+        {
+            if ( literal.Type == LiteralValueType.Null )
+            {
+                return null;
+            }
+
+            return GetValueFromString( type, literal.Value );
         }
 
         public static object GetValueFromString( Type type, string source )
@@ -337,7 +357,7 @@ namespace SqlMemoryDb.Helpers
                     }
 
                     var literalType = getTypeFromLiteral ? GetTypeFromLiteralType( literal.Type ) : type;
-                    return GetValueFromString( literalType, literal.Value );
+                    return GetValueFromString( literalType, literal );
                 }
 
                 case SqlScalarVariableRefExpression variableRef:
