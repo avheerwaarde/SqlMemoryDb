@@ -93,3 +93,5 @@ Version | Description
 0.10.18| Calculations: support for +, -, *, /
 0.10.19| Calculated fields, Common Table Expressions
 0.10.20| Temp tables, SELECT INTO
+0.10.21| custom datatypes
+0.10.22| rowversion

@@ -18,6 +18,7 @@ namespace SqlMemoryDb
         public Dictionary<string,SqlCreateAlterProcedureStatementBase> StoredProcedures = new Dictionary<string, SqlCreateAlterProcedureStatementBase>();
         public Dictionary<string,SqlCreateAlterViewStatementBase> Views = new Dictionary<string, SqlCreateAlterViewStatementBase>();
 
+        public long LastRowVersion = 0x00000000000007D0;
         public long? LastIdentitySet;
         public Stack<Dictionary<string, Table>> TablesStack = new Stack<Dictionary<string, Table>>();
         public Stack<Dictionary<string, Table>> TablesTransactionStack = new Stack<Dictionary<string, Table>>();
@@ -35,6 +36,7 @@ namespace SqlMemoryDb
             StoredProcedures.Clear(  );
             Views.Clear(  );
             ClearUserDefinedDataType(  );
+            LastRowVersion = 0x00000000000007D0;
         }
 
 
@@ -288,5 +290,13 @@ namespace SqlMemoryDb
             UserDataTypes.Add( name, createUserDefinedDataType );
         }
 
+        public byte[] NextRowVersion( )
+        {
+            LastRowVersion += 1;
+            var bytes = BitConverter.GetBytes( LastRowVersion );
+            if (BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
     }
 }

@@ -24,6 +24,7 @@ namespace SqlMemoryDb
         public bool IsIdentity => Identity != null;
         public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue ) == false;
         public bool IsUnique { get ; set ; }
+        public bool IsRowVersion { get; set; }
         public bool IsPrimaryKey { get ; set ; }
         public int NextIdentityValue { get; set; }
         public Table ParentTable { get; set; }
@@ -48,6 +49,7 @@ namespace SqlMemoryDb
             Name = name;
             Order = order;
             IsNullable = true;
+            IsRowVersion = sqlType.ToLower( ).Contains( "rowversion" );
         }
 
         public Column( Column sourceColumn, string name, int order ) 
@@ -57,6 +59,7 @@ namespace SqlMemoryDb
             Name = name;
             Order = order;
             IsNullable = sourceColumn.IsNullable;
+            IsRowVersion = sourceColumn.IsRowVersion;
         }
 
         public Column( Table table, string name, SqlDataTypeSpecification sqlDataType, Dictionary<string, SqlCreateUserDefinedDataTypeStatement> userDataTypes, int order ) 
@@ -66,6 +69,7 @@ namespace SqlMemoryDb
             Name = name;
             Order = order;
             IsNullable = true;
+            IsRowVersion = sqlDataType.DataType.ObjectIdentifier.ObjectName.Value.ToLower() == "rowversion";
         }
     }
 }

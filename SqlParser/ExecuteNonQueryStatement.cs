@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+﻿using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
 using SqlMemoryDb.SelectData;
 using SqlParser;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SqlMemoryDb
 {
@@ -165,6 +162,10 @@ namespace SqlMemoryDb
                     ((MemoryDbConnection )_Command.Connection).GetMemoryDatabase( ).LastIdentitySet = column.NextIdentityValue;
                     _Command.LastIdentitySet = column.NextIdentityValue;
                     column.NextIdentityValue += column.Identity.Increment;
+                }
+                else if ( column.IsRowVersion )
+                {
+                    row[ column.Order ] = _Database.NextRowVersion( );
                 }
                 else if ( column.HasDefault && string.IsNullOrWhiteSpace( column.DefaultValue ) == false )
                 {
