@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
@@ -32,6 +34,11 @@ namespace SqlMemoryDb.Helpers
 
         public static bool IsPredicateCorrect( object left, object right, SqlComparisonBooleanExpressionType comparisonOperator )
         {
+            if ( left.GetType(  ) == typeof(byte[]) && right.GetType(  ) == typeof(byte[])  )
+            {
+                return IsPredicateArrayCorrect( (byte[])left, (byte[])right, comparisonOperator );
+            }
+
             var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
 
             switch ( comparisonOperator )
@@ -51,6 +58,15 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
+        private static bool IsPredicateArrayCorrect( byte[] left, byte[] right, SqlComparisonBooleanExpressionType comparisonOperator )
+        {
+            if ( comparisonOperator != SqlComparisonBooleanExpressionType.Equals && comparisonOperator != SqlComparisonBooleanExpressionType.NotEqual )
+            {
+                throw new NotImplementedException( );
+            }
 
+            var equals = left.SequenceEqual( right );
+            return comparisonOperator == SqlComparisonBooleanExpressionType.Equals && equals;
+        }
     }
 }

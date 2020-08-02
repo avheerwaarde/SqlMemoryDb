@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Dapper;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -40,13 +41,13 @@ CREATE TABLE [dbo].[Todo](
         {
             using var connection = new MemoryDbConnection( );
             connection.GetMemoryDatabase( ).Clear(  );
+            connection.Execute( _SqlCreateTable );
         }
 
         [TestMethod]
-        public void CreateInsertSelect_Normal_RowWithVersionIsInserted( )
+        public void Insert_Normal_RowWithVersionIsInserted( )
         {
             using var connection = new MemoryDbConnection( );
-            connection.Execute( _SqlCreateTable );
             connection.Execute( _SqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now } );
             var todo = connection.QuerySingle( _SqlSelectTable );
             var version = VersionAsLong( todo.Version );
@@ -54,5 +55,40 @@ CREATE TABLE [dbo].[Todo](
             AssertionExtensions.Should( version ).Be( 0x7d1 );
         }
 
+        [TestMethod]
+        public async Task Insert_SetRowVersion_ThrowsException( )
+        {
+            const string sqlInsertTable = @"INSERT into Todo (Description, CreatedDate,Version) VALUES (@Description, @CreatedDate,@Version)";
+            var version = BitConverter.GetBytes( ( long ) 0x123 );
+
+            await using var connection = new MemoryDbConnection( );
+            Func<Task> act = async () => { await connection.ExecuteAsync( sqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now, Version = version } ); };
+            await act.Should( ).ThrowAsync<InvalidOperationException>( );
+        }
+
+        [TestMethod]
+        public void Update_Normal_RowWithVersionIsIncremented( )
+        {
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( _SqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now } );
+            var todo = connection.QuerySingle( _SqlSelectTable );
+            var version1 = VersionAsLong( todo.Version );
+            connection.Execute( _SqlUpdateTable, (object)todo );
+            var todo2 = connection.QuerySingle( _SqlSelectTable );
+            var version2 = VersionAsLong( todo2.Version );
+            AssertionExtensions.Should( version2 ).BeGreaterThan( version1 );
+        }
+
+        [TestMethod]
+        public void Update_WrongRowVersion_RowNotUpdated( )
+        {
+            using var connection = new MemoryDbConnection( );
+            connection.Execute( _SqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now } );
+            var todo = connection.QuerySingle( _SqlSelectTable );
+            var affected1 = connection.Execute( _SqlUpdateTable, (object)todo );
+            affected1.Should( ).Be( 1 );
+            var affected2 = connection.Execute( _SqlUpdateTable, (object)todo );
+            affected2.Should( ).Be( 0 );
+        }
     }
 }

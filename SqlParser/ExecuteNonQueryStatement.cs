@@ -92,6 +92,10 @@ namespace SqlMemoryDb
 
         private void AddRowValue( ArrayList row, Column column, SqlCodeObject value )
         {
+            if ( column.IsIdentity || column.IsRowVersion )
+            {
+                throw new InvalidOperationException( $"Column value may not be set for column '{column.Name}'.");
+            }
             switch ( value )
             {
                 case SqlLiteralExpression literal:
