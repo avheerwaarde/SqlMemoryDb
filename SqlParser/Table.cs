@@ -25,6 +25,7 @@ namespace SqlParser
         public readonly List<ArrayList> Rows;
         public readonly Dictionary<OptionEnum, string> Options;
         public long? LastIdentitySet;
+        public bool IsIdentityInsertForbidden => Options[ Table.OptionEnum.IdentityInsert ].ToUpper( ) == "OFF";
 
         public Table( SqlObjectIdentifier name )
         {
