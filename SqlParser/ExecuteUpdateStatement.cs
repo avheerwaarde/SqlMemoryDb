@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using SqlMemoryDb.Exceptions;
 using SqlMemoryDb.Helpers;
 using SqlParser;
 
@@ -43,6 +44,11 @@ namespace SqlMemoryDb
                 {
                     case SqlColumnAssignment columnAssignment:
                         var tableColumn = Helper.GetTableColumn( (SqlObjectIdentifier)(columnAssignment.Column.MultipartIdentifier), rawData );
+                        if ( tableColumn.Column.IsIdentity && tableColumn.Column.ParentTable.IsIdentityInsertForbidden || tableColumn.Column.IsRowVersion )
+                        {
+                            throw new SqlUpdateColumnForbiddenException( tableColumn.Column.Name );
+                        }
+
                         var value = Helper.GetValue( columnAssignment.Value, tableColumn.Column.NetDataType, rawData, new List<RawData.RawDataRow>( ) );
                         foreach ( var row in rawData.RawRowList )
                         {

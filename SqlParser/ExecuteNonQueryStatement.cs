@@ -92,9 +92,9 @@ namespace SqlMemoryDb
 
         private void AddRowValue( ArrayList row, Column column, SqlCodeObject value )
         {
-            if ( column.IsIdentity || column.IsRowVersion )
+            if ( column.IsIdentity && column.ParentTable.IsIdentityInsertForbidden || column.IsRowVersion )
             {
-                throw new InvalidOperationException( $"Column value may not be set for column '{column.Name}'.");
+                throw new SqlUpdateColumnForbiddenException( column.Name );
             }
             switch ( value )
             {
@@ -157,7 +157,7 @@ namespace SqlMemoryDb
             {
                 if ( column.IsIdentity )
                 {
-                    if ( columns.Any( c => c.Name == column.Name ) && table.Options[ Table.OptionEnum.IdentityInsert].ToUpper() == "OFF")
+                    if ( columns.Any( c => c.Name == column.Name ) && table.IsIdentityInsertForbidden )
                     {
                         throw new SqlInsertIdentityException( table.Name, column.Name );
                     }

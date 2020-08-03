@@ -4,6 +4,7 @@ using Dapper;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SqlMemoryDb;
+using SqlMemoryDb.Exceptions;
 
 namespace DatabaseTests
 {
@@ -63,7 +64,7 @@ CREATE TABLE [dbo].[Todo](
 
             await using var connection = new MemoryDbConnection( );
             Func<Task> act = async () => { await connection.ExecuteAsync( sqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now, Version = version } ); };
-            await act.Should( ).ThrowAsync<InvalidOperationException>( );
+            await act.Should( ).ThrowAsync<SqlUpdateColumnForbiddenException>( );
         }
 
         [TestMethod]
@@ -89,6 +90,18 @@ CREATE TABLE [dbo].[Todo](
             affected1.Should( ).Be( 1 );
             var affected2 = connection.Execute( _SqlUpdateTable, (object)todo );
             affected2.Should( ).Be( 0 );
+        }
+
+        [TestMethod]
+        public async Task Update_SetRowVersion_ThrowsException( )
+        {
+            const string sqlUpdateTable = @"UPDATE Todo SET Description = @Description, CreatedDate=@CreatedDate,Version = @Version WHERE ID = @ID AND Version = @Version";
+            await using var connection = new MemoryDbConnection( );
+            await connection.ExecuteAsync( _SqlInsertTable, new { Description = "Dummy", CreatedDate = DateTime.Now } );
+            var todo = await connection.QuerySingleAsync( _SqlSelectTable );
+
+            Func<Task> act = async () => { await connection.ExecuteAsync( sqlUpdateTable, (object)todo); };
+            await act.Should( ).ThrowAsync<SqlUpdateColumnForbiddenException>( );
         }
     }
 }
