@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,6 +52,28 @@ namespace WebApplicationTests
             {
                 htmlResponse.Content(content);
             }
+        }
+
+        public static string GetInputValue( IHtmlDocument document, string formId, string inputName )
+        {
+            var inputElement = document.QuerySelector( $"#{formId} input[name=\"{inputName}\"]" ) as IHtmlInputElement;
+            if (inputElement == null)
+            {
+                throw new ApplicationException( $"An input field with the name '{inputName}' should exist in the form" );
+            }
+
+            return inputElement.Value;
+        }
+
+        public static string GetFormUrl( IHtmlDocument document, string formId )
+        {
+            var formElement = document.QuerySelector( $"#{formId}" ) as IHtmlFormElement;
+            if (formElement == null)
+            {
+                throw new ApplicationException( $"The form {formId} could not be found" );
+            }
+
+            return formElement.Action;
         }
     }
 }
