@@ -195,9 +195,10 @@ namespace SqlMemoryDb
 
         private  void AddColumnConstrains( SqlColumnDefinition columnDefinition, Column column )
         {
-            if ( columnDefinition.Constraints == null )
+            switch ( columnDefinition.Constraints )
             {
-                return;
+                case null:
+                    return;
             }
 
             foreach ( var constraint in columnDefinition.Constraints )
@@ -220,12 +221,17 @@ namespace SqlMemoryDb
                         break;
 
                     case SqlConstraintType.Default:
-                        var @default = constraint as SqlDefaultConstraint;
-                        if ( @default.Expression is SqlLiteralExpression expression )
-                        {
-                            column.DefaultValue = expression.Value;
-                        }
+                        var defaultConstraint = constraint as SqlDefaultConstraint;
 
+                        switch ( defaultConstraint.Expression )
+                        {
+                            case SqlLiteralExpression expression:
+                                column.DefaultValue = expression.Value;
+                                break;
+                            case SqlBuiltinScalarFunctionCallExpression expression:
+                                column.DefaultCallExpression = expression;
+                                break;
+                        }
                         break;
 
                     case SqlConstraintType.PrimaryKey:
