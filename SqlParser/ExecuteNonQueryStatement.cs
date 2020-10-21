@@ -175,6 +175,11 @@ namespace SqlMemoryDb
                 {
                     row[ column.Order ] = Helper.GetValueFromString( column, column.DefaultValue );
                 }
+                else if ( column.HasDefault && column.DefaultCallExpression != null )
+                {
+                    var rawDataRows = new List<RawData.RawDataRow>{ new RawData.RawDataRow{ Name = table.Name, Table = table, Row = row }};
+                    row[ column.Order ] = Helper.GetValue( column.DefaultCallExpression, column.NetDataType, new RawData(_Command), rawDataRows );
+                }
             }
 
             return row;

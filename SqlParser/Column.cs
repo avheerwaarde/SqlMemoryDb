@@ -20,9 +20,10 @@ namespace SqlMemoryDb
 
         public bool IsNullable { get ; set ; }
         public string DefaultValue { get ; set ; }
+        public SqlBuiltinScalarFunctionCallExpression DefaultCallExpression;
 
         public bool IsIdentity => Identity != null;
-        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue ) == false;
+        public bool HasDefault => string.IsNullOrWhiteSpace( DefaultValue ) == false || DefaultCallExpression != null;
         public bool IsUnique { get ; set ; }
         public bool IsRowVersion { get; set; }
         public bool IsPrimaryKey { get ; set ; }

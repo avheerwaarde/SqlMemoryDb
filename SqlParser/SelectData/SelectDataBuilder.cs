@@ -70,6 +70,7 @@ namespace SqlMemoryDb.SelectData
             { "SESSION_USER"         , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo), ReturnType = typeof(string), ReturnDbType = DbType.String}},
             { "SYSTEM_USER"          , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo), ReturnType = typeof(string), ReturnDbType = DbType.String}},
             { "USER_NAME"            , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromConnectionInfo)}},
+            { "NEWID"                , new SelectDataFunctionInfo{ SelectType = typeof(SelectDataFromFunctionGuid), ReturnType = typeof(Guid), ReturnDbType = DbType.Guid}}
         };
 
         private static readonly Dictionary<string, Type > _GlobalVariables = new Dictionary<string, Type>
