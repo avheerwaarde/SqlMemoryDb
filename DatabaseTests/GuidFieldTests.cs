@@ -57,5 +57,24 @@ CREATE TABLE [dbo].[TestDefaults]
             insertedRow.Name.Should().Be( "New name" );
         }
 
+        [TestMethod]
+        public void Select_WithGuid_RowIsFound()
+        {
+            var guidValue = Guid.NewGuid();
+            const string sqlInsert = "INSERT INTO TestDefaults ([ETag],[Name]) VALUES (@guidValue, N'New name')";
+
+            using var connection = new MemoryDbConnection();
+            var db = connection.GetMemoryDatabase();
+            db.Tables.Clear();
+            connection.Execute( _SqlSqlCreateTable );
+            connection.Execute( sqlInsert, new { guidValue} );
+            var insertedRow = connection.QueryFirst<TestDefaults>( "SELECT Id, ETag, IsDeleted, CreatedAt, Name from TestDefaults WHERE ETag = @guidValue", new { guidValue } );
+            insertedRow.Id.Should().NotBe( 0 );
+            insertedRow.ETag.Should().Be( guidValue );
+            insertedRow.IsDeleted.Should().BeFalse();
+            insertedRow.CreatedAt.Should().BeCloseTo( DateTime.UtcNow, 1000 );
+            insertedRow.Name.Should().Be( "New name" );
+        }
+
     }
 }

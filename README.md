@@ -95,3 +95,5 @@ Version | Description
 0.10.20| Temp tables, SELECT INTO
 0.10.21| custom datatypes
 0.10.22| rowversion
+0.10.23| functions as default values for fields
+0.10.24| bugfix multiple joins

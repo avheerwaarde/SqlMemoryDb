@@ -60,7 +60,7 @@ namespace SqlMemoryDb
                 }
                 case SqlQualifiedJoinTableExpression joinExpression:
                 {
-                    RawRowList = GetTableOrViewRows( tables, (SqlTableRefExpression)joinExpression.Left );
+                    AddTable( joinExpression.Left, tables );
                     var joinRowList = GetTableOrViewRows( tables, (SqlTableRefExpression)joinExpression.Right );
                     var nameJoin = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Right);
                     AddAllTableJoinRows( joinRowList, nameJoin, joinExpression.OnClause );

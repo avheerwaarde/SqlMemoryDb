@@ -52,6 +52,81 @@ INNER JOIN application_action ON application.Id = application_action.fk_applicat
         }
 
         [TestMethod]
+        public async Task SelectApplicationAction_MultipleJoins_AllProductRowsRead()
+        {
+            const string sqlSelect = @"
+SELECT  
+	application.Id
+	, application.Name
+	, application.[User]
+	, DefName
+	, application_action.Id AS ActionId
+	, application_action.Name AS ActionName
+	, application_action.Action
+	, application_action.fk_application
+	, [Order]
+FROM  application 
+INNER JOIN application_action ON application.Id = application_action.fk_application
+LEFT OUTER JOIN application_feature on application.Id = application_feature.fk_application";
+
+            await using var connection = new MemoryDbConnection();
+            await connection.OpenAsync();
+            var command = connection.CreateCommand();
+            command.CommandText = sqlSelect;
+            await command.PrepareAsync();
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                ( (int)reader[ "Id" ] ).Should().BeInRange( 1, 3 );
+                reader[ "Name" ].Should().Be( "Name String" );
+                reader[ "ActionName" ].ToString().Should().StartWith( "Action" );
+                reader[ "Action" ].ToString().Should().StartWith( "Do Something" );
+                recordsRead++;
+            }
+
+            recordsRead.Should().Be( 12 );
+        }
+
+        [TestMethod]
+        public async Task SelectApplicationAction_MultipleJoins2_AllProductRowsRead()
+        {
+            const string sqlSelect = @"
+SELECT  
+	application.Id
+	, application.Name
+	, application.[User]
+	, DefName
+	, application_action.Id AS ActionId
+	, application_action.Name AS ActionName
+	, application_action.Action
+	, application_action.fk_application
+	, [Order]
+FROM  application 
+LEFT OUTER JOIN application_feature on application.Id = application_feature.fk_application
+INNER JOIN application_action ON application.Id = application_action.fk_application";
+
+            await using var connection = new MemoryDbConnection();
+            await connection.OpenAsync();
+            var command = connection.CreateCommand();
+            command.CommandText = sqlSelect;
+            await command.PrepareAsync();
+
+            var recordsRead = 0;
+            var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync() )
+            {
+                ( (int)reader[ "Id" ] ).Should().BeInRange( 1, 3 );
+                reader[ "Name" ].Should().Be( "Name String" );
+                reader[ "ActionName" ].ToString().Should().StartWith( "Action" );
+                reader[ "Action" ].ToString().Should().StartWith( "Do Something" );
+                recordsRead++;
+            }
+
+            recordsRead.Should().Be( 12 );
+        }
+        [TestMethod]
         public async Task SelectApplicationAction_InnerJoinAliasFrom_AllProductRowsRead( )
         {
             const string sqlSelect = @"
