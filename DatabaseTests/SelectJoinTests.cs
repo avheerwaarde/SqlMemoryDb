@@ -64,6 +64,7 @@ SELECT
 	, application_action.Name AS ActionName
 	, application_action.Action
 	, application_action.fk_application
+    , application_feature.fk_application
 	, [Order]
 FROM  application 
 INNER JOIN application_action ON application.Id = application_action.fk_application
@@ -102,6 +103,7 @@ SELECT
 	, application_action.Name AS ActionName
 	, application_action.Action
 	, application_action.fk_application
+    , application_feature.fk_application
 	, [Order]
 FROM  application 
 LEFT OUTER JOIN application_feature on application.Id = application_feature.fk_application

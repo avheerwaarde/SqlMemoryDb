@@ -232,12 +232,12 @@ namespace SqlMemoryDb
                 {
                     var column = table.Columns.Single( c => c.Name == constraint.Columns[ index ] );
                     var foreignKey = row[ column.Order ];
-                    if ( foreignKey != null )
+                    if ( foreignKey != null && foreignKey is DBNull == false )
                     {
                         var referencedTable = ((MemoryDbConnection )_Command.Connection).GetMemoryDatabase( ).Tables[ constraint.ReferencedTableName ];
                         var referencedColumn = referencedTable.Columns.Single(c => c.Name == constraint.ReferencedColumns[ index ] );
 
-                        if ( referencedTable.Rows.Any( r =>((IComparable)foreignKey).CompareTo((IComparable)r[ referencedColumn.Order ]) == 0 )  == false ) 
+                        if ( referencedTable.Rows.Any( r => HelperConditional.IsPredicateCorrect( foreignKey, r[ referencedColumn.Order ], SqlComparisonBooleanExpressionType.Equals )) == false )
                         {
                             throw new SqlInsertInvalidForeignKeyException( constraint.Name, referencedTable.FullName, referencedColumn.Name );
                         }

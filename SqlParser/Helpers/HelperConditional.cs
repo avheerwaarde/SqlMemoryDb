@@ -34,9 +34,24 @@ namespace SqlMemoryDb.Helpers
 
         public static bool IsPredicateCorrect( object left, object right, SqlComparisonBooleanExpressionType comparisonOperator )
         {
+            if ( left == null && right == null )
+            {
+                return true;
+            }
+
+            if ( left == null || right == null )
+            {
+                return false;
+            }
+
             if ( left.GetType(  ) == typeof(byte[]) && right.GetType(  ) == typeof(byte[])  )
             {
                 return IsPredicateArrayCorrect( (byte[])left, (byte[])right, comparisonOperator );
+            }
+
+            if ( left is IComparable == false || right is IComparable == false )
+            {
+                return false;
             }
 
             var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
