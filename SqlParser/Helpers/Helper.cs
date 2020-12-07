@@ -270,14 +270,19 @@ namespace SqlMemoryDb.Helpers
             throw new SqlInvalidParameterNameException( value );
         }
 
-        public static MemoryDbParameter GetParameter( string name, DbParameterCollection parameters )
+        public static MemoryDbParameter GetParameter( string nameOfParameter, DbParameterCollection parameters, DbParameterCollection variables )
         {
-            if ( parameters.Contains( name ) == false )
+            var name = nameOfParameter.TrimStart( new[] { '@' } );
+            if ( parameters.Contains( name ) )
             {
-                throw new SqlInvalidParameterNameException( name );
+                return (MemoryDbParameter) parameters[ name ];
+            }
+            else if ( variables.Contains( nameOfParameter ) )
+            {
+                return (MemoryDbParameter)parameters[ nameOfParameter ];
             }
 
-            return (MemoryDbParameter)parameters[ name ];
+            throw new SqlInvalidParameterNameException( nameOfParameter );
         }
 
         public static TableColumn GetTableColumn( SqlColumnRefExpression expression, RawData rawData )
@@ -291,9 +296,17 @@ namespace SqlMemoryDb.Helpers
         {
             Table table;
             var tableAlias = objectIdentifier.SchemaName.Value;
+            var aliasList = rawData.TableAliasList;
+            if ( aliasList.Count == 0 )
+            {
+                foreach ( var row in rawData.RawRowList.First() )
+                {
+                    aliasList.Add( row.Table.FullName, row.Table );
+                }
+            }
             if ( objectIdentifier.SchemaName.Value == null )
             {
-                var tables = rawData.TableAliasList
+                var tables = aliasList
                     .Where( t => t.Value.Columns.Any( c => c.Name == objectIdentifier.ObjectName.Value ) )
                     .ToList(  );
                 if ( tables.Count == 0 )
@@ -311,13 +324,13 @@ namespace SqlMemoryDb.Helpers
             }
             else
             {
-                if ( rawData.TableAliasList.ContainsKey( tableAlias ) )
+                if ( aliasList.ContainsKey( tableAlias ) )
                 {
-                    table = rawData.TableAliasList[ tableAlias ];
+                    table = aliasList[ tableAlias ];
                 }
                 else
                 {
-                    var tableEntry = rawData.TableAliasList.Single( t => t.Value.FullName == tableAlias || t.Value.Name == tableAlias );
+                    var tableEntry = aliasList.Single( t => t.Value.FullName == tableAlias || t.Value.Name == tableAlias );
                     table = tableEntry.Value;
                     tableAlias = tableEntry.Key;
                 }
@@ -566,7 +579,7 @@ namespace SqlMemoryDb.Helpers
                 }
                 case SqlScalarVariableRefExpression variableRef:
                 {
-                    var parameter = GetParameter( variableRef.VariableName, rawData.Command.Variables );
+                    var parameter = GetParameter( variableRef.VariableName, rawData.Command.Parameters, rawData.Command.Variables );
                     return parameter.NetDataType;
                 }
                 case SqlScalarRefExpression scalarRef:
