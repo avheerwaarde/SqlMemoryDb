@@ -69,7 +69,7 @@ namespace SqlMemoryDb.Helpers
         {
             var type = Helper.DetermineType( expression.Expression, _RawData);
             var val = Helper.GetValue(expression.Expression, type, _RawData, rawDataRows);
-            return val == null;
+            return val == null || val is DBNull;
         }
 
     }
