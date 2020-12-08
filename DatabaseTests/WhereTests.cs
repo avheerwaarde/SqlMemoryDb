@@ -14,21 +14,6 @@ namespace DatabaseTests
     [TestClass]
     public class WhereTests
     {
-        public class LookupEntity
-        {
-            public string Key { get; set; }
-            public string Value { get; set; }
-            public string DisplayValue { get; set; }
-            public string DisplayValue33 { get; set; }
-        }
-
-        [TestInitialize]
-        public void InitializeDb()
-        {
-            using var connection = new MemoryDbConnection();
-            connection.GetMemoryDatabase().Clear();
-        }
-
         [DataTestMethod]
         [DataRow( null, 3 )]
         [DataRow( "Name1", 1 )]
@@ -57,40 +42,6 @@ namespace DatabaseTests
             }
         }
 
-        [DataTestMethod]
-        [DataRow( null, 3 )]
-        [DataRow( "EPSG", 3 )]
-        public void WhereClause_Lookup_ShouldNotFail( string key, int count )
-        {
-            const string sqlInsert = @"
-INSERT [dbo].[Lookup] ([Key], [Value], [DisplayValue] ) VALUES (N'EPSG', N'EPSG:3857' , N'WGS 84 / Pseudo-Mercator')
-INSERT [dbo].[Lookup] ([Key], [Value], [DisplayValue] ) VALUES (N'EPSG', N'EPSG:4230' , N'ED50 / Longitude/latitude')
-INSERT [dbo].[Lookup] ([Key], [Value], [DisplayValue] ) VALUES (N'EPSG', N'EPSG:4258' , N'ETRS89 / Longitude/latitude')
-";
-            const string sqlCreate = @"
-CREATE TABLE [dbo].[Lookup]
-(
-	[Id] INT IDENTITY (1, 1) NOT NULL PRIMARY KEY, 
-    [Key] NVARCHAR(50) NOT NULL, 
-    [Value] NVARCHAR(50) NOT NULL, 
-    [DisplayValue] NVARCHAR(MAX) NULL
-)";
-
-            const string sqlSelect = @"
-SELECT [Key]
-     , [Value]
-     , COALESCE([DisplayValue],[Value]) as [DisplayValue33]
-FROM [dbo].[Lookup]
-WHERE @key IS NULL OR [Key] = @key
-";
-
-            using var connection = new MemoryDbConnection();
-            connection.Execute( sqlCreate );
-            connection.Execute( sqlInsert );
-
-            var result = connection.Query<LookupEntity>( sqlSelect, new { key } ).ToList();
-            result.Count.Should().Be( count );
-        }
 
     }
 }
