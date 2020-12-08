@@ -43,7 +43,7 @@ namespace SqlMemoryDb.SelectData
             var row = batch.ResultRows[ 0 ];
             for ( int fieldIndex = 0; fieldIndex < batch.Fields.Count; fieldIndex++ )
             {
-                if ( row[ fieldIndex ] != null )
+                if ( row[ fieldIndex ] != null && row[ fieldIndex ] is DBNull == false )
                 {
                     _DbType = (DbType) Enum.Parse(typeof(DbType), batch.Fields[ fieldIndex ].DbType, true);
                     _ReturnType = batch.Fields[ fieldIndex ].NetType;
