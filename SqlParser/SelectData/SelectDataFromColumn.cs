@@ -33,7 +33,11 @@ namespace SqlMemoryDb.SelectData
                 return null;
             }
 
-            var tableRow = rows.Single( r => r.Name == TableColumn.TableName );
+            var tableRow = rows.SingleOrDefault( r => r.Name == TableColumn.TableName );
+            if ( tableRow == null )
+            {
+                return null;
+            }
             object value;
             if ( TableColumn.Column.ComputedExpression != null )
             {

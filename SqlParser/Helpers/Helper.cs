@@ -279,7 +279,7 @@ namespace SqlMemoryDb.Helpers
             }
             else if ( variables.Contains( nameOfParameter ) )
             {
-                return (MemoryDbParameter)parameters[ nameOfParameter ];
+                return (MemoryDbParameter)variables[ nameOfParameter ];
             }
 
             throw new SqlInvalidParameterNameException( nameOfParameter );

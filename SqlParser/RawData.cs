@@ -63,7 +63,7 @@ namespace SqlMemoryDb
                     AddTable( joinExpression.Left, tables );
                     var joinRowList = GetTableOrViewRows( tables, (SqlTableRefExpression)joinExpression.Right );
                     var nameJoin = Helper.GetAliasName((SqlTableRefExpression)joinExpression.Right);
-                    AddAllTableJoinRows( joinRowList, nameJoin, joinExpression.OnClause );
+                    AddAllTableJoinRows( joinRowList, nameJoin, joinExpression );
                     break;
                 }
             }
@@ -192,12 +192,14 @@ namespace SqlMemoryDb
             return table;
         }
 
-        public void AddAllTableJoinRows(List<List<RawDataRow>> joinRowList, string name, SqlConditionClause onClause )
+        public void AddAllTableJoinRows(List<List<RawDataRow>> joinRowList, string name, SqlQualifiedJoinTableExpression joinExpression )
         {
             var newTableRows = new List<List<RawDataRow>>( );
-            var filter = HelperConditional.GetRowFilter( onClause.Expression, this );
+            var filter = HelperConditional.GetRowFilter( joinExpression.OnClause.Expression, this );
             foreach ( var currentRawRows in RawRowList )
             {
+                var currentRowCount = newTableRows.Count;
+                
                 foreach ( var row in joinRowList )
                 {
                     var newRows = new List<RawDataRow>( currentRawRows ) { row.First() };
@@ -205,7 +207,12 @@ namespace SqlMemoryDb
                     {
                         newTableRows.Add( newRows );
                     }
-                }            
+                }
+
+                if ( currentRowCount == newTableRows.Count && joinExpression.JoinOperator == SqlJoinOperatorType.LeftOuterJoin )
+                {
+                    newTableRows.Add( currentRawRows );
+                }
             }
 
             RawRowList = newTableRows;
