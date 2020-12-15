@@ -55,6 +55,7 @@ namespace DatabaseTests
         public void CalculateStrings_Fixed_ConcatenationIsReturned( string sql, string expected )
         {
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase().Clear();
             var value = connection.ExecuteScalar<string>( sql );
             value.Should( ).Be( expected );
         }
@@ -90,6 +91,7 @@ SET @d3 = .575
 ";
 
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase().Clear();
             var value = connection.ExecuteScalar<decimal>( sqlDeclarations + sql );
             value.Should( ).Be( Convert.ToDecimal(expected) );
         }
@@ -129,6 +131,7 @@ Cost + (Cost * @MarginPercent) + (Cost * @TaxPercent) AS 'FinalCost'
 FROM dbo.CalculationExample";
 
             using var connection = new MemoryDbConnection( );
+            connection.GetMemoryDatabase().Clear();
             var dtoList = connection.Query<CalculationDto>( sql );
         }
 

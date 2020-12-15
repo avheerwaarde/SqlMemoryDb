@@ -30,6 +30,7 @@ namespace DatabaseTests
             const string sqlInsert = "INSERT INTO application ([Name], [User], [DefName]) VALUES (@Name, @User, @DefName)";
 
             using var connection = new MemoryDbConnection();
+            connection.GetMemoryDatabase().Clear();
             connection.Execute( SqlStatements.SqlCreateTableApplication );
             connection.Execute( sqlInsert, applications );
 
