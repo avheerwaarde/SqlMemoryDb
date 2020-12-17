@@ -330,7 +330,9 @@ namespace SqlMemoryDb.Helpers
                 }
                 else
                 {
-                    var tableEntry = aliasList.Single( t => t.Value.FullName == tableAlias || t.Value.Name == tableAlias );
+                    var tableEntry = aliasList
+                        .Where( a => a.Key == a.Value.FullName  )
+                        .Single( t => t.Value.FullName == tableAlias || t.Value.Name == tableAlias );
                     table = tableEntry.Value;
                     tableAlias = tableEntry.Key;
                 }
