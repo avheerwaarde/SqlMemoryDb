@@ -29,9 +29,34 @@ namespace SqlMemoryDb.Helpers
                 case SqlBinaryBooleanExpression binaryExpression     : return EvaluateExpression( rawDataRows, binaryExpression ) ^ invertResult;
                 case SqlExistsBooleanExpression existsExpression     : return EvaluateExpression( rawDataRows, existsExpression) ^ invertResult;
                 case SqlIsNullBooleanExpression isNullExpression     : return EvaluateExpression( rawDataRows, isNullExpression) ^ invertResult;
+                case SqlInBooleanExpression inBooleanExpression      : return EvaluateExpression( rawDataRows, inBooleanExpression ) ^ invertResult;
                 default :
                     throw new NotImplementedException();
             }
+        }
+
+        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlInBooleanExpression expression )
+        {
+            var type = Helper.DetermineType( expression.InExpression, expression.InExpression, _RawData );
+            var source = Helper.GetValue( expression.InExpression, type, _RawData, rawDataRows );
+            foreach ( var child in expression.ComparisonValue.Children )
+            {
+                if ( child is SqlScalarExpression scalarExpression )
+                {
+                    var inValue = Helper.GetValue( scalarExpression, type, _RawData, rawDataRows );
+                    var compare = HelperConditional.IsPredicateCorrect( source, inValue, SqlComparisonBooleanExpressionType.Equals );
+                    if ( compare )
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException( "We expect each compare value to be a scalar expression" );
+                }
+            }
+
+            return false;
         }
 
         private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlComparisonBooleanExpression expression )
