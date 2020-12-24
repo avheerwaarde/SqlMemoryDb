@@ -53,7 +53,7 @@ namespace DatabaseTests
             const string sql = @"
 DELETE a
 FROM application AS a
-INNER JOIN application_action ON application.Id = application_action.fk_application
+INNER JOIN application_action ON a.Id = application_action.fk_application
 WHERE application_action.fk_application = 1";
 
             using var connection = new MemoryDbConnection( );
