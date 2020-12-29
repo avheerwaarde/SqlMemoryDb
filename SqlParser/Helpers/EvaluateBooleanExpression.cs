@@ -20,7 +20,7 @@ namespace SqlMemoryDb.Helpers
             _Command = command;
         }
 
-        public bool Evaluate( List<RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression, bool invertResult = false )
+        public bool Evaluate( List<RawTableRow> rawDataRows, SqlBooleanExpression expression, bool invertResult = false )
         {
             switch ( expression )
             {
@@ -35,7 +35,7 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
-        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlInBooleanExpression expression )
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlInBooleanExpression expression )
         {
             var type = Helper.DetermineType( expression.InExpression, expression.InExpression, _RawData );
             var source = Helper.GetValue( expression.InExpression, type, _RawData, rawDataRows );
@@ -59,7 +59,7 @@ namespace SqlMemoryDb.Helpers
             return false;
         }
 
-        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlComparisonBooleanExpression expression )
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlComparisonBooleanExpression expression )
         {
             var type = Helper.DetermineType( expression.Left, expression.Right, _RawData);
             var left = Helper.GetValue(expression.Left, type, _RawData, rawDataRows);
@@ -67,14 +67,14 @@ namespace SqlMemoryDb.Helpers
             return HelperConditional.IsPredicateCorrect(left, right, expression.ComparisonOperator);
         }
 
-        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlBinaryBooleanExpression expression )
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlBinaryBooleanExpression expression )
         {
             var leftIsValid = Evaluate( rawDataRows, expression.Left );
             var rightIsValid = Evaluate( rawDataRows, expression.Right );
             return HelperConditional.IsTrue( expression.Operator, leftIsValid, rightIsValid );
         }
 
-        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlExistsBooleanExpression expression )
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlExistsBooleanExpression expression )
         {
             bool hasRows;
             using ( var reader = new MemoryDbDataReader( CommandBehavior.SingleResult ) )
@@ -90,7 +90,7 @@ namespace SqlMemoryDb.Helpers
             return hasRows;
         }
 
-        private bool EvaluateExpression( List<RawData.RawDataRow> rawDataRows, SqlIsNullBooleanExpression expression )
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlIsNullBooleanExpression expression )
         {
             var type = Helper.DetermineType( expression.Expression, _RawData);
             var val = Helper.GetValue(expression.Expression, type, _RawData, rawDataRows);

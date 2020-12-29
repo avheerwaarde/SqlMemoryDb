@@ -41,13 +41,13 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             throw new NotImplementedException( );
         }
 
 
-        public object Select( List<List<RawData.RawDataRow>> rows )
+        public object Select( List<RawTableJoinRow> rows )
         {
             switch ( _FunctionCall.FunctionName.ToUpper() )
             {

@@ -243,7 +243,7 @@ namespace SqlMemoryDb
         {
             var scalarAssignment = (SqlScalarVariableAssignment)(assignment.VariableAssignment);
             var param = Helper.GetParameter( command, scalarAssignment.Variable );
-            param.Value = Helper.GetValue( scalarAssignment.Value, param.NetDataType, new RawData( command ), new List<RawData.RawDataRow>( ) );
+            param.Value = Helper.GetValue( scalarAssignment.Value, param.NetDataType, new RawData( command ), new List<RawTableRow>( ) );
         }
 
 

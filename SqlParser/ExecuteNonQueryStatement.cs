@@ -106,13 +106,13 @@ namespace SqlMemoryDb
                 case SqlBuiltinScalarFunctionCallExpression function:
                 {
                     var select = new SelectDataBuilder(  ).Build( function, new RawData( _Command ) );
-                    row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
+                    row[ column.Order ] = select.Select( new RawTableJoinRow() );
                     break;
                 }
                 case SqlScalarVariableRefExpression variableRef:
                 {
                     var select = new SelectDataFromVariables( variableRef, _Command );
-                    row[ column.Order ] = select.Select( new List<RawData.RawDataRow>() );
+                    row[ column.Order ] = select.Select( new RawTableJoinRow() );
                     break;
                 }
                 default:
@@ -177,7 +177,7 @@ namespace SqlMemoryDb
                 }
                 else if ( column.HasDefault && column.DefaultCallExpression != null )
                 {
-                    var rawDataRows = new List<RawData.RawDataRow>{ new RawData.RawDataRow{ Name = table.Name, Table = table, Row = row }};
+                    var rawDataRows = new List<RawTableRow>{ new RawTableRow{ Name = table.Name, Table = table, Row = row }};
                     row[ column.Order ] = Helper.GetValue( column.DefaultCallExpression, column.NetDataType, new RawData(_Command), rawDataRows );
                 }
             }
@@ -250,7 +250,7 @@ namespace SqlMemoryDb
         {
             var rawData = new RawData( _Command );
             var evaluator = new EvaluateBooleanExpression( rawData, _Database, _Command );
-            var isTrue = evaluator.Evaluate( new List<RawData.RawDataRow>( ), ifElseStatement.Condition );
+            var isTrue = evaluator.Evaluate( new List<RawTableRow>( ), ifElseStatement.Condition );
             if ( isTrue && ifElseStatement.TrueStatement != null )
             {
                 _Database.ExecuteStatement( _Command, ifElseStatement.TrueStatement );                

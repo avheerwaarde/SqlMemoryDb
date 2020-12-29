@@ -21,14 +21,14 @@ namespace SqlMemoryDb.Helpers
             _InvertResult = invertResult;
         }
 
-        public bool IsValid( List<RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<RawTableRow> rawDataRows )
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRows );
             var right = Helper.GetValue( _Expression.Right, _Type, _RawData, rawDataRows );
             return HelperConditional.IsPredicateCorrect( left, right, _Expression.ComparisonOperator ) ^ _InvertResult;
         }
 
-        public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList,
+        public bool IsValid( List<RawTableJoinRow> rawDataRowList,
             List<MemoryDbDataReader.ReaderFieldData> fields )
         {
             var left = Helper.GetValue( _Expression.Left, _Type, _RawData, rawDataRowList );

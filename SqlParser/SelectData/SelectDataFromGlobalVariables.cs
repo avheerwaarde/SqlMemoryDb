@@ -21,7 +21,7 @@ namespace SqlMemoryDb.SelectData
             _RawData = rawData;
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             switch ( _GlobalVariableName.ToUpper( ) )
             {

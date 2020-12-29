@@ -33,7 +33,7 @@ namespace SqlMemoryDb
 
         internal class ResultBatchWithRawRows : ResultBatch
         {
-            public List<List<RawData.RawDataRow>> RawRows = new List<List<RawData.RawDataRow>>();
+            public List<List<RawTableRow>> RawRows = new List<List<RawTableRow>>();
         }
 
 

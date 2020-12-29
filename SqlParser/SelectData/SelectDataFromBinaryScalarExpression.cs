@@ -35,7 +35,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             if ( _DbType == DbType.String )
             {
@@ -50,7 +50,7 @@ namespace SqlMemoryDb.SelectData
         }
 
 
-        private string SelectString( List<RawData.RawDataRow> rows )
+        private string SelectString( List<RawTableRow> rows )
         {
             var left = Helper.GetValue( _Expression.Left, typeof( string ), _RawData, rows )?.ToString(  );
             var right = Helper.GetValue( _Expression.Right, typeof( string ), _RawData, rows )?.ToString(  );
@@ -66,7 +66,7 @@ namespace SqlMemoryDb.SelectData
             return left + right;
         }
 
-        private long SelectInteger( List<RawData.RawDataRow> rows )
+        private long SelectInteger( List<RawTableRow> rows )
         {
             var left = Convert.ToInt64(Helper.GetValue( _Expression.Left, typeof( long ), _RawData, rows ));
             var right = Convert.ToInt64(Helper.GetValue( _Expression.Right, typeof( long ), _RawData, rows ));
@@ -82,7 +82,7 @@ namespace SqlMemoryDb.SelectData
         }
 
 
-        private decimal SelectDecimal( List<RawData.RawDataRow> rows )
+        private decimal SelectDecimal( List<RawTableRow> rows )
         {
             var left = Convert.ToDecimal(Helper.GetValue( _Expression.Left, typeof( decimal ), _RawData, rows ));
             var right = Convert.ToDecimal(Helper.GetValue( _Expression.Right, typeof( decimal ), _RawData, rows ));

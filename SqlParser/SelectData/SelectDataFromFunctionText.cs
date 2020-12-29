@@ -33,7 +33,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             var arguments = GetArgumentList( );
 
@@ -70,7 +70,7 @@ namespace SqlMemoryDb.SelectData
             {
                 foreach ( var argument in _FunctionCall.Arguments )
                 {
-                    var value = Helper.GetValue( argument, typeof(string), _RawData, new List<RawData.RawDataRow>() );
+                    var value = Helper.GetValue( argument, typeof(string), _RawData, new List<RawTableRow>() );
                     if ( value != null )
                     {
                         value = string.Format( "{0}", value, CultureInfo.InvariantCulture );

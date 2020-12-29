@@ -37,7 +37,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             var evaluator = new EvaluateBooleanExpression( _RawData, ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( ), _RawData.Command  );
             foreach ( var whenClause in _Expression.WhenClauses )

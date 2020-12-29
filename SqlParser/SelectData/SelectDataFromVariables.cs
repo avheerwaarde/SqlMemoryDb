@@ -20,7 +20,7 @@ namespace SqlMemoryDb.SelectData
             _Parameter = Helper.GetParameter( command, scalarExpression );
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             return _Parameter.Value;
         }

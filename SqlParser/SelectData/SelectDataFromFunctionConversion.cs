@@ -88,7 +88,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             switch ( _FunctionCall.FunctionName.ToUpper( ) )
             {
@@ -133,7 +133,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private object FunctionCast( List<RawData.RawDataRow> rows )
+        private object FunctionCast( List<RawTableRow> rows )
         {
             var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             value = TruncateDoubleIfReturnTypeHasNoDecimals( value );
@@ -159,7 +159,7 @@ namespace SqlMemoryDb.SelectData
             return value;
         }
 
-        private object FunctionConvert( List<RawData.RawDataRow> rows )
+        private object FunctionConvert( List<RawTableRow> rows )
         {
             var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             value = TruncateDoubleIfReturnTypeHasNoDecimals( value );
@@ -172,7 +172,7 @@ namespace SqlMemoryDb.SelectData
             return Convert.ChangeType( value, _ReturnType, CultureInfo.InvariantCulture );
         }
 
-        private string FormattedAsString( object value, List<RawData.RawDataRow> rows )
+        private string FormattedAsString( object value, List<RawTableRow> rows )
         {
             if ( value is string && _ReturnType == typeof(string) )
             {
@@ -198,7 +198,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private int FunctionIsDate( List<RawData.RawDataRow> rows )
+        private int FunctionIsDate( List<RawTableRow> rows )
         {
             var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             if ( value is DateTime )
@@ -222,7 +222,7 @@ namespace SqlMemoryDb.SelectData
             return 0;
         }
 
-        private object FunctionIsNull( List<RawData.RawDataRow> rows )
+        private object FunctionIsNull( List<RawTableRow> rows )
         {
             foreach ( var argument in _FunctionCall.Arguments )
             {
@@ -235,7 +235,7 @@ namespace SqlMemoryDb.SelectData
             return null;
         }
 
-        private int FunctionIsNumeric( List<RawData.RawDataRow> rows )
+        private int FunctionIsNumeric( List<RawTableRow> rows )
         {
             var value = Helper.GetValue( _FunctionCall.Arguments[0], _ReturnType, _RawData, rows, true );
             if ( value is byte || value is Int16 || value is Int32 || value is Int64 || value is float || value is double || value is decimal )

@@ -18,19 +18,19 @@ namespace SqlMemoryDb.Helpers
             _RawData = rawData;
             _InvertResult = invertResult;
             _Expression = likeExpression.Expression;
-            var pattern = Helper.GetValue( likeExpression.LikePattern, typeof(string), _RawData, new List<RawData.RawDataRow>()).ToString(  );
+            var pattern = Helper.GetValue( likeExpression.LikePattern, typeof(string), _RawData, new List<RawTableRow>()).ToString(  );
             _LikeRegEx = Helper.GetLikeRegEx( pattern );
         }
 
 
-        public bool IsValid( List<RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<RawTableRow> rawDataRows )
         {
             var field = Helper.GetValue( _Expression, typeof( string ), _RawData, rawDataRows ).ToString(  );
             var isMatch = Regex.IsMatch( field, _LikeRegEx, RegexOptions.IgnoreCase );
             return isMatch ^ _InvertResult;
         }
 
-        public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList, List<MemoryDbDataReader.ReaderFieldData> fields )
+        public bool IsValid( List<RawTableJoinRow> rawDataRowList, List<MemoryDbDataReader.ReaderFieldData> fields )
         {
             throw new NotImplementedException( );
         }

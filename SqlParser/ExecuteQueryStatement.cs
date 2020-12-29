@@ -125,7 +125,7 @@ namespace SqlMemoryDb
             else
             {
                 // We do not select data from any table, so we insert an empty row to trigger a result in AddData().
-                rawData.RawRowList.Add( new List<RawData.RawDataRow>() );
+                rawData.RawRowList.Add( new RawTableJoinRow() );
             }
 
             var batch = InitializeBatch( rawData, sqlQuery );

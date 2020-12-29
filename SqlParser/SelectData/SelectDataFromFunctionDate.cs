@@ -31,7 +31,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             switch ( _FunctionCall.FunctionName.ToUpper( ) )
             {
@@ -61,7 +61,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private DateTime? FunctionDateAdd( List<RawData.RawDataRow> rows )
+        private DateTime? FunctionDateAdd( List<RawTableRow> rows )
         {
             var date = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[2], typeof( DateTime ), _RawData, rows );
             if ( date == null )
@@ -123,7 +123,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private int? FunctionDateDiff( List<RawData.RawDataRow> rows )
+        private int? FunctionDateDiff( List<RawTableRow> rows )
         {
             var date1 = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[1], typeof( DateTime ), _RawData, rows );
             if ( date1 == null )
@@ -188,7 +188,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private string FunctionDateName( List<RawData.RawDataRow> rows )
+        private string FunctionDateName( List<RawTableRow> rows )
         {
             var date1 = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[1], typeof( DateTime ), _RawData, rows );
             if ( date1 == null )
@@ -246,7 +246,7 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private int? FunctionDatePart( List<RawData.RawDataRow> rows )
+        private int? FunctionDatePart( List<RawTableRow> rows )
         {
             var date1 = (DateTime?)Helper.GetValue( _FunctionCall.Arguments[1], typeof( DateTime ), _RawData, rows );
             if ( date1 == null )

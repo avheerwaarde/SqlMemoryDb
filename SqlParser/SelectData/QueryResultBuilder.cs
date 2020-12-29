@@ -12,8 +12,8 @@ namespace SqlMemoryDb.SelectData
         private class InternalResultRow
         {
             public ArrayList ResultRow;
-            public List<RawData.RawDataRow> RawRowList = new List<RawData.RawDataRow>();
-            public List<List<RawData.RawDataRow>> RawAggregateRowList = new List<List<RawData.RawDataRow>>();
+            public List<RawTableRow> RawRowList = new List<RawTableRow>();
+            public List<RawTableJoinRow> RawAggregateRowList = new List<RawTableJoinRow>();
         }
 
         private readonly RawData _RawData;
@@ -72,14 +72,14 @@ namespace SqlMemoryDb.SelectData
             }
         }
 
-        private List<List<List<RawData.RawDataRow>>> GroupRows( RawData rawData )
+        private List<List<RawTableJoinRow>> GroupRows( RawData rawData )
         {
             var groups = rawData.RawRowList.GroupBy( t => CreateGroupByKey( t, rawData.GroupByFields ) );
             return groups.Select( g => g.ToList(  ) ).ToList( );
         }
 
 
-        private object CreateGroupByKey( List<RawData.RawDataRow> row, List<TableColumn> groupByFields )
+        private object CreateGroupByKey( RawTableJoinRow row, List<TableColumn> groupByFields )
         {
             var keys = new List<string>( );
             foreach ( var field in groupByFields )
@@ -91,7 +91,7 @@ namespace SqlMemoryDb.SelectData
         }
 
         private InternalResultRow CreateAggregateRow( List<MemoryDbDataReader.ReaderFieldData> fields,
-            List<List<RawData.RawDataRow>> rawRows, List<TableColumn> groupByFields )
+            List<RawTableJoinRow> rawRows, List<TableColumn> groupByFields )
         {
             var resultRow = new ArrayList();
             foreach ( var field in fields )
