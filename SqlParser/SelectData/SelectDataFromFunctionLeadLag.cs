@@ -39,7 +39,7 @@ namespace SqlMemoryDb.SelectData
             _ReturnType = batch.Fields[ 0 ].NetType;
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             var leap = ( int ) Helper.GetValue( _FunctionCall.Arguments[ 1 ], typeof( int ), _RawData, rows );
             if ( _FunctionCall.FunctionName.ToUpper() == "LAG" )
@@ -62,7 +62,7 @@ namespace SqlMemoryDb.SelectData
         }
 
         private MemoryDbDataReader.ResultBatchWithRawRows ExecuteSelect( SqlSelectStatement selectExpression,
-            List<RawData.RawDataRow> rows )
+            List<RawTableRow> rows )
         {
             var querySpecification = ( SqlQuerySpecification ) selectExpression.SelectSpecification.QueryExpression;
             var db = ( ( MemoryDbConnection ) _RawData.Command.Connection ).GetMemoryDatabase( );
@@ -85,10 +85,10 @@ namespace SqlMemoryDb.SelectData
         }
 
         private void AddWhereParameter( MemoryDbDataReader.ResultBatchWithRawRows batch, RawData rawData,
-            List<RawData.RawDataRow> rows, SqlWhereClause whereClause )
+            List<RawTableRow> rows, SqlWhereClause whereClause )
         {
             var tableColumn = Helper.FindTableAndColumn( null, _PartitionField, rawData.TableAliasList );
-            var value = new SelectDataFromColumn( tableColumn, _RawData ).Select( rows );
+            var value = new SelectDataFromColumn( tableColumn, _RawData ).Select( new RawTableJoinRow(rows) );
             rawData.Parameters.Add( new MemoryDbParameter { ParameterName = _PartitionField, Value = value } );
             rawData.WhereClause = whereClause.Expression;
         }

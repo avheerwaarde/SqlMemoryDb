@@ -18,20 +18,20 @@ namespace SqlMemoryDb.Helpers
             _InvertResult = invertResult;
         }
 
-        public bool IsValid( List<RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<RawTableRow> rawDataRows )
         {
             var leftIsValid = EvaluateSide( rawDataRows, _Expression.Left );
             var rightIsValid = EvaluateSide( rawDataRows, _Expression.Right );
             return HelperConditional.IsTrue( _Expression.Operator, leftIsValid, rightIsValid ) ^ _InvertResult;
         }
 
-        public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList,
+        public bool IsValid( List<RawTableJoinRow> rawDataRowList,
             List<MemoryDbDataReader.ReaderFieldData> fields )
         {
             throw new NotImplementedException( );
         }
 
-        private bool EvaluateSide( List<RawData.RawDataRow> rawDataRows, SqlBooleanExpression expression )
+        private bool EvaluateSide( List<RawTableRow> rawDataRows, SqlBooleanExpression expression )
         {
             var database = ((MemoryDbConnection )_RawData.Command.Connection).GetMemoryDatabase( );
             var evaluator = new EvaluateBooleanExpression( _RawData, database, null );

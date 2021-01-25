@@ -27,7 +27,7 @@ namespace SqlMemoryDb.SelectData
             _RawData = rawData;
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             var selectExpression = ParseAsSelect( _FunctionCall.Sql );
             var querySpecification = (SqlQuerySpecification)selectExpression.SelectSpecification.QueryExpression;

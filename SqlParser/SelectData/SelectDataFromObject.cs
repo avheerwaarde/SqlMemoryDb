@@ -27,7 +27,7 @@ namespace SqlMemoryDb.SelectData
             _ReturnType = value.GetType( );
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             return _Value;
         }

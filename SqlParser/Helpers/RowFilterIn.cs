@@ -20,7 +20,7 @@ namespace SqlMemoryDb.Helpers
             _InvertResult = _Expression.HasNot;
         }
 
-        public bool IsValid( List<RawData.RawDataRow> rawDataRows )
+        public bool IsValid( List<RawTableRow> rawDataRows )
         {
             var scalarValue = Helper.GetValue( _Expression.InExpression, typeof( int ), _RawData, rawDataRows );
             var type = scalarValue.GetType( );
@@ -52,7 +52,7 @@ namespace SqlMemoryDb.Helpers
             return isValid;
         }
 
-        public bool IsValid( List<List<RawData.RawDataRow>> rawDataRowList, List<MemoryDbDataReader.ReaderFieldData> fields )
+        public bool IsValid( List<RawTableJoinRow> rawDataRowList, List<MemoryDbDataReader.ReaderFieldData> fields )
         {
             throw new NotImplementedException( );
         }

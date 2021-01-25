@@ -27,7 +27,7 @@ namespace SqlMemoryDb.SelectData
             _RawData = rawData;
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             var value = Helper.GetValue( _FunctionCall.Arguments.First( ), typeof(double), _RawData, rows );
             if ( value == null )
@@ -58,7 +58,7 @@ namespace SqlMemoryDb.SelectData
         }
 
 
-        private object InvokeRound( object value, List<RawData.RawDataRow> rows )
+        private object InvokeRound( object value, List<RawTableRow> rows )
         {
             int operation = 0;
             if ( _FunctionCall.Arguments.Count == 3 )
@@ -82,7 +82,7 @@ namespace SqlMemoryDb.SelectData
         }
 
 
-        private object InvokeTruncate( object value, int digits, List<RawData.RawDataRow> rows )
+        private object InvokeTruncate( object value, int digits, List<RawTableRow> rows )
         {
             switch ( Type.GetTypeCode(value.GetType(  )) )
             {

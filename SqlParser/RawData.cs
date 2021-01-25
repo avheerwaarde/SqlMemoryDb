@@ -14,13 +14,8 @@ namespace SqlMemoryDb
 {
     internal class RawData
     {
-        public class RawDataRow
-        {
-            public string Name;
-            public Table Table;
-            public ArrayList Row;
-        }
-        public List<List<RawDataRow>> RawRowList = new List<List<RawDataRow>>();
+
+        public List<RawTableJoinRow> RawRowList = new List<RawTableJoinRow>();
         public DbParameterCollection Parameters { get; set; }
         public SqlBooleanExpression HavingClause { get; set; }
         public SqlBooleanExpression WhereClause { get; set; }
@@ -69,9 +64,9 @@ namespace SqlMemoryDb
             }
         }
 
-        private List<List<RawDataRow>> GetTableOrViewRows( Dictionary<string, Table> tables, SqlTableRefExpression tableRef )
+        private List<RawTableJoinRow> GetTableOrViewRows( Dictionary<string, Table> tables, SqlTableRefExpression tableRef )
         {
-            List<List<RawDataRow>> rowList;
+            List<RawTableJoinRow> rowList;
             var name = Helper.GetAliasName( tableRef );
             var qualifiedName = Helper.GetQualifiedName( tableRef.ObjectIdentifier );
             if ( tables.ContainsKey( qualifiedName ) )
@@ -102,29 +97,29 @@ namespace SqlMemoryDb
             return rowList;
         }
 
-        public List<List<RawDataRow>> GetAllTableRows( Table table, string name )
+        public List<RawTableJoinRow> GetAllTableRows( Table table, string name )
         {
-            var rawRowList = new List<List<RawDataRow>>( ); 
+            var rawRowList = new List<RawTableJoinRow>( ); 
             if ( TableAliasList.ContainsKey( name ) == false )
             {
                 TableAliasList.Add( name, table );
             }
             foreach ( var row in table.Rows )
             {
-                var tableRow = new RawData.RawDataRow
+                var tableRow = new RawTableRow
                 {
                     Name = name,
                     Table = table,
                     Row = row
                 };
-                var rows = new List<RawDataRow>( ) {tableRow};
+                var rows = new RawTableJoinRow( ) {tableRow};
                 rawRowList.Add( rows );
             }
 
             return rawRowList;
         }
 
-        private List<List<RawDataRow>> GetAllViewRows( SqlCreateAlterViewStatementBase view, string name )
+        private List<RawTableJoinRow> GetAllViewRows( SqlCreateAlterViewStatementBase view, string name )
         {
             var command = new MemoryDbCommand( Command.Connection, Command.Parameters, Command.Variables );
             var rawData = new RawData( command );
@@ -139,20 +134,20 @@ namespace SqlMemoryDb
             return ResultBatch2RowList( TableAliasList[ name ], batch );
         }
 
-        private List<List<RawDataRow>> ResultBatch2RowList( Table table,
+        private List<RawTableJoinRow> ResultBatch2RowList( Table table,
             MemoryDbDataReader.ResultBatch batch, SqlIdentifierCollection columnList = null )
         {
-            var rowList = new List<List<RawDataRow>>( );
+            var rowList = new List<RawTableJoinRow>( );
 
             foreach ( var row in batch.ResultRows )
             {
-                var tableRow = new RawData.RawDataRow
+                var tableRow = new RawTableRow
                 {
                     Name = table.FullName,
                     Table = table,
                     Row = row
                 };
-                var rows = new List<RawDataRow>( ) {tableRow};
+                var rows = new RawTableJoinRow( ) {tableRow};
                 rowList.Add( rows );
             }
 
@@ -192,9 +187,9 @@ namespace SqlMemoryDb
             return table;
         }
 
-        public void AddAllTableJoinRows(List<List<RawDataRow>> joinRowList, string name, SqlQualifiedJoinTableExpression joinExpression )
+        public void AddAllTableJoinRows(List<RawTableJoinRow> joinRowList, string name, SqlQualifiedJoinTableExpression joinExpression )
         {
-            var newTableRows = new List<List<RawDataRow>>( );
+            var newTableRows = new List<RawTableJoinRow>( );
             var filter = HelperConditional.GetRowFilter( joinExpression.OnClause.Expression, this );
             foreach ( var currentRawRows in RawRowList )
             {
@@ -202,7 +197,7 @@ namespace SqlMemoryDb
                 
                 foreach ( var row in joinRowList )
                 {
-                    var newRows = new List<RawDataRow>( currentRawRows ) { row.First() };
+                    var newRows = new RawTableJoinRow( currentRawRows ) { row.First() };
                     if ( filter.IsValid( newRows ) )
                     {
                         newTableRows.Add( newRows );

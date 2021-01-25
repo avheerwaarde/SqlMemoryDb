@@ -24,7 +24,7 @@ namespace SqlMemoryDb.SelectData
             _RawData = rawData;
         }
 
-        public object Select( List<RawData.RawDataRow> rows )
+        public object Select( RawTableJoinRow rows )
         {
             if ( _FunctionCall.FunctionName.ToUpper() == "SCOPE_IDENTITY" )
             {

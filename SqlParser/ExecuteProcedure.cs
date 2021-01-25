@@ -85,7 +85,7 @@ namespace SqlMemoryDb
                     else
                     {
                         parameter.Value = Helper.GetValue( argument.Value, parameter.NetDataType, new RawData( _Command ),
-                            new List<RawData.RawDataRow>( ) );
+                            new List<RawTableRow>( ) );
                     }
                 }
             }

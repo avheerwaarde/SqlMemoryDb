@@ -6,6 +6,6 @@ namespace SqlMemoryDb.SelectData
 {
     interface ISelectDataAggregate : ISelectData
     {
-        object Select( List<List<RawData.RawDataRow>> rows );
+        object Select( List<RawTableJoinRow> rows );
     }
 }

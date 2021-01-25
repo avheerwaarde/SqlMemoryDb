@@ -12,6 +12,6 @@ namespace SqlMemoryDb.SelectData
         DbType DbType { get; }
         SqlScalarExpression Expression { get; }
 
-        object Select( List<RawData.RawDataRow> rows );
+        object Select( RawTableJoinRow rows );
     }
 }

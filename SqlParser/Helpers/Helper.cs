@@ -343,7 +343,7 @@ namespace SqlMemoryDb.Helpers
         }
 
 
-        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawData.RawDataRow> row, bool getTypeFromLiteral = false )
+        public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData, List<RawTableRow> row, bool getTypeFromLiteral = false )
         {
             switch ( expression )
             {
@@ -421,9 +421,9 @@ namespace SqlMemoryDb.Helpers
             }
         }
 
-        private static object GetReturnValue( ISelectData select, List<RawData.RawDataRow> row )
+        private static object GetReturnValue( ISelectData select, List<RawTableRow> row )
         {
-            var value = select.Select( row );
+            var value = select.Select( new RawTableJoinRow(row) );
             return IsParentUnaryNegate( select.Expression ) ? HelperReflection.Negate( value ) : value;
         }
 
@@ -466,7 +466,7 @@ namespace SqlMemoryDb.Helpers
 
 
         public static object GetValue( SqlScalarExpression expression, Type type, RawData rawData,
-            List<List<RawData.RawDataRow>> rows )
+            List<RawTableJoinRow> rows )
         {
             switch ( expression )
             {
