@@ -61,5 +61,22 @@ WHERE fk_application = 99
                 dto.Order.Should( ).NotBe( 9 );
             }
         }
+
+        [TestMethod]
+        public async Task UpdateAction_IncrementOrder_RowIsModified()
+        {
+            const string sqlUpdate = @"
+UPDATE application_action 
+SET [Order] = [Order] + 1
+WHERE Id = 1
+";
+
+            await using var connection = new MemoryDbConnection();
+            var originalAction = ( await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>( SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1" ) );
+            int rowsAffected = await connection.ExecuteAsync( sqlUpdate );
+            rowsAffected.Should().Be( 1 );
+            var newAction = ( await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>( SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1" ) );
+        }
+
     }
 }
