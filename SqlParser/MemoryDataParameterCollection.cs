@@ -39,12 +39,34 @@ namespace SqlMemoryDb
 
         protected override void SetParameter( int index, DbParameter value )
         {
-            _Parameters[ index ] = ( MemoryDbParameter ) value;
+            if ( value is MemoryDbParameter parameter )
+            {
+                if ( parameter.NetDataType == null && parameter.Value != null )
+                {
+                    parameter.NetDataType = parameter.Value.GetType();
+                }
+                _Parameters[ index ] = parameter;
+            }
+            else
+            {
+                throw new NotSupportedException( "Only parameters of type MemoryDbParameter are supported" );
+            }
         }
 
         protected override void SetParameter( string parameterName, DbParameter value )
         {
-            _Parameters[ IndexOf( parameterName ) ] = ( MemoryDbParameter ) value;
+            if ( value is MemoryDbParameter parameter )
+            {
+                if ( parameter.NetDataType == null && parameter.Value != null )
+                {
+                    parameter.NetDataType = parameter.Value.GetType();
+                }
+                _Parameters[ IndexOf( parameterName ) ] = parameter;
+            }
+            else
+            {
+                throw new NotSupportedException( "Only parameters of type MemoryDbParameter are supported" );
+            }
         }
 
         public override int Count => _Parameters.Count;
@@ -55,6 +77,10 @@ namespace SqlMemoryDb
         {
             if ( value is MemoryDbParameter parameter )
             {
+                if ( parameter.NetDataType == null && parameter.Value != null )
+                {
+                    parameter.NetDataType = parameter.Value.GetType();
+                }
                 _Parameters.Add( parameter );    
             }
             else
