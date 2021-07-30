@@ -97,3 +97,4 @@ Version | Description
 0.10.22| rowversion
 0.10.23| functions as default values for fields
 0.10.24| bugfix multiple joins
+0.10.25| implement where like + implement top (@parameter)

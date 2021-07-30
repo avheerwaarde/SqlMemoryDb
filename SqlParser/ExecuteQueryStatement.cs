@@ -225,7 +225,18 @@ namespace SqlMemoryDb
                 }
                 else if ( column is SqlTopSpecification topSpecification )
                 {
-                    batch.MaxRowsCount = int.Parse( topSpecification.Value.Sql );
+                    if ( topSpecification.Value.Sql.All( char.IsDigit ))
+                    {
+                        batch.MaxRowsCount = int.Parse( topSpecification.Value.Sql );
+                    }
+                    else if ( topSpecification.Value is SqlScalarVariableRefExpression variableRef)
+                    {
+                        batch.MaxRowsCount = (int?) Helper.GetValueFromParameter( variableRef.VariableName, rawData.Parameters, rawData.Command.Variables );
+                    }
+                    else
+                    {
+                        throw new NotImplementedException( $"top specification of type { topSpecification.Value.GetType()} is not implemented" );
+                    }
                 }
                 else if ( column is SqlSelectStarExpression selectStarExpression )
                 {

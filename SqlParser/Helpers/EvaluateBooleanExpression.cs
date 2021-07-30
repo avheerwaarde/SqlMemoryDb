@@ -30,9 +30,16 @@ namespace SqlMemoryDb.Helpers
                 case SqlExistsBooleanExpression existsExpression     : return EvaluateExpression( rawDataRows, existsExpression) ^ invertResult;
                 case SqlIsNullBooleanExpression isNullExpression     : return EvaluateExpression( rawDataRows, isNullExpression) ^ invertResult;
                 case SqlInBooleanExpression inBooleanExpression      : return EvaluateExpression( rawDataRows, inBooleanExpression ) ^ invertResult;
-                default :
+                case SqlLikeBooleanExpression likeBooleanExpression  : return EvaluateExpression( rawDataRows, likeBooleanExpression, invertResult );
+                default:
                     throw new NotImplementedException();
             }
+        }
+
+        private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlLikeBooleanExpression expression, bool invertResult )
+        {
+            var filter = new RowFilterLike( _RawData, expression, invertResult );
+            return filter.IsValid( rawDataRows );
         }
 
         private bool EvaluateExpression( List<RawTableRow> rawDataRows, SqlInBooleanExpression expression )

@@ -171,6 +171,16 @@ namespace DatabaseTests
         }
 
         [TestMethod]
+        public async Task SelectApplicationAction_TopParameter_RowRead()
+        {
+            await using var connection = new MemoryDbConnection();
+            var sql = "SELECT TOP (@count) Id FROM application_action";
+            var parameters = new {count = 4};
+            var idEnumeration = await connection.QueryAsync<int>( sql, parameters );
+            idEnumeration.Count().Should().Be( parameters.count );
+        }
+
+        [TestMethod]
         public async Task SelectApplicationAction_WhereOr_RowsRead( )
         {
             await using var connection = new MemoryDbConnection( );
