@@ -43,7 +43,7 @@ namespace SqlMemoryDb
             { "SQL_VARIANT"     , InitObject },
             { "TEXT"            , InitNVarChar },
             { "TIME"            , InitTime },
-            { "TIMESTAMP"       , InitTimeStamp },
+            { "TIMESTAMP"       , InitDateTime },
             { "TINYINT"         , InitTinyInt },
             { "UNIQUEIDENTIFIER", InitUniqueIdentifier},
             { "VARBINARY"       , InitVarBinary },
