@@ -72,10 +72,14 @@ WHERE Id = 1
 ";
 
             await using var connection = new MemoryDbConnection();
-            var originalAction = ( await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>( SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1" ) );
-            int rowsAffected = await connection.ExecuteAsync( sqlUpdate );
-            rowsAffected.Should().Be( 1 );
-            var newAction = ( await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>( SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1" ) );
+            for ( int count = 1; count < 5; count++ )
+            {
+                var originalAction = (await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>(SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1"));
+                int rowsAffected = await connection.ExecuteAsync(sqlUpdate);
+                rowsAffected.Should().Be(1);
+                var newAction = (await connection.QuerySingleOrDefaultAsync<ApplicationActionDto>(SqlStatements.SqlSelectApplicationAction + " WHERE Id = 1"));
+                newAction.Order.Should().Be( originalAction.Order + 1);
+            }
         }
 
     }

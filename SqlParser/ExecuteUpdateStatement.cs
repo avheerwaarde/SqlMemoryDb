@@ -49,9 +49,9 @@ namespace SqlMemoryDb
                             throw new SqlUpdateColumnForbiddenException( tableColumn.Column.Name );
                         }
 
-                        var value = Helper.GetValue( columnAssignment.Value, tableColumn.Column.NetDataType, rawData, new List<RawTableRow>( ) );
                         foreach ( var row in rawData.RawRowList )
                         {
+                            var value = Helper.GetValue(columnAssignment.Value, tableColumn.Column.NetDataType, rawData, row );
                             var updateTable = row.Single( r => r.Name == tableColumn.TableName );
                             updateTable.Row[ tableColumn.Column.Order ] = value;
                             if ( updatedRows.Any( u => u.Row == updateTable.Row ) == false )
