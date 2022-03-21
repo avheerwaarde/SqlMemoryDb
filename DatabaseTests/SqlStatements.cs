@@ -73,7 +73,17 @@ CREATE TABLE[dbo].[TextTable]
 ) ON[PRIMARY]
 ";
 
-        public const string SqlCreateTableApplicationAction2 = @"
+        public const string SqlCreateTableUniqueIdentifier = @"
+CREATE TABLE[dbo].[UniqueTable]
+(
+
+   [Id] int IDENTITY(1,1) NOT NULL,
+   [Unique] [UNIQUEIDENTIFIER] NULL
+) ON[PRIMARY]
+";
+
+
+		public const string SqlCreateTableApplicationAction2 = @"
 CREATE TABLE[dbo].[application_action]
 (
 
