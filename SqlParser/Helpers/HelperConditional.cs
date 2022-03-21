@@ -44,7 +44,9 @@ namespace SqlMemoryDb.Helpers
                 return false;
             }
 
-            if ( left.GetType(  ) == typeof(byte[]) && right.GetType(  ) == typeof(byte[])  )
+            var leftType = left.GetType(  );
+            var rightType = right.GetType(  );
+            if ( leftType == typeof(byte[]) && rightType == typeof(byte[])  )
             {
                 return IsPredicateArrayCorrect( (byte[])left, (byte[])right, comparisonOperator );
             }
@@ -54,7 +56,15 @@ namespace SqlMemoryDb.Helpers
                 return false;
             }
 
-            var comparison = ( ( IComparable ) left ).CompareTo( ( IComparable ) right );
+            int comparison;
+            if ( leftType != rightType && (leftType == typeof(string) || rightType == typeof(string)))
+            {
+                comparison = string.Compare( left.ToString(), right.ToString(), StringComparison.InvariantCultureIgnoreCase );
+            }
+            else
+            {
+                comparison = ( (IComparable)left ).CompareTo( (IComparable)right );
+            }
 
             switch ( comparisonOperator )
             {
